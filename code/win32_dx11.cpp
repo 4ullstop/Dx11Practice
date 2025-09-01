@@ -1,6 +1,37 @@
 #include <windows.h>
+
+//I don't like this include statement, I would Like to figure out how not to include it, or create a local one
+//for the code to reference instead of going into this location
+
+#include "D:/ExternalCustomAPIs/MemoryPools/code/memory_pools.h"
+
+
+
+//Also not a huge fan of the fact that typedefs.h is redefined
 #include "typedefs.h"
 #include <d3d11_2.h>
+
+
+#define MEMORY_POOL_PUSH_STRUCT(name) void* name(memory_arena* arena, void* type)
+typedef MEMORY_POOL_PUSH_STRUCT(memory_pool_push_struct);
+MEMORY_POOL_PUSH_STRUCT(MemoryPoolPushStructStub)
+{
+    return(0);
+}
+global_variable memory_pool_push_struct* MemoryPoolPushStruct_ = MemoryPoolPushStructStub;
+#define MemoryPoolPushStruct MemoryPoolPushStruct_
+
+#define MEMORY_POOL_PUSH_ARRAY(name) void* name(memory_arena* arena, i32 count, void* type)
+typedef MEMORY_POOL_PUSH_ARRAY(memory_pool_push_array);
+MEMORY_POOL_PUSH_ARRAY(MemoryPoolPushArrayStub)
+{
+    return(0);
+}
+global_variable memory_pool_push_array* MemoryPoolPushArray = MemoryPoolPushArrayStub;
+#define MemoryPoolPushArray MemoryPoolPushArray_
+
+
+
 
 global_variable bool32 running;
 
@@ -33,12 +64,55 @@ LRESULT CALLBACK Win32MainWindowProc(HWND hwnd,
     return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
 
+//It's just gonna be worth creating your own APIs for the functions you seem to be reusing like crazy
+#if 0
+internal void
+CreateShaders(ID3D11Device* device)
+{
+    FILE* vShader, *pShader; //vertex (v) pixel (p)
+    BYTE* bytes;
+
+    size_t destSize = 4096;
+    size_t bytesRead = 0;
+    
+    
+}
+#endif
+//NOTE: this function should be called asynchronously, Take the time to have it execute
+//on a separate thread
+internal void
+CreateDeviceDependentResources(void)
+{
+//    CreateShaders();
+
+//    CreateCube();
+}
+
 int CALLBACK WinMain(HINSTANCE hInstance,
 		     HINSTANCE hPrevInstance,
 		     LPSTR lpCmdLine,
 		     int nCmdShow)
 {
+    /*
+      Load our memory pool library
+     */
 
+    memory_pool_dll_code memoryPoolCode = {};
+
+    HMODULE memoryPoolLibrary = LoadLibrary("D:/ExternalCustomAPIs/MemoryPools/dll/memory_pools.dll");
+
+    if (memoryPoolLibrary)
+    {
+	memoryPoolCode.PushStruct = (memory_pool_push_struct*)GetProcAddress(memoryPoolLibrary, "PushStruct");
+	memoryPoolCode.PushArray = (memory_pool_push_array*)GetProcAddress(memoryPoolLibrary, "PushArray");
+    }
+    if (memoryPoolCode.PushStruct && memoryPoolCode.PushArray)
+    {
+	OutputDebugString("Memory Pool Code Successfully Loaded");
+    }
+    
+
+    
     D3D_FEATURE_LEVEL levels[] = {
 	D3D_FEATURE_LEVEL_11_1,
 	D3D_FEATURE_LEVEL_11_0,
@@ -123,10 +197,10 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 	    IDXGIFactory2* factory = 0;
 	    
 //	    HRESULT hr = dxgiDevice->GetAdapter(&adapter);
-	    HRESULT hr = d3dDevice->QueryInterface(__uuidof(IDXGIDevice), (void**)&dxgiDevice);
-	    hr = dxgiDevice->GetParent(__uuidof(IDXGIAdapter), (void**)&adapter);
+	    HR(d3dDevice->QueryInterface(__uuidof(IDXGIDevice), (void**)&dxgiDevice));
+	    HR(dxgiDevice->GetParent(__uuidof(IDXGIAdapter), (void**)&adapter));
 
-	    hr = adapter->GetParent(__uuidof(IDXGIFactory), (void**)&factory);
+	    HR(adapter->GetParent(__uuidof(IDXGIFactory), (void**)&factory));
 
 	    IDXGISwapChain1* swapChain = 0;
 	    ID3D11Texture2D* backBuffer = 0;
@@ -138,74 +212,62 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 	    ID3D11DepthStencilView* depthStencilView;
 	    
 	    D3D11_VIEWPORT viewport;
-	    if (SUCCEEDED(hr))
-	    {
-//		adapter->GetParent(IID_PPV_ARGS(&factory));
-
-#if 0		
-		hr = factory->CreateSwapChain(
-		    d3dDevice,
-		    &desc,
-		    &swapChain);
-#else
-		hr = factory->CreateSwapChainForHwnd(
-		    d3dDevice,
-		    windowHandle,
-		    &desc,
-		    0,
-		    0,
-		    &swapChain);
-#endif		
-	    }
-
-	    if (SUCCEEDED(hr))
-	    {
-		//Getting the back buffer from the swap chain (since we defined DXGI_USAGE_RENDER_TARGET_OUTPUT)
-		hr = swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&backBuffer);
-
-		//Creating a render target view that is bound to the back buffer resource (remember the definition
-		//of a 'render target' as well as 'view'
-		hr = d3dDevice->CreateRenderTargetView(
-		    backBuffer,
-		    nullptr,
-		    &renderTarget);
-
-		backBuffer->GetDesc(&bbDesc);
 
 
-		//Creating the depth stencil
-		CD3D11_TEXTURE2D_DESC depthStencilDesc(
-		    DXGI_FORMAT_D24_UNORM_S8_UINT,
-		    (UINT)bbDesc.Width,
-		    (UINT)bbDesc.Height,
-		    1, //The depth stencil view has only one texture
-		    1, //Use a single mipmap levelx
-		    D3D11_BIND_DEPTH_STENCIL
-		    );
+	    HR(factory->CreateSwapChainForHwnd(
+		d3dDevice,
+		windowHandle,
+		&desc,
+		0,
+		0,
+		&swapChain));
+
+	    //Getting the back buffer from the swap chain (since we defined DXGI_USAGE_RENDER_TARGET_OUTPUT)
+	    HR(swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&backBuffer));
+
+	    //Creating a render target view that is bound to the back buffer resource (remember the definition
+	    //of a 'render target' as well as 'view'
+	    HR(d3dDevice->CreateRenderTargetView(
+		backBuffer,
+		nullptr,
+		&renderTarget));
+
+	    backBuffer->GetDesc(&bbDesc);
 
 
-		d3dDevice->CreateTexture2D(
-		    &depthStencilDesc,
-		    nullptr,
-		    &depthStencil);
+	    //Creating the depth stencil
+	    CD3D11_TEXTURE2D_DESC depthStencilDesc(
+		DXGI_FORMAT_D24_UNORM_S8_UINT,
+		(UINT)bbDesc.Width,
+		(UINT)bbDesc.Height,
+		1, //The depth stencil view has only one texture
+		1, //Use a single mipmap levelx
+		D3D11_BIND_DEPTH_STENCIL
+		);
 
-		CD3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc(D3D11_DSV_DIMENSION_TEXTURE2D);
 
-		d3dDevice->CreateDepthStencilView(
-		    depthStencil,
-		    &depthStencilViewDesc,
-		    &depthStencilView);
+	    d3dDevice->CreateTexture2D(
+		&depthStencilDesc,
+		nullptr,
+		&depthStencil);
 
-		ZeroMemory(&viewport, sizeof(D3D11_VIEWPORT));
-		viewport.Height = (r32)bbDesc.Height;
-		viewport.Width = (r32)bbDesc.Width;
-		viewport.MinDepth = 0;
-		viewport.MaxDepth = 1;
+	    CD3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc(D3D11_DSV_DIMENSION_TEXTURE2D);
 
-		context->RSSetViewports(
-		    1,
-		    &viewport);
-	    }
+	    d3dDevice->CreateDepthStencilView(
+		depthStencil,
+		&depthStencilViewDesc,
+		&depthStencilView);
+
+	    ZeroMemory(&viewport, sizeof(D3D11_VIEWPORT));
+	    viewport.Height = (r32)bbDesc.Height;
+	    viewport.Width = (r32)bbDesc.Width;
+	    viewport.MinDepth = 0;
+	    viewport.MaxDepth = 1;
+
+	    context->RSSetViewports(
+		1,
+		&viewport);
+
 	    
 	    running = true;
 	    

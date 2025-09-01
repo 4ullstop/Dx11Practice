@@ -58,5 +58,28 @@ typedef uint64_t u64;
 typedef float r32;
 typedef double r64;
 
+
+#if defined(TEST_DEBUG) | defined(_DEBUG)
+	#ifndef HR
+	#define HR(x)                                              \
+	{                                                          \
+		HRESULT hr = (x);                                      \
+		if(FAILED(hr))                                         \
+		{                                                      \
+		char buffer[256];				       \
+		sprintf_s(buffer, "Error: HRESULT = 0x%08x\n", hr);    \
+		OutputDebugString(buffer);			       \
+								       \
+		}                                                      \
+	}
+	#endif
+
+#else
+	#ifndef HR
+	#define HR(x) (x)
+	#endif
+#endif 
+
+
 #define TYPEDEFS_H
 #endif
