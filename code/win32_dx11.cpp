@@ -6,76 +6,21 @@
 //I don't like this include statement, I would Like to figure out how not to include it, or create a local one
 //for the code to reference instead of going into this location
 
-#include "D:/ExternalCustomAPIs/MemoryPools/code/memory_pools.h"
+#include "D:/ExternalCustomAPIs/MemoryPools/code/memory_pool_dll_include.h"
 
 //If you separate the program out in the future the file_reader.h file can be included in the separated dll file
 //and the file_reader.cpp should stay here in our win32 implementation
 #include "D:/ExternalCustomAPIs/FileReader/file_reader.h"
 #include "D:/ExternalCustomAPIs/FileReader/file_reader.cpp"
 
-
+#include "D:/ExternalCustomAPIs/OBJLoader/code/directx_obj_loader_dll_include.h"
 
 //Also not a huge fan of the fact that typedefs.h is redefined
-#include "typedefs.h"
+#include "D:/ExternalCustomAPIs/Types/typedefs.h"
 #include <d3d11_2.h>
 #include <dxgi1_3.h>
+#include "D:/ExternalCustomAPIs/Types/direct_x_typedefs.h"
 
-typedef struct constant_buffer_struct_
-{
-    DirectX::XMFLOAT4X4 world;
-    DirectX::XMFLOAT4X4 view;
-    DirectX::XMFLOAT4X4 projection;    
-} constant_buffer_struct;
-
-typedef struct vertex_position_color_
-{
-    DirectX::XMFLOAT3 pos;
-    DirectX::XMFLOAT3 color;    
-} vertex_position_color;
-
-#define MEMORY_POOL_PUSH_STRUCT(name) void* name(memory_arena* arena, void* type)
-typedef MEMORY_POOL_PUSH_STRUCT(memory_pool_push_struct);
-MEMORY_POOL_PUSH_STRUCT(MemoryPoolPushStructStub)
-{
-    return(0);
-}
-global_variable memory_pool_push_struct* MemoryPoolPushStruct_ = MemoryPoolPushStructStub;
-#define MemoryPoolPushStruct MemoryPoolPushStruct_
-
-#define MEMORY_POOL_PUSH_ARRAY(name) void* name(memory_arena* arena, i32 count, void* type)
-typedef MEMORY_POOL_PUSH_ARRAY(memory_pool_push_array);
-MEMORY_POOL_PUSH_ARRAY(MemoryPoolPushArrayStub)
-{
-    return(0);
-}
-global_variable memory_pool_push_array* MemoryPoolPushArray_ = MemoryPoolPushArrayStub;
-#define MemoryPoolPushArray MemoryPoolPushArray_
-
-#define MEMORY_POOL_ALLOC(name) void name(LPVOID lpAddress, DWORD flAllocationType, DWORD flProtect, program_memory* memory)
-typedef MEMORY_POOL_ALLOC(memory_pool_alloc);
-MEMORY_POOL_ALLOC(PoolAllocStub)
-{
-
-}
-global_variable memory_pool_alloc* PoolAlloc_ = PoolAllocStub;
-#define PoolAlloc PoolAlloc_
-
-#define MEMORY_POOL_INITIALIZE_ARENA(name) void name(memory_arena* arena, memory_index size, u8* base)
-typedef MEMORY_POOL_INITIALIZE_ARENA(memory_pool_initialize_arena);
-MEMORY_POOL_INITIALIZE_ARENA(PoolInitializeStub)
-{
-
-}
-global_variable memory_pool_initialize_arena* InitializeArena_ = PoolInitializeStub;
-#define InitializeArena InitilaizeArena_
-
-struct memory_pool_dll_code
-{
-    memory_pool_push_struct* PushStruct;
-    memory_pool_push_array* PushArray;
-    memory_pool_alloc* PoolAlloc;
-    memory_pool_initialize_arena* InitializeArena;
-};
 
 struct shader_info
 {
@@ -91,6 +36,7 @@ struct program_state
 
 
 global_variable memory_pool_dll_code memoryPoolCode;
+global_variable direct_x_load_obj_code directXOBJCode;
 global_variable bool32 running;
 global_variable program_state* programState;
 global_variable ID3D11Texture2D* backBuffer;
@@ -202,7 +148,7 @@ CreateShaders(ID3D11Device* device, shaders* shaderResources)
     size_t bytesRead = 0;
     thread_context blankThread = {};
 
-    bytes = (BYTE*)memoryPoolCode.PushStruct(&programState->setupArena, bytes);
+    bytes = (BYTE*)memoryPoolCode.PushStruct(&programState->setupArena, sizeof(bytes));
 
 
     //I think I need to load in the file reading functions somehow even though it's not a dll
@@ -258,12 +204,6 @@ CreateShaders(ID3D11Device* device, shaders* shaderResources)
 	&shaderResources->constantBuffer);
 }
 
-struct cube_buffers
-{
-    ID3D11Buffer* vertexBuffer;
-    ID3D11Buffer* indexBuffer;
-    i32 indexCount;
-};
 
 internal void
 CreateCube(ID3D11Device* device, cube_buffers* cubeBuffer)
@@ -301,14 +241,21 @@ CreateCube(ID3D11Device* device, cube_buffers* cubeBuffer)
 	&vData,
 	&cubeBuffer->vertexBuffer);
 
+    //For fun make a file loader that loads and obj file, doesn't have to be great atm, make it better later
+
+    //For fun he says... make a file loader for fun he says...
+    
     unsigned short cubeIndices[] =
     {
 	0,2,1,
 	1,2,3,
 
 	4,5,6,
-	5,6,7,
+	5,7,6,
 
+	0,1,5,
+	0,5,4,
+	
 	2,6,7,
 	2,7,3,
 
@@ -319,6 +266,8 @@ CreateCube(ID3D11Device* device, cube_buffers* cubeBuffer)
 	1,7,5,
     };
 
+
+    //Read over why we are doing this again...
     cubeBuffer->indexCount = ArrayCount(cubeIndices);
     CD3D11_BUFFER_DESC iDesc(
 	sizeof(cubeIndices),
@@ -334,8 +283,6 @@ CreateCube(ID3D11Device* device, cube_buffers* cubeBuffer)
 	&iDesc,
 	&iData,
 	&cubeBuffer->indexBuffer);
-
-
 }
 
 internal void
@@ -360,12 +307,20 @@ Update(void)
 //NOTE: this function should be called asynchronously, Take the time to have it execute
 //on a separate thread
 internal void
-CreateDeviceDependentResources(ID3D11Device* device, shaders* shaders, cube_buffers* cubeBuffer)
+CreateDeviceDependentResources(ID3D11Device* device, shaders* shaders, cube_buffers* cubeBuffer, memory_arena* mainArena, program_memory* programMemory)
 {
 
     CreateShaders(device, shaders);
 
+#if 0     
     CreateCube(device, cubeBuffer);
+#else
+    //Yeah, we crash here
+    //I suppose it's because our memory arena is not big enough, but i was too dumb to make a better
+    //system for error checking...
+
+    directXOBJCode.DirectXLoadOBJ("D:/ExternalCustomAPIs/OBJLoader/misc/cubetester2.obj", mainArena, programMemory, device);
+#endif    
 }
 
 internal void
@@ -467,6 +422,12 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 	OutputDebugString("Memory Pool Code Successfully Loaded");
     }
 
+    HMODULE directXOBJLibrary = LoadLibrary("D:/ExternalCustomAPIs/OBJLoader/dll/directx_obj_loader.dll");
+    if (directXOBJLibrary)
+    {
+	directXOBJCode.DirectXLoadOBJ = (direct_x_load_obj*)GetProcAddress(directXOBJLibrary, "DirectXLoadOBJ");
+    }
+    
     program_memory memory = {};
 
 
@@ -481,7 +442,7 @@ int CALLBACK WinMain(HINSTANCE hInstance,
     memoryPoolCode.InitializeArena(&programState->setupArena, memory.permanentStorageSize - sizeof(program_state),
 				   (u8*)memory.permanentStorage + sizeof(program_state));
 
-    programState->shaderInfo = (shader_info*)memoryPoolCode.PushStruct(&programState->setupArena, programState->shaderInfo);
+    programState->shaderInfo = (shader_info*)memoryPoolCode.PushStruct(&programState->setupArena, sizeof(programState->shaderInfo));
 
     
 
@@ -514,7 +475,7 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 
     HR(CreateDXGIFactory2(0, __uuidof(IDXGIFactory2), (void**)&factory));
 
-    factory->EnumAdapters(0, &adapter);
+   
     factory->EnumAdapters(1, &adapter);
 
     IDXGIOutput* adapterOutput = {};
@@ -639,7 +600,7 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 	    shaders shaders = {};
 	    cube_buffers cubeBuffer = {};
 	    
-	    CreateDeviceDependentResources(d3dDevice, &shaders, &cubeBuffer);
+	    CreateDeviceDependentResources(d3dDevice, &shaders, &cubeBuffer, &programState->setupArena, &memory);
 
 
 
