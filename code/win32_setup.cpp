@@ -64,6 +64,16 @@ target:
 }
 breakpoint:
 {
-  source_location: "win32_dx11.cpp:318:1"
+  source_location: "win32_dx11.cpp:325:1"
+  hit_count: 1
+}
+breakpoint:
+{
+  source_location: "win32_dx11.cpp:607:1"
+  hit_count: 1
+}
+breakpoint:
+{
+  source_location: "win32_dx11.cpp:612:1"
   hit_count: 1
 }

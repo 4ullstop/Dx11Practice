@@ -10,16 +10,19 @@
 
 //If you separate the program out in the future the file_reader.h file can be included in the separated dll file
 //and the file_reader.cpp should stay here in our win32 implementation
+
 #include "D:/ExternalCustomAPIs/FileReader/file_reader.h"
 #include "D:/ExternalCustomAPIs/FileReader/file_reader.cpp"
 
 #include "D:/ExternalCustomAPIs/OBJLoader/code/directx_obj_loader_dll_include.h"
+
 
 //Also not a huge fan of the fact that typedefs.h is redefined
 #include "D:/ExternalCustomAPIs/Types/typedefs.h"
 #include <d3d11_2.h>
 #include <dxgi1_3.h>
 #include "D:/ExternalCustomAPIs/Types/direct_x_typedefs.h"
+
 
 
 struct shader_info
@@ -307,7 +310,7 @@ Update(void)
 //NOTE: this function should be called asynchronously, Take the time to have it execute
 //on a separate thread
 internal void
-CreateDeviceDependentResources(ID3D11Device* device, shaders* shaders, cube_buffers* cubeBuffer, memory_arena* mainArena, program_memory* programMemory)
+CreateDeviceDependentResources(ID3D11Device* device, shaders* shaders, direct_x_loaded_buffers* loadedBuffers, memory_arena* mainArena, program_memory* programMemory)
 {
 
     CreateShaders(device, shaders);
@@ -319,12 +322,12 @@ CreateDeviceDependentResources(ID3D11Device* device, shaders* shaders, cube_buff
     //I suppose it's because our memory arena is not big enough, but i was too dumb to make a better
     //system for error checking...
 
-    directXOBJCode.DirectXLoadOBJ("D:/ExternalCustomAPIs/OBJLoader/misc/cubetester2.obj", mainArena, programMemory, device);
+    directXOBJCode.DirectXLoadOBJ("D:/ExternalCustomAPIs/OBJLoader/misc/cubetester2.obj", mainArena, programMemory, device, loadedBuffers);
 #endif    
 }
 
 internal void
-Render(ID3D11DeviceContext* context, ID3D11RenderTargetView* renderTarget, ID3D11DepthStencilView* depthStencil, ID3D11Buffer* constantBuffer, shaders* shader, cube_buffers* cubeBuffer)
+Render(ID3D11DeviceContext* context, ID3D11RenderTargetView* renderTarget, ID3D11DepthStencilView* depthStencil, ID3D11Buffer* constantBuffer, shaders* shader, direct_x_loaded_buffers* loadedBuffers)
 {
     context->UpdateSubresource(
 	shader->constantBuffer,
@@ -359,12 +362,12 @@ Render(ID3D11DeviceContext* context, ID3D11RenderTargetView* renderTarget, ID3D1
     context->IASetVertexBuffers(
 	0,
 	1,
-	&cubeBuffer->vertexBuffer,
+	&loadedBuffers->vertexBuffer,
 	&stride,
 	&offset);
 
     context->IASetIndexBuffer(
-	cubeBuffer->indexBuffer,
+	loadedBuffers->indexBuffer,
 	DXGI_FORMAT_R16_UINT,
 	0);
 
@@ -392,7 +395,7 @@ Render(ID3D11DeviceContext* context, ID3D11RenderTargetView* renderTarget, ID3D1
     //Calling draw tells d3d to start sending commands to the graphics device
 
     context->DrawIndexed(
-	cubeBuffer->indexCount,
+	loadedBuffers->indexCount,
 	0,
 	0);
 }
@@ -599,8 +602,9 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 
 	    shaders shaders = {};
 	    cube_buffers cubeBuffer = {};
+	    direct_x_loaded_buffers loadedBuffers = {};
 	    
-	    CreateDeviceDependentResources(d3dDevice, &shaders, &cubeBuffer, &programState->setupArena, &memory);
+	    CreateDeviceDependentResources(d3dDevice, &shaders, &loadedBuffers, &programState->setupArena, &memory);
 
 
 
@@ -637,7 +641,7 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 	    {
 		Win32ProcessPendingMessages();
 		Update();
-		Render(context, renderTarget, depthStencilView, shaders.constantBuffer, &shaders, &cubeBuffer);
+		Render(context, renderTarget, depthStencilView, shaders.constantBuffer, &shaders, &loadedBuffers);
 		swapChain->Present(1, 0);
 	    }
 	}
