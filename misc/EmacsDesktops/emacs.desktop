@@ -2,44 +2,56 @@
 ;; --------------------------------------------------------------------------
 ;; Desktop File for Emacs
 ;; --------------------------------------------------------------------------
-;; Created Thu Oct  2 12:16:32 2025
+;; Created Thu Oct  2 21:30:16 2025
 ;; Desktop file format version 208
 ;; Emacs version 29.1
 
 ;; Global section:
-(setq desktop-saved-frameset [frameset 1 (26846 42336 797515 0) (desktop . "208") "easte@MSI" nil nil ((((minibuffer . t) (undecorated) (skip-taskbar) (font . "-outline-Courier New-regular-normal-normal-mono-14-*-*-*-c-*-iso8859-1") (border-width . 0) (internal-border-width . 0) (child-frame-border-width) (right-divider-width . 0) (bottom-divider-width . 0) (vertical-scroll-bars) (horizontal-scroll-bars) (foreground-color . "#c6a57b") (background-color . "#151515") (mouse-color . "black") (border-color . "black") (screen-gamma) (line-spacing) (left-fringe . 10) (right-fringe . 10) (no-focus-on-map) (no-accept-focus) (no-special-glyphs) (alpha-background) (alpha) (menu-bar-lines . 0) (tab-bar-lines . 0) (height . 59) (tool-bar-lines . 0) (inhibit-double-buffering) (title) (icon-type) (auto-raise) (auto-lower) (cursor-type . box) (scroll-bar-width . 17) (scroll-bar-height . 17) (fullscreen . maximized) (z-group) (visibility . t) (scroll-bar-foreground . "systemscrollbar") (scroll-bar-background) (display-type . color) (background-mode . dark) (cursor-color . "#c6a57b") (font-parameter) (last-focus-update) (frameset--id . "4E5D-8AA1-F344-4AF0") (frameset--mini t) (modeline . t) (unsplittable) (icon-name) (display . "w32") (explicit-name) (tool-bar-position . top) (width . 237) (left + -1036) (top + -1088)) ((min-height . 4) (min-width . 20) (min-height-ignore . 3) (min-width-ignore . 10) (min-height-safe . 1) (min-width-safe . 4) (min-pixel-height . 68) (min-pixel-width . 160) (min-pixel-height-ignore . 51) (min-pixel-width-ignore . 80) (min-pixel-height-safe . 17) (min-pixel-width-safe . 32)) hc (pixel-width . 1920) (pixel-height . 992) (total-width . 240) (total-height . 58) (normal-height . 1.0) (normal-width . 1.0) (combination-limit) (leaf (pixel-width . 956) (pixel-height . 992) (total-width . 119) (total-height . 58) (normal-height . 1.0) (normal-width . 0.49696969696969695) (buffer "win32_dx11.cpp" (selected) (hscroll . 0) (fringes 10 10 nil nil) (margins nil) (scroll-bars nil 0 t nil 0 t nil) (vscroll . 0) (dedicated) (point . 11029) (start . 9743)) (prev-buffers ("win32_dx11.cpp" 9743 11029) ("code" 1 436) ("l:/" 1 198) ("code<MemoryPools>" 1 183) ("build.bat<MemoryPools>" 1 459) ("memory_pools.cpp" 1 1231) ("MemoryPools" 1 178) ("ExternalCustomAPIs" 1 408) ("Types" 1 77) ("direct_x_typedefs.h" 1 70) ("memory_pool_dll_include.h" 640 2402) ("memory_pools.h" 1 64) ("d:/" 1 1971) ("obj_loader.cpp" 5608 6291) ("code<OBJLoader>" 1 184) ("build.bat<OBJLoader>" 1 303) ("obj_loader.h" 1 500))) (leaf (last . t) (pixel-width . 964) (pixel-height . 992) (total-width . 121) (total-height . 58) (normal-height . 1.0) (normal-width . 0.503030303030303) (buffer "win32_dx11.cpp" (selected) (hscroll . 0) (fringes 10 10 nil nil) (margins nil) (scroll-bars nil 0 t nil 0 t nil) (vscroll . 0) (dedicated) (point . 7332) (start . 7192)) (prev-buffers ("win32_dx11.cpp" 1 837) ("code" 1 436) ("l:/" 1 198) ("win32_handmade.cpp" 23639 24259) ("code<>" 1 513) ("w:/" 1 199) ("obj_loader.cpp" 1 2373)))) (((minibuffer . t) (undecorated) (skip-taskbar) (font . "-outline-Courier New-regular-normal-normal-mono-14-*-*-*-c-*-iso8859-1") (border-width . 0) (internal-border-width . 0) (child-frame-border-width) (right-divider-width . 0) (bottom-divider-width . 0) (vertical-scroll-bars) (horizontal-scroll-bars) (foreground-color . "#c6a57b") (background-color . "#151515") (mouse-color . "black") (border-color . "black") (screen-gamma) (line-spacing) (left-fringe . 10) (right-fringe . 10) (no-focus-on-map) (no-accept-focus) (no-special-glyphs) (alpha-background) (alpha) (menu-bar-lines . 0) (tab-bar-lines . 0) (height . 59) (tool-bar-lines . 0) (inhibit-double-buffering) (title) (icon-type) (auto-raise) (auto-lower) (cursor-type . box) (scroll-bar-width . 17) (scroll-bar-height . 17) (fullscreen . maximized) (z-group) (visibility . t) (scroll-bar-foreground) (scroll-bar-background) (display-type . color) (background-mode . dark) (cursor-color . "#c6a57b") (font-parameter) (environment) (last-focus-update) (frameset--id . "B974-B932-104D-E2D7") (frameset--mini t . t) (modeline . t) (unsplittable) (icon-name) (display . "w32") (explicit-name) (tool-bar-position . top) (width . 237) (left + -1928) (top + -7)) ((min-height . 4) (min-width . 20) (min-height-ignore . 3) (min-width-ignore . 10) (min-height-safe . 1) (min-width-safe . 4) (min-pixel-height . 68) (min-pixel-width . 160) (min-pixel-height-ignore . 51) (min-pixel-width-ignore . 80) (min-pixel-height-safe . 17) (min-pixel-width-safe . 32)) hc (pixel-width . 1920) (pixel-height . 992) (total-width . 240) (total-height . 58) (normal-height . 1.0) (normal-width . 1.0) (combination-limit) (leaf (pixel-width . 956) (pixel-height . 992) (total-width . 119) (total-height . 58) (normal-height . 1.0) (normal-width . 0.49696969696969695) (buffer "*Compiler Shell*" (selected . t) (hscroll . 0) (fringes 10 10 nil nil) (margins nil) (scroll-bars nil 0 t nil 0 t nil) (vscroll . 0) (dedicated) (point . 15404) (start . 13364)) (prev-buffers ("win32_dx11.cpp" 15129 16037) ("*Compiler Shell*" 12973 15404) ("code<>" 1 436) ("l:/" 1 198) ("code<OBJLoader>" 1 455) ("obj_loader.cpp" 2718 2721) ("OBJLoader" 1 176) ("ExternalCustomAPIs" 1 468) ("MemoryPools" 1 178) ("d:/" 1 1971) ("code" 1 436) ("directx_obj_loader_dll_include.h" 1 637) ("build.bat<OBJLoader>" 1 351) ("directx_obj_loader.h" 1 227) ("obj_loader.h" 1 463) ("directx_obj_loader.cpp" 1 3251) ("handmade_intrinsics.h" 1690 1690) ("code<3>" 1 327) ("win32_handmade.cpp" 1 1) ("w:/" 1 199) ("code<MemoryPools>" 1 238) ("memory_pools.cpp" 620 1192) ("memory_pool_dll_include.h" 1 155) ("memory_pools.h" 1 64) ("build.bat<MemoryPools>" 1 459) ("FileReader" 1 177) ("file_reader.cpp" 738 1219) ("file_reader.h" 1 312) ("TestingFileFormats" 1 189) ("fbxtester.fbx" 11024 11024) ("vshader.hlsl" 1 602) ("pshader.hlsl" 1 126) ("D3DBeginner" 1 491) ("win32_direct.cpp" 12917 14750) ("d3d11" 1 162) ("BoltAnim" 1 91) ("Chapter 10 Stenciling" 1 233) ("Mirror" 1 185) ("Effects.cpp" 1853 1853) ("code<2>" 1 155) ("Types" 1 295) ("typedefs.h<Types>" 1 1) ("dll_loader.h" 1 390) ("DLLLoader" 1 176) ("dll_loader.cpp" 1 122) ("apart.cpp" 9867 10387) ("apart.h" 6742 7260) ("win32_apart.cpp" 26001 26781) ("win32_apart.h" 175 387) ("build.bat<3>" 1 602) ("f:/" 1 199))) (leaf (last . t) (pixel-width . 964) (pixel-height . 992) (total-width . 121) (total-height . 58) (normal-height . 1.0) (normal-width . 0.503030303030303) (buffer "directx_obj_loader_dll_include.h" (selected) (hscroll . 0) (fringes 10 10 nil nil) (margins nil) (scroll-bars nil 0 t nil 0 t nil) (vscroll . 0) (dedicated) (point . 360) (start . 1)) (prev-buffers ("code<OBJLoader>" 1 309) ("directx_obj_loader.cpp" 1 1) ("directx_obj_loader.h" 1 227) ("directx_obj_loader_dll_include.h" 1 207) ("*Compiler Shell*" 10634 15404) ("obj_loader.cpp" 2718 2721) ("obj_loader.h" 1 498) ("OBJLoader" 1 176) ("ExternalCustomAPIs" 1 468) ("intrinsics.h" 1 764) ("Types" 1 237) ("d:/" 1 1971) ("code" 1 436) ("win32_dx11.cpp" 9415 9981) ("code<>" 1 436) ("l:/" 1 198) ("apart.h" 5730 6715) ("entity.cpp" 682 1324) ("*Messages*" 269 269) ("code<2>" 1 350) ("f:/" 1 199) ("code<MemoryPools>" 1 238) ("memory_pools.h" 1 64) ("memory_pool_dll_include.h" 1 1)))))])
+(setq desktop-saved-frameset [frameset 1 (26847 10024 576367 0) (desktop . "208") "easte@MSI" nil nil ((((minibuffer . t) (undecorated) (skip-taskbar) (font . "-outline-Courier New-regular-normal-normal-mono-14-*-*-*-c-*-iso8859-1") (border-width . 0) (internal-border-width . 0) (child-frame-border-width) (right-divider-width . 0) (bottom-divider-width . 0) (vertical-scroll-bars) (horizontal-scroll-bars) (foreground-color . "#c6a57b") (background-color . "#151515") (mouse-color . "black") (border-color . "black") (screen-gamma) (line-spacing) (left-fringe . 10) (right-fringe . 10) (no-focus-on-map) (no-accept-focus) (no-special-glyphs) (alpha-background) (alpha) (menu-bar-lines . 0) (tab-bar-lines . 0) (height . 59) (tool-bar-lines . 0) (inhibit-double-buffering) (title) (icon-type) (auto-raise) (auto-lower) (cursor-type . box) (scroll-bar-width . 17) (scroll-bar-height . 17) (fullscreen . maximized) (z-group) (visibility . t) (scroll-bar-foreground . "systemscrollbar") (scroll-bar-background) (display-type . color) (background-mode . dark) (cursor-color . "#c6a57b") (font-parameter) (last-focus-update) (frameset--id . "4E5D-8AA1-F344-4AF0") (frameset--mini t) (modeline . t) (unsplittable) (icon-name) (display . "w32") (explicit-name) (tool-bar-position . top) (width . 237) (left + -1036) (top + -1088)) ((min-height . 4) (min-width . 20) (min-height-ignore . 3) (min-width-ignore . 10) (min-height-safe . 1) (min-width-safe . 4) (min-pixel-height . 68) (min-pixel-width . 160) (min-pixel-height-ignore . 51) (min-pixel-width-ignore . 80) (min-pixel-height-safe . 17) (min-pixel-width-safe . 32)) hc (pixel-width . 1920) (pixel-height . 992) (total-width . 240) (total-height . 58) (normal-height . 1.0) (normal-width . 1.0) (combination-limit) (leaf (pixel-width . 956) (pixel-height . 992) (total-width . 119) (total-height . 58) (normal-height . 1.0) (normal-width . 0.49696969696969695) (buffer "*Compiler Shell*" (selected) (hscroll . 0) (fringes 10 10 nil nil) (margins nil) (scroll-bars nil 0 t nil 0 t nil) (vscroll . 0) (dedicated) (point . 17750) (start . 15787)) (prev-buffers ("win32_dx11.cpp" 7931 9151) ("*Compiler Shell*" 15005 17750) ("code" 1 436) ("l:/" 1 198) ("code<MemoryPools>" 1 183) ("build.bat<MemoryPools>" 1 459) ("memory_pools.cpp" 1 1231) ("MemoryPools" 1 178) ("ExternalCustomAPIs" 1 408) ("Types" 1 77) ("direct_x_typedefs.h" 1 70) ("memory_pool_dll_include.h" 640 2402) ("memory_pools.h" 1 64) ("d:/" 1 1971) ("obj_loader.cpp" 5608 6291) ("code<OBJLoader>" 1 184) ("build.bat<OBJLoader>" 1 303) ("obj_loader.h" 1 500))) (leaf (last . t) (pixel-width . 964) (pixel-height . 992) (total-width . 121) (total-height . 58) (normal-height . 1.0) (normal-width . 0.503030303030303) (buffer "win32_dx11.cpp" (selected) (hscroll . 0) (fringes 10 10 nil nil) (margins nil) (scroll-bars nil 0 t nil 0 t nil) (vscroll . 0) (dedicated) (point . 8084) (start . 8084)) (prev-buffers ("win32_dx11.cpp" 1 837) ("code" 1 436) ("l:/" 1 198) ("win32_handmade.cpp" 23639 24259) ("code<>" 1 513) ("w:/" 1 199) ("obj_loader.cpp" 1 2373)))) (((minibuffer . t) (undecorated) (skip-taskbar) (font . "-outline-Courier New-regular-normal-normal-mono-14-*-*-*-c-*-iso8859-1") (border-width . 0) (internal-border-width . 0) (child-frame-border-width) (right-divider-width . 0) (bottom-divider-width . 0) (vertical-scroll-bars) (horizontal-scroll-bars) (foreground-color . "#c6a57b") (background-color . "#151515") (mouse-color . "black") (border-color . "black") (screen-gamma) (line-spacing) (left-fringe . 10) (right-fringe . 10) (no-focus-on-map) (no-accept-focus) (no-special-glyphs) (alpha-background) (alpha) (menu-bar-lines . 0) (tab-bar-lines . 0) (height . 59) (tool-bar-lines . 0) (inhibit-double-buffering) (title) (icon-type) (auto-raise) (auto-lower) (cursor-type . box) (scroll-bar-width . 17) (scroll-bar-height . 17) (fullscreen . maximized) (z-group) (visibility . t) (scroll-bar-foreground) (scroll-bar-background) (display-type . color) (background-mode . dark) (cursor-color . "#c6a57b") (font-parameter) (environment) (last-focus-update . t) (frameset--id . "B974-B932-104D-E2D7") (frameset--mini t . t) (modeline . t) (unsplittable) (icon-name) (display . "w32") (explicit-name) (tool-bar-position . top) (width . 237) (left + -1928) (top + -7)) ((min-height . 4) (min-width . 20) (min-height-ignore . 3) (min-width-ignore . 10) (min-height-safe . 1) (min-width-safe . 4) (min-pixel-height . 68) (min-pixel-width . 160) (min-pixel-height-ignore . 51) (min-pixel-width-ignore . 80) (min-pixel-height-safe . 17) (min-pixel-width-safe . 32)) hc (pixel-width . 1920) (pixel-height . 992) (total-width . 240) (total-height . 58) (normal-height . 1.0) (normal-width . 1.0) (combination-limit) (leaf (pixel-width . 956) (pixel-height . 992) (total-width . 119) (total-height . 58) (normal-height . 1.0) (normal-width . 0.49696969696969695) (buffer "*Compiler Shell*" (selected) (hscroll . 0) (fringes 10 10 nil nil) (margins nil) (scroll-bars nil 0 t nil 0 t nil) (vscroll . 0) (dedicated) (point . 17750) (start . 15787)) (prev-buffers ("memory_pools.cpp" 1 886) ("code<MemoryPools>" 1 309) ("MemoryPools" 1 178) ("ExternalCustomAPIs" 1 408) ("obj_loader.h" 1 530) ("code<OBJLoader>" 1 516) ("obj_loader.cpp" 2718 2721) ("OBJLoader" 1 176) ("Types" 1 77) ("direct_x_typedefs.h" 1 541) ("*Compiler Shell*" 13755 17750) ("d:/" 1 1971) ("code<>" 1 377) ("win32_dx11.cpp" 15126 16034) ("l:/" 1 198) ("code" 1 436) ("directx_obj_loader_dll_include.h" 1 637) ("build.bat<OBJLoader>" 1 351) ("directx_obj_loader.h" 1 227) ("directx_obj_loader.cpp" 1 3867) ("handmade_intrinsics.h" 1690 1690) ("code<3>" 1 327) ("win32_handmade.cpp" 1 1) ("w:/" 1 199) ("memory_pool_dll_include.h" 1 155) ("memory_pools.h" 1 64) ("build.bat<MemoryPools>" 1 459) ("FileReader" 1 177) ("file_reader.cpp" 738 1219) ("file_reader.h" 1 312) ("TestingFileFormats" 1 189) ("fbxtester.fbx" 11024 11024) ("vshader.hlsl" 1 602) ("pshader.hlsl" 1 126) ("D3DBeginner" 1 491) ("win32_direct.cpp" 12917 14750) ("d3d11" 1 162) ("BoltAnim" 1 91) ("Chapter 10 Stenciling" 1 233) ("Mirror" 1 185) ("Effects.cpp" 1853 1853) ("code<2>" 1 155) ("typedefs.h<Types>" 1 1) ("dll_loader.h" 1 390) ("DLLLoader" 1 176) ("dll_loader.cpp" 1 122) ("apart.cpp" 9867 10387) ("apart.h" 6742 7260) ("win32_apart.cpp" 26001 26781) ("win32_apart.h" 175 387) ("build.bat<3>" 1 602) ("f:/" 1 199))) (leaf (last . t) (pixel-width . 964) (pixel-height . 992) (total-width . 121) (total-height . 58) (normal-height . 1.0) (normal-width . 0.503030303030303) (buffer "directx_obj_loader.cpp" (selected . t) (hscroll . 0) (fringes 10 10 nil nil) (margins nil) (scroll-bars nil 0 t nil 0 t nil) (vscroll . 0) (dedicated) (point . 1349) (start . 684)) (next-buffers "obj_loader.h" "code<OBJLoader>" "directx_obj_loader.h") (prev-buffers ("obj_loader.h" 1 498) ("code<OBJLoader>" 1 388) ("directx_obj_loader.h" 1 227) ("directx_obj_loader.cpp" 1 1270) ("directx_obj_loader_dll_include.h" 1 687) ("*Compiler Shell*" 10634 17750) ("obj_loader.cpp" 2718 2721) ("OBJLoader" 1 176) ("ExternalCustomAPIs" 1 468) ("intrinsics.h" 1 764) ("Types" 1 237) ("d:/" 1 1971) ("code" 1 436) ("win32_dx11.cpp" 9412 9978) ("code<>" 1 436) ("l:/" 1 198) ("apart.h" 5730 6715) ("entity.cpp" 682 1324) ("*Messages*" 269 269) ("code<2>" 1 350) ("f:/" 1 199) ("code<MemoryPools>" 1 238) ("memory_pools.h" 1 64) ("memory_pool_dll_include.h" 1 1)))))])
 (setq desktop-missing-file-warning nil)
 (setq tags-file-name nil)
 (setq tags-table-list nil)
-(setq search-ring '(#("result" 0 6 (isearch-case-fold-search t isearch-regexp-function nil)) #("cube_buf" 0 8 (isearch-case-fold-search t isearch-regexp-function nil)) #("cube" 0 4 (isearch-case-fold-search t isearch-regexp-function nil)) #("cube_buffers" 0 12 (isearch-case-fold-search t isearch-regexp-function nil)) #("CreateDeviceDepend" 0 18 (isearch-case-fold-search nil isearch-regexp-function nil)) #("CreateDeviceDepen" 0 17 (isearch-case-fold-search nil isearch-regexp-function nil)) #("ParseFace" 0 9 (isearch-case-fold-search nil isearch-regexp-function nil)) #("ParseFaceVa" 0 11 (isearch-case-fold-search nil isearch-regexp-function nil)) #("FindDistanceToNextSlash" 0 23 (isearch-case-fold-search nil isearch-regexp-function nil)) #("StrToR" 0 6 (isearch-case-fold-search nil isearch-regexp-function nil)) #("LoadOB" 0 6 (isearch-case-fold-search nil isearch-regexp-function nil)) #("Win32GetSeconds" 0 15 (isearch-case-fold-search nil isearch-regexp-function nil)) #("GetWallClock" 0 12 (isearch-case-fold-search nil isearch-regexp-function nil)) #("QueryPerformanceTimer" 0 21 (isearch-case-fold-search nil isearch-regexp-function nil)) #("sprintf" 0 7 (isearch-case-fold-search t isearch-regexp-function nil)) #("main" 0 4 (isearch-case-fold-search t isearch-regexp-function nil))))
+(setq search-ring '(#("InputLayour" 0 11 (isearch-case-fold-search nil isearch-regexp-function nil)) #("IASet" 0 5 (isearch-case-fold-search nil isearch-regexp-function nil)) #("result" 0 6 (isearch-case-fold-search t isearch-regexp-function nil)) #("cube_buf" 0 8 (isearch-case-fold-search t isearch-regexp-function nil)) #("cube" 0 4 (isearch-case-fold-search t isearch-regexp-function nil)) #("cube_buffers" 0 12 (isearch-case-fold-search t isearch-regexp-function nil)) #("CreateDeviceDepend" 0 18 (isearch-case-fold-search nil isearch-regexp-function nil)) #("CreateDeviceDepen" 0 17 (isearch-case-fold-search nil isearch-regexp-function nil)) #("ParseFace" 0 9 (isearch-case-fold-search nil isearch-regexp-function nil)) #("ParseFaceVa" 0 11 (isearch-case-fold-search nil isearch-regexp-function nil)) #("FindDistanceToNextSlash" 0 23 (isearch-case-fold-search nil isearch-regexp-function nil)) #("StrToR" 0 6 (isearch-case-fold-search nil isearch-regexp-function nil)) #("LoadOB" 0 6 (isearch-case-fold-search nil isearch-regexp-function nil)) #("Win32GetSeconds" 0 15 (isearch-case-fold-search nil isearch-regexp-function nil)) #("GetWallClock" 0 12 (isearch-case-fold-search nil isearch-regexp-function nil)) #("QueryPerformanceTimer" 0 21 (isearch-case-fold-search nil isearch-regexp-function nil))))
 (setq regexp-search-ring nil)
 (setq register-alist nil)
-(setq file-name-history '("d:/ExternalCustomAPIs/OBJLoader/code/" "l:/code/" "d:/ExternalCustomAPIs/OBJLoader/code/" "l:" "d:/ExternalCustomAPIs/OBJLoader/code/" "d:" "d:/ExternalCustomAPIs/OBJLoader/code/" "l:" "d:/ExternalCustomAPIs/MemoryPools/code/" "l:" "d:/ExternalCustomAPIs/OBJLoader/code/" "d:/ExternalCustomAPIs/MemoryPools/code/" "d:/ExternalCustomAPIs/OBJLoader/code/" "d:/ExternalCustomAPIs/Types/" "d:/ExternalCustomAPIs/OBJLoader/code/" "d:/ExternalCustomAPIs/MemoryPools/code/" "d:/ExternalCustomAPIs/OBJLoader/code/" "d:/ExternalCustomAPIs/OBJLoader/code/directx_obj_loader_dll_include.h" "d:/ExternalCustomAPIs/OBJLoader/code/" "d:/ExternalCustomAPIs/MemoryPools/code/" "d:/ExternalCustomAPIs/Types/" "d:/ExternalCustomAPIs/OBJLoader/code/" "/" "d:/ExternalCustomAPIs/MemoryPools/code/" "d:/ExternalCustomAPIs/" "d:/ExternalCustomAPIs/OBJLoader/code/" "d:" "w:/code/" "d:/ExternalCustomAPIs/Types/intrinsics.h" "d:/ExternalCustomAPIs/" "w:/code/" "d:/ExternalCustomAPIs/Types/direct_x_typedefs.h" "d:/ExternalCustomAPIs/" "d:/ExternalCustomAPIs/OBJLoader/code/" "d:/ExternalCustomAPIs/OBJLoader/code/directx_obj_loader.h" "d:/ExternalCustomAPIs/OBJLoader/code/directx_obj_loader.cpp" "d:" "l:/code/" "l:" "w:" "w:/code/" "w:" "d:/ExternalCustomAPIs/MemoryPools/code/" "l:" "f:/code/" "d:/ExternalCustomAPIs/MemoryPools/code/" "d:" "l:" "f:" "d:/ExternalCustomAPIs/MemoryPools/code/" "l:" "d:/ExternalCustomAPIs/MemoryPools/code/" "l:" "d:/ExternalCustomAPIs/MemoryPools/code/" "d:/ExternalCustomAPIs/MemoryPools/code/memory_pool_dll_include.h" "d:/ExternalCustomAPIs/MemoryPools/code/" "f:/code/" "f:" "k:" "l:/code/" "d:/ExternalCustomAPIs/" "d:/ExternalCustomAPIs/MemoryPools/code/" "d:/" "d:/ExternalCustomAPIs/OBJLoader/code/" "d:" "l:/code/" "l:" "d:/ExternalCustomAPIs/OBJLoader/obj_loader.h" "d:/ExternalCustomAPIs/OBJLoader/obj_loader.cpp" "d:" "d:/ExternalCustomAPIs/OBJLoader/obj_loader.cpp" "d:" "l:/code/" "l:" "d:/D3DBeginner/" "w:" "d:/CFiles/FirstGame/" "l:/code/" "d:" "l:/code/" "l:/code/pshader.hlsl" "l:" "d:/ExternalCustomAPIs/FileReader/" "l:/code/" "w:" "d:" "l:/code/" "w:" "d:/ExternalCustomAPIs/Types/" "l:" "d:/ExternalCustomAPIs/Types/" "l:/code/" "d:/ExternalCustomAPIs/FileReader/" "w:/code/" "d:/ExternalCustomAPIs/" "d:/ExternalCustomAPIs/Typedefs/" "d:/ExternalCustomAPIs/FileReader/" "w:/code/" "d:" "f:/code/"))
+(setq file-name-history '("d:/ExternalCustomAPIs/" "d:/ExternalCustomAPIs/OBJLoader/code/" "d:/ExternalCustomAPIs/Types/" "d:" "l:/code/" "d:/ExternalCustomAPIs/OBJLoader/code/" "l:/code/" "d:/ExternalCustomAPIs/OBJLoader/code/" "l:" "d:/ExternalCustomAPIs/OBJLoader/code/" "d:" "d:/ExternalCustomAPIs/OBJLoader/code/" "l:" "d:/ExternalCustomAPIs/MemoryPools/code/" "l:" "d:/ExternalCustomAPIs/OBJLoader/code/" "d:/ExternalCustomAPIs/MemoryPools/code/" "d:/ExternalCustomAPIs/OBJLoader/code/" "d:/ExternalCustomAPIs/Types/" "d:/ExternalCustomAPIs/OBJLoader/code/" "d:/ExternalCustomAPIs/MemoryPools/code/" "d:/ExternalCustomAPIs/OBJLoader/code/" "d:/ExternalCustomAPIs/OBJLoader/code/directx_obj_loader_dll_include.h" "d:/ExternalCustomAPIs/OBJLoader/code/" "d:/ExternalCustomAPIs/MemoryPools/code/" "d:/ExternalCustomAPIs/Types/" "d:/ExternalCustomAPIs/OBJLoader/code/" "/" "d:/ExternalCustomAPIs/MemoryPools/code/" "d:/ExternalCustomAPIs/" "d:/ExternalCustomAPIs/OBJLoader/code/" "d:" "w:/code/" "d:/ExternalCustomAPIs/Types/intrinsics.h" "d:/ExternalCustomAPIs/" "w:/code/" "d:/ExternalCustomAPIs/Types/direct_x_typedefs.h" "d:/ExternalCustomAPIs/" "d:/ExternalCustomAPIs/OBJLoader/code/" "d:/ExternalCustomAPIs/OBJLoader/code/directx_obj_loader.h" "d:/ExternalCustomAPIs/OBJLoader/code/directx_obj_loader.cpp" "d:" "l:/code/" "l:" "w:" "w:/code/" "w:" "d:/ExternalCustomAPIs/MemoryPools/code/" "l:" "f:/code/" "d:/ExternalCustomAPIs/MemoryPools/code/" "d:" "l:" "f:" "d:/ExternalCustomAPIs/MemoryPools/code/" "l:" "d:/ExternalCustomAPIs/MemoryPools/code/" "l:" "d:/ExternalCustomAPIs/MemoryPools/code/" "d:/ExternalCustomAPIs/MemoryPools/code/memory_pool_dll_include.h" "d:/ExternalCustomAPIs/MemoryPools/code/" "f:/code/" "f:" "k:" "l:/code/" "d:/ExternalCustomAPIs/" "d:/ExternalCustomAPIs/MemoryPools/code/" "d:/" "d:/ExternalCustomAPIs/OBJLoader/code/" "d:" "l:/code/" "l:" "d:/ExternalCustomAPIs/OBJLoader/obj_loader.h" "d:/ExternalCustomAPIs/OBJLoader/obj_loader.cpp" "d:" "d:/ExternalCustomAPIs/OBJLoader/obj_loader.cpp" "d:" "l:/code/" "l:" "d:/D3DBeginner/" "w:" "d:/CFiles/FirstGame/" "l:/code/" "d:" "l:/code/" "l:/code/pshader.hlsl" "l:" "d:/ExternalCustomAPIs/FileReader/" "l:/code/" "w:" "d:" "l:/code/" "w:" "d:/ExternalCustomAPIs/Types/" "l:" "d:/ExternalCustomAPIs/Types/" "l:/code/" "d:/ExternalCustomAPIs/FileReader/" "w:/code/" "d:/ExternalCustomAPIs/"))
 
 ;; Buffer section -- buffers listed in same order as in buffer list:
+(desktop-create-buffer 208
+  "d:/ExternalCustomAPIs/OBJLoader/code/directx_obj_loader.cpp"
+  "directx_obj_loader.cpp"
+  'c++-mode
+  '(font-lock-mode)
+  1349
+  '(1270 nil)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-display-time 26847 10023 355769 0) (buffer-file-coding-system . iso-latin-1-dos))
+  '((mark-ring (1271 1270 1874 982 975 1270 938 909 909 880 880 822 822 793 764 1328))))
+
+(desktop-create-buffer 208
+  "d:/ExternalCustomAPIs/MemoryPools/code/memory_pools.cpp"
+  "memory_pools.cpp"
+  'c++-mode
+  '(font-lock-mode)
+  886
+  '(1138 nil)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-display-time 26847 4279 772232 0) (buffer-file-coding-system . undecided-dos))
+  '((mark-ring (453 490 888 747 1411 155 390 390 390 155 1314 390 1314 1314 154 886))))
+
 (desktop-create-buffer 208
   "l:/code/win32_dx11.cpp"
   "win32_dx11.cpp"
   'c++-mode
   '(font-lock-mode)
-  16037
-  '(8692 nil)
+  9151
+  '(6059 nil)
   nil
   nil
-  '((indent-tabs-mode . t) (buffer-display-time 26846 42260 734044 0) (buffer-file-coding-system . undecided-dos) (fill-column . 57))
-  '((mark-ring (12418 10362 9037 3982 523 940 723 642 7929 8071 8070 6056 5141 5141 6020 6519))))
-
-(desktop-create-buffer 208
-  "d:/ExternalCustomAPIs/OBJLoader/code/directx_obj_loader_dll_include.h"
-  "directx_obj_loader_dll_include.h"
-  'c-mode
-  '(font-lock-mode)
-  360
-  '(647 nil)
-  nil
-  nil
-  '((indent-tabs-mode . t) (buffer-display-time 26846 42241 984269 0) (buffer-file-coding-system . iso-latin-1-dos))
-  '((mark-ring (13))))
+  '((indent-tabs-mode . t) (buffer-display-time 26847 6105 568864 0) (buffer-file-coding-system . undecided-dos) (fill-column . 57))
+  '((mark-ring (6116 9159 8996 9079 8902 9553 9480 9553 9479 11026 6605 8692 12415 10359 9037 9142))))
 
 (desktop-create-buffer 208
   nil
@@ -49,92 +61,8 @@
   309
   '(nil nil)
   t
-  '("d:/ExternalCustomAPIs/OBJLoader/code/")
-  '((buffer-display-time 26846 42241 147471 0))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  "d:/ExternalCustomAPIs/OBJLoader/code/directx_obj_loader.cpp"
-  "directx_obj_loader.cpp"
-  'c++-mode
-  '(font-lock-mode)
-  1
-  '(2375 nil)
-  nil
-  nil
-  '((indent-tabs-mode . t) (buffer-display-time 26846 42241 37425 0) (buffer-file-coding-system . iso-latin-1-dos))
-  '((mark-ring (464 464 2376 2255 464 464 2384 1972 2375 2823 1999 1828 872 819 770 770))))
-
-(desktop-create-buffer 208
-  "d:/ExternalCustomAPIs/OBJLoader/code/directx_obj_loader.h"
-  "directx_obj_loader.h"
-  'c-mode
-  '(font-lock-mode)
-  227
-  '(356 nil)
-  nil
-  nil
-  '((indent-tabs-mode . t) (buffer-display-time 26846 42218 822140 0) (buffer-file-coding-system . iso-latin-1-dos))
-  '((mark-ring (356 356))))
-
-(desktop-create-buffer 208
-  "d:/ExternalCustomAPIs/OBJLoader/code/obj_loader.h"
-  "obj_loader.h"
-  'c-mode
-  '(font-lock-mode)
-  498
-  '(149 nil)
-  nil
-  nil
-  '((indent-tabs-mode . t) (buffer-display-time 26846 40308 334714 0) (buffer-file-coding-system . undecided-dos))
-  '((mark-ring (124 44 88 182 530 498 500))))
-
-(desktop-create-buffer 208
-  "d:/ExternalCustomAPIs/OBJLoader/code/obj_loader.cpp"
-  "obj_loader.cpp"
-  'c++-mode
-  '(font-lock-mode)
-  2721
-  '(6118 nil)
-  nil
-  nil
-  '((indent-tabs-mode . t) (buffer-display-time 26846 40318 845797 0) (buffer-file-coding-system . undecided-dos))
-  '((mark-ring (6117 12262 1 10446 10680 4618 9496 10634 5205 4888 5048 4888 10071 1 4618 6033))))
-
-(desktop-create-buffer 208
-  nil
-  "code"
-  'dired-mode
-  '(font-lock-mode)
-  436
-  '(nil nil)
-  t
-  '("l:/code/")
-  '((buffer-display-time 26846 40300 770286 0))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  nil
-  "l:/"
-  'dired-mode
-  '(font-lock-mode)
-  198
-  '(nil nil)
-  t
-  '("l:/")
-  '((buffer-display-time 26846 40074 524692 0))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  nil
-  "OBJLoader"
-  'dired-mode
-  '(font-lock-mode)
-  176
-  '(nil nil)
-  t
-  '("d:/ExternalCustomAPIs/OBJLoader/")
-  '((buffer-display-time 26846 39685 378041 0))
+  '("d:/ExternalCustomAPIs/MemoryPools/code/")
+  '((buffer-display-time 26847 4278 196762 0))
   '((mark-ring nil)))
 
 (desktop-create-buffer 208
@@ -146,7 +74,7 @@
   '(1 nil)
   t
   '("d:/ExternalCustomAPIs/MemoryPools/")
-  '((buffer-display-time 26846 39681 299797 0))
+  '((buffer-display-time 26847 4277 132524 0))
   '((mark-ring nil)))
 
 (desktop-create-buffer 208
@@ -154,12 +82,84 @@
   "ExternalCustomAPIs"
   'dired-mode
   '(font-lock-mode)
-  468
+  408
   '(nil nil)
   t
   '("d:/ExternalCustomAPIs/")
-  '((buffer-display-time 26846 39682 707669 0))
+  '((buffer-display-time 26847 4276 160158 0))
   '((mark-ring nil)))
+
+(desktop-create-buffer 208
+  "d:/ExternalCustomAPIs/OBJLoader/code/obj_loader.h"
+  "obj_loader.h"
+  'c-mode
+  '(font-lock-mode)
+  530
+  '(149 nil)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-display-time 26847 4274 835590 0) (buffer-file-coding-system . undecided-dos))
+  '((mark-ring (124 44 88 182 530 498 500 530 530 530))))
+
+(desktop-create-buffer 208
+  nil
+  "code"
+  'dired-mode
+  '(font-lock-mode)
+  516
+  '(nil nil)
+  t
+  '("d:/ExternalCustomAPIs/OBJLoader/code/")
+  '((buffer-display-time 26846 50571 889173 0))
+  '((mark-ring nil)))
+
+(desktop-create-buffer 208
+  "d:/ExternalCustomAPIs/OBJLoader/code/obj_loader.cpp"
+  "obj_loader.cpp"
+  'c++-mode
+  '(font-lock-mode)
+  2721
+  '(6118 nil)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-display-time 26846 49517 723625 0) (buffer-file-coding-system . undecided-dos))
+  '((mark-ring (6117 12262 1 10446 10680 4618 9496 10634 5205 4888 5048 4888 10071 1 4618 6033))))
+
+(desktop-create-buffer 208
+  nil
+  "OBJLoader"
+  'dired-mode
+  '(font-lock-mode)
+  176
+  '(nil nil)
+  t
+  '("d:/ExternalCustomAPIs/OBJLoader/")
+  '((buffer-display-time 26846 49513 149739 0))
+  '((mark-ring nil)))
+
+(desktop-create-buffer 208
+  nil
+  "Types"
+  'dired-mode
+  '(font-lock-mode)
+  77
+  '(nil nil)
+  t
+  '("d:/ExternalCustomAPIs/Types/")
+  '((buffer-display-time 26846 49507 332052 0))
+  '((mark-ring nil)))
+
+(desktop-create-buffer 208
+  "d:/ExternalCustomAPIs/Types/direct_x_typedefs.h"
+  "direct_x_typedefs.h"
+  'c-mode
+  '(font-lock-mode)
+  541
+  '(397 nil)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-display-time 26846 49507 208527 0) (buffer-file-coding-system . iso-latin-1-dos) (fill-column . 10))
+  '((mark-ring (1 541))))
 
 (desktop-create-buffer 208
   nil
@@ -170,7 +170,7 @@
   '(nil nil)
   t
   '("d:/")
-  '((buffer-display-time 26846 39675 524372 0))
+  '((buffer-display-time 26846 42785 564967 0))
   '((mark-ring nil)))
 
 (desktop-create-buffer 208
@@ -178,11 +178,47 @@
   "code"
   'dired-mode
   '(font-lock-mode)
-  183
+  377
   '(nil nil)
   t
-  '("d:/ExternalCustomAPIs/MemoryPools/code/")
-  '((buffer-display-time 26846 33995 889321 0))
+  '("l:/code/")
+  '((buffer-display-time 26846 42783 851893 0))
+  '((mark-ring nil)))
+
+(desktop-create-buffer 208
+  "d:/ExternalCustomAPIs/OBJLoader/code/directx_obj_loader.h"
+  "directx_obj_loader.h"
+  'c-mode
+  '(font-lock-mode)
+  227
+  '(356 nil)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-display-time 26846 42771 943546 0) (buffer-file-coding-system . iso-latin-1-dos))
+  '((mark-ring (356 356))))
+
+(desktop-create-buffer 208
+  "d:/ExternalCustomAPIs/OBJLoader/code/directx_obj_loader_dll_include.h"
+  "directx_obj_loader_dll_include.h"
+  'c-mode
+  '(font-lock-mode)
+  687
+  '(647 nil)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-display-time 26846 42746 231958 0) (buffer-file-coding-system . iso-latin-1-dos))
+  '((mark-ring (13 687 687))))
+
+(desktop-create-buffer 208
+  nil
+  "l:/"
+  'dired-mode
+  '(font-lock-mode)
+  198
+  '(nil nil)
+  t
+  '("l:/")
+  '((buffer-display-time 26846 40074 524692 0))
   '((mark-ring nil)))
 
 (desktop-create-buffer 208
@@ -208,42 +244,6 @@
   nil
   '((buffer-display-time 26846 33446 289168 0) (buffer-file-coding-system . undecided-dos))
   '((mark-ring (329 358))))
-
-(desktop-create-buffer 208
-  "d:/ExternalCustomAPIs/MemoryPools/code/memory_pools.cpp"
-  "memory_pools.cpp"
-  'c++-mode
-  '(font-lock-mode)
-  1231
-  '(1138 nil)
-  nil
-  nil
-  '((indent-tabs-mode . t) (buffer-display-time 26846 33378 921158 0) (buffer-file-coding-system . undecided-dos))
-  '((mark-ring (453 490 888 747 1411 155 390 390 390 155 1314 390 1314 1314 154 154))))
-
-(desktop-create-buffer 208
-  nil
-  "Types"
-  'dired-mode
-  '(font-lock-mode)
-  77
-  '(nil nil)
-  t
-  '("d:/ExternalCustomAPIs/Types/")
-  '((buffer-display-time 26846 33242 911726 0))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  "d:/ExternalCustomAPIs/Types/direct_x_typedefs.h"
-  "direct_x_typedefs.h"
-  'c-mode
-  '(font-lock-mode)
-  70
-  '(397 nil)
-  nil
-  nil
-  '((indent-tabs-mode . t) (buffer-display-time 26846 33242 772217 0) (buffer-file-coding-system . iso-latin-1-dos) (fill-column . 10))
-  '((mark-ring (1))))
 
 (desktop-create-buffer 208
   "d:/ExternalCustomAPIs/MemoryPools/code/memory_pool_dll_include.h"

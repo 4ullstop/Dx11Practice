@@ -371,7 +371,7 @@ Render(ID3D11DeviceContext* context, ID3D11RenderTargetView* renderTarget, ID3D1
 	DXGI_FORMAT_R16_UINT,
 	0);
 
-    context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP);
 
     context->IASetInputLayout(shader->inputLayout);
 
