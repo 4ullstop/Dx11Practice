@@ -3,8 +3,7 @@
 #include <math.h>
 
 #include <DirectXMath.h>
-//I don't like this include statement, I would Like to figure out how not to include it, or create a local one
-//for the code to reference instead of going into this location
+
 
 #include "D:/ExternalCustomAPIs/MemoryPools/code/memory_pool_dll_include.h"
 
@@ -17,7 +16,6 @@
 #include "D:/ExternalCustomAPIs/OBJLoader/code/directx_obj_loader_dll_include.h"
 
 
-//Also not a huge fan of the fact that typedefs.h is redefined
 #include "D:/ExternalCustomAPIs/Types/typedefs.h"
 #include <d3d11_2.h>
 #include <dxgi1_3.h>
@@ -127,8 +125,6 @@ LRESULT CALLBACK Win32MainWindowProc(HWND hwnd,
     return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
 
-//It's just gonna be worth creating your own APIs for the functions you seem to be reusing like crazy
-
 struct shaders
 {
     ID3D11VertexShader* vertexShader;
@@ -154,7 +150,7 @@ CreateShaders(ID3D11Device* device, shaders* shaderResources)
     bytes = (BYTE*)memoryPoolCode.PushStruct(&programState->setupArena, sizeof(bytes));
 
 
-    //I think I need to load in the file reading functions somehow even though it's not a dll
+
     debug_read_file_result fileResult = DEBUGPlatformReadEntireFile(&blankThread, "../build/CubeVertexShader.cso");
 
     bytes = (BYTE*)fileResult.contents;
@@ -318,9 +314,6 @@ CreateDeviceDependentResources(ID3D11Device* device, shaders* shaders, direct_x_
 #if 0     
     CreateCube(device, cubeBuffer);
 #else
-    //Yeah, we crash here
-    //I suppose it's because our memory arena is not big enough, but i was too dumb to make a better
-    //system for error checking...
 
     directXOBJCode.DirectXLoadOBJ("D:/ExternalCustomAPIs/OBJLoader/misc/cubetester2.obj", mainArena, programMemory, device, loadedBuffers);
 #endif    
@@ -398,6 +391,7 @@ Render(ID3D11DeviceContext* context, ID3D11RenderTargetView* renderTarget, ID3D1
 	loadedBuffers->indexCount,
 	0,
 	0);
+
 }
 
 int CALLBACK WinMain(HINSTANCE hInstance,
@@ -434,7 +428,6 @@ int CALLBACK WinMain(HINSTANCE hInstance,
     program_memory memory = {};
 
 
-    //Set these parameters
     memory.transientStorageSize = Megabytes(64);
     memory.permanentStorageSize = Gigabytes(1);
     
@@ -478,7 +471,7 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 
     HR(CreateDXGIFactory2(0, __uuidof(IDXGIFactory2), (void**)&factory));
 
-   
+ 
     factory->EnumAdapters(1, &adapter);
 
     IDXGIOutput* adapterOutput = {};

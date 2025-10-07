@@ -1,7 +1,7 @@
 // raddbg 0.9.20 project file
 
-recent_file: path: "win32_dx11.cpp"
 recent_file: path: "D:/ExternalCustomAPIs/OBJLoader/code/directx_obj_loader.cpp"
+recent_file: path: "win32_dx11.cpp"
 recent_file: path: "D:/ExternalCustomAPIs/OBJLoader/code/obj_loader.cpp"
 recent_file: path: "D:/externalcustomapis/memorypools/code/memory_pools.cpp"
 recent_file: path: "C:/Program Files (x86)/Windows Kits/8.1/include/um/directxmathconvert.inl"
@@ -26,31 +26,6 @@ target:
   executable: "K:/build/doc_reader.exe"
   working_directory: "K:/data/"
 }
-breakpoint:
-{
-  source_location: "K:/code/doc_reader.cpp:541:1"
-  hit_count: 0
-}
-breakpoint:
-{
-  source_location: "K:/code/doc_reader.cpp:535:1"
-  hit_count: 0
-}
-breakpoint:
-{
-  source_location: "K:/code/doc_reader.cpp:532:1"
-  hit_count: 0
-}
-breakpoint:
-{
-  source_location: "K:/code/doc_reader.cpp:474:1"
-  hit_count: 0
-}
-breakpoint:
-{
-  source_location: "K:/code/doc_reader.cpp:436:1"
-  hit_count: 0
-}
 target:
 {
   executable: "D:/ExternalCustomAPIs/OBJLoader/dll/obj_loader.exe"
@@ -61,4 +36,9 @@ target:
   executable: "D:/ExternalCustomAPIs/OBJLoader/dll/directx_obj_loader.exe"
   working_directory: "D:/ExternalCustomAPIs/OBJLoader/misc/"
   enabled: 0
+}
+breakpoint:
+{
+  source_location: "D:/ExternalCustomAPIs/OBJLoader/code/directx_obj_loader.cpp:120:1"
+  hit_count: 1
 }
