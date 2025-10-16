@@ -315,7 +315,7 @@ CreateDeviceDependentResources(ID3D11Device* device, shaders* shaders, direct_x_
     CreateCube(device, cubeBuffer);
 #else
 
-    directXOBJCode.DirectXLoadOBJ("D:/ExternalCustomAPIs/OBJLoader/misc/cubetester2.obj", mainArena, programMemory, device, loadedBuffers);
+    directXOBJCode.DirectXLoadOBJ("D:/ExternalCustomAPIs/OBJLoader/misc/cubetester_normals.obj", mainArena, programMemory, device, loadedBuffers);
 #endif    
 }
 
@@ -364,11 +364,11 @@ Render(ID3D11DeviceContext* context, ID3D11RenderTargetView* renderTarget, ID3D1
 	DXGI_FORMAT_R16_UINT,
 	0);
 
-    context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP);
+    context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
     context->IASetInputLayout(shader->inputLayout);
 
-    //Set up vertex shader stage
+    //Set up vertex shader stage 
     context->VSSetShader(
 	shader->vertexShader,
 	nullptr,

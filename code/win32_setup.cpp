@@ -2,6 +2,7 @@
 
 recent_file: path: "D:/ExternalCustomAPIs/OBJLoader/code/directx_obj_loader.cpp"
 recent_file: path: "win32_dx11.cpp"
+recent_file: path: "P:/code/inst_decoder.cpp"
 recent_file: path: "D:/ExternalCustomAPIs/OBJLoader/code/obj_loader.cpp"
 recent_file: path: "D:/externalcustomapis/memorypools/code/memory_pools.cpp"
 recent_file: path: "C:/Program Files (x86)/Windows Kits/8.1/include/um/directxmathconvert.inl"
@@ -37,8 +38,14 @@ target:
   working_directory: "D:/ExternalCustomAPIs/OBJLoader/misc/"
   enabled: 0
 }
+target:
+{
+  executable: "P:/build/inst_decoder.exe"
+  working_directory: "P:/data/"
+  enabled: 0
+}
 breakpoint:
 {
-  source_location: "D:/ExternalCustomAPIs/OBJLoader/code/directx_obj_loader.cpp:120:1"
-  hit_count: 1
+  source_location: "P:/code/inst_decoder.cpp:73:1"
+  hit_count: 0
 }
