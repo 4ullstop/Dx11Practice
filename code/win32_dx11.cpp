@@ -1,3 +1,4 @@
+
 #include <windows.h>
 #include <stdio.h>
 #include <math.h>
@@ -19,8 +20,11 @@
 #include "D:/ExternalCustomAPIs/Types/typedefs.h"
 #include <d3d11_2.h>
 #include <dxgi1_3.h>
-#include "D:/ExternalCustomAPIs/Types/direct_x_typedefs.h"
+#include "win32_dx11.h"
+#include "game_layer.h"
 
+
+#include <xinput.h>
 
 
 struct shader_info
@@ -42,8 +46,24 @@ global_variable bool32 running;
 global_variable program_state* programState;
 global_variable ID3D11Texture2D* backBuffer;
 global_variable u32 frameCount;
-global_variable constant_buffer_struct constantBufferData;
+global_variable i64 perfCountFrequency;
+//global_variable constant_buffer_struct constantBufferData;
 
+
+inline LARGE_INTEGER
+Win32GetWallClock(void)
+{
+    LARGE_INTEGER result;
+    QueryPerformanceCounter(&result);
+    return(result);
+}
+
+inline r32
+Win32GetSecondsElapsed(LARGE_INTEGER start, LARGE_INTEGER end)
+{
+    r32 result = ((r32)(end.QuadPart - start.QuadPart) / (r32)perfCountFrequency);
+    return(result);
+}
 
 internal r32
 GetAspectRatio(void)
@@ -55,12 +75,13 @@ GetAspectRatio(void)
 }
 
 internal void
-CreateViewAndPerspective(void)
+CreateViewAndPerspective(dx_camera* camera)
 {
     DirectX::XMVECTOR eye = DirectX::XMVectorSet(0.0f, 0.7f, 1.5f, 0.f);
     DirectX::XMVECTOR at = DirectX::XMVectorSet(0.0f, -0.1f, 0.0f, 0.f);
     DirectX::XMVECTOR up = DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 0.f);
 
+#if 0    
     DirectX::XMStoreFloat4x4(
 	&constantBufferData.view,
 	DirectX::XMMatrixTranspose(
@@ -71,9 +92,6 @@ CreateViewAndPerspective(void)
 	    )
 	);
 
-    r32 aspectRatioX = GetAspectRatio();
-    r32 aspectRatioY = aspectRatioX < (16.0f / 9.0f) ? aspectRatioX / (16.0f / 9.0f) : 1.0f;
-
     DirectX::XMStoreFloat4x4(
 	&constantBufferData.projection,
 	DirectX::XMMatrixTranspose(
@@ -83,17 +101,126 @@ CreateViewAndPerspective(void)
 		0.01f,
 		100.0f)
 	    )
+	);    
+#else
+    camera->up = up;
+    camera->yaw = 0.0f;
+    camera->pitch = 0.0f;
+    camera->movementSpeed = 5.0f;
+    camera->turnSpeed = 0.2f;
+    
+    DirectX::XMStoreFloat4x4(
+	&camera->constantBufferData.view,
+	DirectX::XMMatrixTranspose(
+	    DirectX::XMMatrixLookAtRH(
+		eye,
+		at,
+		up)
+	    )
 	);
+    
+    r32 aspectRatioX = GetAspectRatio();
+    r32 aspectRatioY = aspectRatioX < (16.0f / 9.0f) ? aspectRatioX / (16.0f / 9.0f) : 1.0f;
+
+    DirectX::XMStoreFloat4x4(
+	&camera->constantBufferData.projection,
+	DirectX::XMMatrixTranspose(
+	    DirectX::XMMatrixPerspectiveFovRH(
+		2.0f * (r32)(atan(tan(DirectX::XMConvertToRadians(70) * 0.5f)) / aspectRatioY),
+		aspectRatioX,
+		0.01f,
+		100.0f)
+	    )
+	);
+#endif    
+
 }
 
 internal void
-CreateWindowSizeDependentResources(void)
+CreateWindowSizeDependentResources(dx_camera* camera)
 {
-    CreateViewAndPerspective();
+    CreateViewAndPerspective(camera);
 }
 
 internal void
-Win32ProcessPendingMessages(void)
+UpdateCamera(dx_camera* camera)
+{
+    //Set front.x
+    DirectX::XMVectorSetX(camera->front, (r32)(cos(ToRadians(camera->yaw) * ToRadians(camera->pitch))));
+    //Set front.y
+    DirectX::XMVectorSetY(camera->front, (r32)(sin(ToRadians(camera->pitch))));
+    //Set front.z
+    DirectX::XMVectorSetZ(camera->front, (r32)(cos(ToRadians(camera->pitch) * sin(ToRadians(camera->yaw)))));
+
+    //Normalize the magnitude
+    camera->front = DirectX::XMVector4Normalize(camera->front);
+
+    camera->right = DirectX::XMVector4Normalize(DirectX::XMVector4Cross(camera->front, camera->worldUp));
+    camera->up = DirectX::XMVector4Normalize(DirectX::XMVector4Cross(camera->right, camera->front));
+}
+
+internal void
+ProcessMouseControl(dx_camera* camera, r32 xChange, r32 yChange)
+{
+    camera->yaw += xChange;
+    camera->pitch += yChange;
+
+    if (camera->pitch > 89.0f)
+    {
+	camera->pitch = 89.0f;
+    }
+    if (camera->pitch < -89.0f)
+    {
+	camera->pitch = -89.0f;
+    }
+    
+}
+
+internal void
+ProcessPlayerMovement(game_controller_input* controller, dx_camera* camera, r32 deltaTime)
+{
+    //Now comes the hard part...
+
+    r32 velocity = camera->movementSpeed * deltaTime;
+    if (controller->moveUp.endedDown)
+    {
+	camera->position = DirectX::XMVectorAdd(camera->position, DirectX::XMVectorScale(camera->front, velocity));
+    }
+    if (controller->moveDown.endedDown)
+    {
+	camera->position = DirectX::XMVectorSubtract(camera->position, DirectX::XMVectorScale(camera->front, velocity));
+    }
+    if (controller->moveRight.endedDown)
+    {
+	camera->position = DirectX::XMVectorSubtract(camera->position, DirectX::XMVectorScale(camera->right, velocity));
+    }
+    if (controller->moveLeft.endedDown)
+    {
+	camera->position = DirectX::XMVectorAdd(camera->position, DirectX::XMVectorScale(camera->right, velocity));
+    }
+    
+}
+
+internal void
+Win32ProcessKeyboardMessage(game_button_state* newState, game_button_state* oldState, bool32 isDown)
+{
+    if (newState->endedDown != isDown)
+    {
+	newState->endedDown = isDown;
+
+	newState->started = isDown;
+	++newState->halfTransitionCount;
+    }
+    newState->wasDown = isDown;
+
+    if (oldState->endedDown)
+    {
+	newState->started = false;
+    }
+}
+
+internal void
+Win32ProcessPendingMessages(game_controller_input* keyboardController, game_controller_input* oldKeyboardController, dx_camera* camera)
 {
     MSG msg;
     while(PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
@@ -106,7 +233,40 @@ Win32ProcessPendingMessages(void)
 	} break;
 	case WM_SIZE:
 	{
-	    CreateWindowSizeDependentResources();
+	    CreateWindowSizeDependentResources(camera);
+	} break;
+	case WM_SYSKEYDOWN:
+	case WM_SYSKEYUP:
+	case WM_KEYUP:
+	case WM_KEYDOWN:
+	{
+	    u32 VKCode = (u32)msg.wParam;
+	    bool32 wasDown = ((msg.lParam & (1 << 30)) != 0);
+	    bool32 isDown = ((msg.lParam & (1 << 31)) == 0);
+
+	    if (wasDown != isDown)
+	    {
+		if (VKCode == 'W')
+		{
+		    Win32ProcessKeyboardMessage(&keyboardController->moveUp,
+						&oldKeyboardController->moveUp, isDown);
+		}
+		if (VKCode == 'A')
+		{
+		    Win32ProcessKeyboardMessage(&keyboardController->moveLeft,
+						&oldKeyboardController->moveLeft, isDown);
+		}
+		if (VKCode == 'S')
+		{
+		    Win32ProcessKeyboardMessage(&keyboardController->moveDown,
+						&oldKeyboardController->moveDown, isDown);
+		}
+		if (VKCode == 'D')
+		{
+		    Win32ProcessKeyboardMessage(&keyboardController->moveRight,
+						&oldKeyboardController->moveRight, isDown);
+		}
+	    }
 	} break;
 	default:
 	{
@@ -289,6 +449,7 @@ Update(void)
 {
 
     //Simply rotates the cube once per frame
+#if 0    
     DirectX::XMStoreFloat4x4(
 	&constantBufferData.world,
 	DirectX::XMMatrixTranspose(
@@ -301,6 +462,7 @@ Update(void)
 	);
 
     if (frameCount == MAXUINT) frameCount = 0;
+#endif    
 }
 
 //NOTE: this function should be called asynchronously, Take the time to have it execute
@@ -315,13 +477,18 @@ CreateDeviceDependentResources(ID3D11Device* device, shaders* shaders, direct_x_
     CreateCube(device, cubeBuffer);
 #else
 
+#if 0
     directXOBJCode.DirectXLoadOBJ("D:/ExternalCustomAPIs/OBJLoader/misc/cubetester_normals.obj", mainArena, programMemory, device, loadedBuffers);
+#else
+    directXOBJCode.DirectXLoadOBJ("D:/ExternalCustomAPIs/OBJLoader/misc/monkey.obj", mainArena, programMemory, device, loadedBuffers);
+#endif    
 #endif    
 }
 
 internal void
-Render(ID3D11DeviceContext* context, ID3D11RenderTargetView* renderTarget, ID3D11DepthStencilView* depthStencil, ID3D11Buffer* constantBuffer, shaders* shader, direct_x_loaded_buffers* loadedBuffers)
+Render(ID3D11DeviceContext* context, ID3D11RenderTargetView* renderTarget, ID3D11DepthStencilView* depthStencil, ID3D11Buffer* constantBuffer, shaders* shader, direct_x_loaded_buffers* loadedBuffers, dx_camera* camera)
 {
+#if 0    
     context->UpdateSubresource(
 	shader->constantBuffer,
 	0,
@@ -329,7 +496,15 @@ Render(ID3D11DeviceContext* context, ID3D11RenderTargetView* renderTarget, ID3D1
 	&constantBufferData,
 	0,
 	0);
-
+#else
+    context->UpdateSubresource(
+	shader->constantBuffer,
+	0,
+	nullptr,
+	&camera->constantBufferData,
+	0,
+	0);
+#endif    
     //Clear the render target and z buffer
     r32 teal [] = {0.098f, 0.439f, 0.439f, 1.000f};
     context->ClearRenderTargetView(
@@ -628,13 +803,60 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 	    running = true;
 
 	    
+	    dx_camera camera = {};	    
+	    CreateViewAndPerspective(&camera);
+
+
+
+	    /* MAIN GAME LOOP */
+	    /* MAIN GAME LOOP */
+	    /* MAIN GAME LOOP */
+
+	    //Setting up controls and such
+	    game_input input[2] = {};
+	    game_input* newInput = &input[0];
+	    game_input* oldInput = &input[1];
+
 	    
-	    CreateViewAndPerspective();
+	    r32 lastTime = 0.0f;
+	    
+	    
 	    while(running)
 	    {
-		Win32ProcessPendingMessages();
+		r32 now = Win32GetWallClock();
+		r32 deltaTime = now - lastTime;
+		lastTime = now;
+		
+		DWORD maxControllerCount = XUSER_MAX_COUNT;
+
+		game_controller_input* oldKeyboardController = GetController(oldInput, 0);
+		game_controller_input* newKeyboardController = GetController(newInput, 0);
+
+		*newKeyboardController = {};
+		newKeyboardController->isConnected = true;
+		for (i32 buttonIndex  = 0; buttonIndex < ArrayCount(newKeyboardController->buttons); ++buttonIndex)
+		{
+		    newKeyboardController->buttons[buttonIndex].endedDown =
+			oldKeyboardController->buttons[buttonIndex].endedDown;
+		}
+
+		POINT mouseP;
+		GetCursorPos(&mouseP);
+		ScreenToClient(windowHandle, &mouseP);
+		newInput->mouseX = mouseP.x;
+		newInput->mouseY = mouseP.y;
+
+		r32 xChange = (r32)oldInput->mouseX - (r32)newInput->mouseX;
+		r32 yChange = (r32)oldInput->mouseY - (r32)newInput->mouseY;
+		
+		Win32ProcessPendingMessages(newKeyboardController, oldKeyboardController, &camera);
+		ProcessPlayerMovement(newKeyboardController, &camera, deltaTime);
+		ProcessMouseControl(&camera, xChange, yChange);
+		
+		
 		Update();
-		Render(context, renderTarget, depthStencilView, shaders.constantBuffer, &shaders, &loadedBuffers);
+		
+		Render(context, renderTarget, depthStencilView, shaders.constantBuffer, &shaders, &loadedBuffers, &camera);
 		swapChain->Present(1, 0);
 	    }
 	}
