@@ -1,4 +1,4 @@
-
+#define CAMERA_BUFFER 1
 #include <windows.h>
 #include <stdio.h>
 #include <math.h>
@@ -40,6 +40,7 @@ struct program_state
 };
 
 
+
 global_variable memory_pool_dll_code memoryPoolCode;
 global_variable direct_x_load_obj_code directXOBJCode;
 global_variable bool32 running;
@@ -47,7 +48,7 @@ global_variable program_state* programState;
 global_variable ID3D11Texture2D* backBuffer;
 global_variable u32 frameCount;
 global_variable i64 perfCountFrequency;
-//global_variable constant_buffer_struct constantBufferData;
+global_variable constant_buffer_struct constantBufferData;
 
 
 inline LARGE_INTEGER
@@ -81,7 +82,10 @@ CreateViewAndPerspective(dx_camera* camera)
     DirectX::XMVECTOR at = DirectX::XMVectorSet(0.0f, -0.1f, 0.0f, 0.f);
     DirectX::XMVECTOR up = DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 0.f);
 
-#if 0    
+    r32 aspectRatioX = GetAspectRatio();
+    r32 aspectRatioY = aspectRatioX < (16.0f / 9.0f) ? aspectRatioX / (16.0f / 9.0f) : 1.0f;
+    
+#if !CAMERA_BUFFER
     DirectX::XMStoreFloat4x4(
 	&constantBufferData.view,
 	DirectX::XMMatrixTranspose(
@@ -104,10 +108,13 @@ CreateViewAndPerspective(dx_camera* camera)
 	);    
 #else
     camera->up = up;
-    camera->yaw = 0.0f;
+    camera->worldUp = up;
+    camera->yaw = -90.0f;
     camera->pitch = 0.0f;
-    camera->movementSpeed = 5.0f;
+    camera->front = {0.0f, 0.0f, -1.0f, 0.0f};
+    camera->movementSpeed = 50.0f;
     camera->turnSpeed = 0.2f;
+    camera->position = {10.0f, 10.0f, 10.0f};
     
     DirectX::XMStoreFloat4x4(
 	&camera->constantBufferData.view,
@@ -119,8 +126,6 @@ CreateViewAndPerspective(dx_camera* camera)
 	    )
 	);
     
-    r32 aspectRatioX = GetAspectRatio();
-    r32 aspectRatioY = aspectRatioX < (16.0f / 9.0f) ? aspectRatioX / (16.0f / 9.0f) : 1.0f;
 
     DirectX::XMStoreFloat4x4(
 	&camera->constantBufferData.projection,
@@ -143,20 +148,43 @@ CreateWindowSizeDependentResources(dx_camera* camera)
 }
 
 internal void
+CalculateViewMatrix(dx_camera* camera)
+{
+    DirectX::XMStoreFloat4x4(
+	&camera->constantBufferData.view,
+	DirectX::XMMatrixLookAtRH(camera->position,
+				  DirectX::XMVectorAdd(camera->position,
+						       camera->front),
+				  camera->up)
+	);
+}
+
+internal void
 UpdateCamera(dx_camera* camera)
 {
-    //Set front.x
-    DirectX::XMVectorSetX(camera->front, (r32)(cos(ToRadians(camera->yaw) * ToRadians(camera->pitch))));
-    //Set front.y
-    DirectX::XMVectorSetY(camera->front, (r32)(sin(ToRadians(camera->pitch))));
-    //Set front.z
-    DirectX::XMVectorSetZ(camera->front, (r32)(cos(ToRadians(camera->pitch) * sin(ToRadians(camera->yaw)))));
 
+#if 1
+    camera->front =
+	{
+	    (r32)(cos(camera->pitch) * sin(camera->yaw)),
+	    (r32)(-sin(camera->pitch)),
+
+	    (r32)(cos(camera->yaw) * cos(camera->pitch)),	    	    
+	};
+#else
+    camera->front =
+	{
+	    (r32)(cos(ToRadians(camera->yaw)) * cos(ToRadians(camera->pitch))),	    
+	    (r32)(sin(ToRadians(camera->pitch))),
+	    (r32)(cos(ToRadians(camera->pitch) * sin(ToRadians(camera->yaw)))),	    
+	};
+#endif
     //Normalize the magnitude
-    camera->front = DirectX::XMVector4Normalize(camera->front);
 
-    camera->right = DirectX::XMVector4Normalize(DirectX::XMVector4Cross(camera->front, camera->worldUp));
-    camera->up = DirectX::XMVector4Normalize(DirectX::XMVector4Cross(camera->right, camera->front));
+    camera->front = DirectX::XMVector3Normalize(camera->front);
+
+    camera->right = DirectX::XMVector4Normalize(DirectX::XMVector3Cross(camera->front, camera->worldUp));
+    camera->up = DirectX::XMVector4Normalize(DirectX::XMVector3Cross(camera->right, camera->front));
 }
 
 internal void
@@ -173,7 +201,27 @@ ProcessMouseControl(dx_camera* camera, r32 xChange, r32 yChange)
     {
 	camera->pitch = -89.0f;
     }
+
+    char textBuffer[256];        
+#if 1
+    sprintf_s(textBuffer, sizeof(textBuffer),
+	      "X: %f, Y: %f, Z: %f\n",
+	      DirectX::XMVectorGetX(camera->front),
+	      DirectX::XMVectorGetY(camera->front),
+	      DirectX::XMVectorGetZ(camera->front));
+    OutputDebugString(textBuffer);
     
+    OutputDebugString(textBuffer);
+#else
+    
+    sprintf_s(textBuffer, sizeof(textBuffer),
+	      "X: %f, Y: %f, Z: %f\n",
+	      DirectX::XMVectorGetX(camera->position),
+	      DirectX::XMVectorGetY(camera->position),
+	      DirectX::XMVectorGetZ(camera->position));
+    OutputDebugString(textBuffer);
+    
+#endif    
 }
 
 internal void
@@ -192,11 +240,11 @@ ProcessPlayerMovement(game_controller_input* controller, dx_camera* camera, r32 
     }
     if (controller->moveRight.endedDown)
     {
-	camera->position = DirectX::XMVectorSubtract(camera->position, DirectX::XMVectorScale(camera->right, velocity));
+	camera->position = DirectX::XMVectorAdd(camera->position, DirectX::XMVectorScale(camera->right, velocity));
     }
     if (controller->moveLeft.endedDown)
     {
-	camera->position = DirectX::XMVectorAdd(camera->position, DirectX::XMVectorScale(camera->right, velocity));
+	camera->position = DirectX::XMVectorSubtract(camera->position, DirectX::XMVectorScale(camera->right, velocity));	
     }
     
 }
@@ -445,11 +493,26 @@ CreateCube(ID3D11Device* device, cube_buffers* cubeBuffer)
 }
 
 internal void
-Update(void)
+Update(dx_camera* camera)
 {
 
     //Simply rotates the cube once per frame
-#if 0    
+#if 1   
+#if CAMERA_BUFFER
+
+#if 1    
+    DirectX::XMStoreFloat4x4(
+	&camera->constantBufferData.view,
+	DirectX::XMMatrixTranspose(
+	    DirectX::XMMatrixLookAtRH(
+		camera->position,
+		DirectX::XMVectorAdd(camera->front, camera->position),
+		camera->up)
+	    )
+	);
+#endif        
+#else
+    
     DirectX::XMStoreFloat4x4(
 	&constantBufferData.world,
 	DirectX::XMMatrixTranspose(
@@ -462,6 +525,7 @@ Update(void)
 	);
 
     if (frameCount == MAXUINT) frameCount = 0;
+#endif
 #endif    
 }
 
@@ -477,7 +541,7 @@ CreateDeviceDependentResources(ID3D11Device* device, shaders* shaders, direct_x_
     CreateCube(device, cubeBuffer);
 #else
 
-#if 0
+#if 1
     directXOBJCode.DirectXLoadOBJ("D:/ExternalCustomAPIs/OBJLoader/misc/cubetester_normals.obj", mainArena, programMemory, device, loadedBuffers);
 #else
     directXOBJCode.DirectXLoadOBJ("D:/ExternalCustomAPIs/OBJLoader/misc/monkey.obj", mainArena, programMemory, device, loadedBuffers);
@@ -488,22 +552,22 @@ CreateDeviceDependentResources(ID3D11Device* device, shaders* shaders, direct_x_
 internal void
 Render(ID3D11DeviceContext* context, ID3D11RenderTargetView* renderTarget, ID3D11DepthStencilView* depthStencil, ID3D11Buffer* constantBuffer, shaders* shader, direct_x_loaded_buffers* loadedBuffers, dx_camera* camera)
 {
-#if 0    
-    context->UpdateSubresource(
-	shader->constantBuffer,
-	0,
-	nullptr,
-	&constantBufferData,
-	0,
-	0);
-#else
+#if CAMERA_BUFFER
     context->UpdateSubresource(
 	shader->constantBuffer,
 	0,
 	nullptr,
 	&camera->constantBufferData,
 	0,
-	0);
+	0);    
+#else
+    context->UpdateSubresource(
+	shader->constantBuffer,
+	0,
+	nullptr,
+	&constantBufferData,
+	0,
+	0);    
 #endif    
     //Clear the render target and z buffer
     r32 teal [] = {0.098f, 0.439f, 0.439f, 1.000f};
@@ -617,6 +681,9 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 
     
 
+    UINT desiredSchedulerMs = 1;
+    bool32 sleepIsGranular = (timeBeginPeriod(desiredSchedulerMs) == TIMERR_NOERROR);
+    
     
     D3D_FEATURE_LEVEL levels[] = {
 	D3D_FEATURE_LEVEL_11_1,
@@ -712,7 +779,18 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 	{
 	    //Now that we have a window to draw in and an interface to send data and give commands to the GPU,
 	    //we create the swap chain
-
+	    i32 monitorRefreshRate = 60;
+	    
+	    HDC refreshDC = GetDC(windowHandle);
+	    i32 win32RefreshRate = GetDeviceCaps(refreshDC, VREFRESH);
+	    ReleaseDC(windowHandle, refreshDC);
+	    if (win32RefreshRate > 1)
+	    {
+		monitorRefreshRate = win32RefreshRate;
+	    }
+	    r32 gameUpdateHz = (monitorRefreshRate / 2.0f);
+	    r32 targetSecondsPerFrame = 1.0f / (r32)gameUpdateHz;
+	    
 
 	    DXGI_SWAP_CHAIN_DESC1 desc = {};
 	    desc.BufferCount = 2;
@@ -819,14 +897,52 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 
 	    
 	    r32 lastTime = 0.0f;
-	    
+
+	    r32 lastMouseX = 0.0f;
+	    r32 lastMouseY = 0.0f;
+
+#if CAMERA_BUFFER	    
+	    DirectX::XMStoreFloat4x4(
+		&camera.constantBufferData.world,
+		DirectX::XMMatrixTranspose(
+		    DirectX::XMMatrixRotationY(
+			DirectX::XMConvertToRadians(
+			    (r32)frameCount++
+			    )
+			)
+		    )
+		);
+#else
+	    DirectX::XMStoreFloat4x4(
+		&constantBufferData.world,
+		DirectX::XMMatrixTranspose(
+		    DirectX::XMMatrixRotationY(
+			DirectX::XMConvertToRadians(
+			    (r32)frameCount++
+			    )
+			)
+		    )
+		);	    
+#endif
+
+	    LARGE_INTEGER lastCounter = Win32GetWallClock();
+	    u64 lastCycleCount = __rdtsc();
+	    LARGE_INTEGER flipWallClock = Win32GetWallClock();
 	    
 	    while(running)
 	    {
-		r32 now = Win32GetWallClock();
+
+#if 0
+		LARGE_INTEGER wallClockTime = Win32GetWallClock();
+
+		r32 now = (r32)(wallClockTime.QuadPart);
+		
 		r32 deltaTime = now - lastTime;
 		lastTime = now;
-		
+#else
+		r32 deltaTime = targetSecondsPerFrame;
+
+#endif
 		DWORD maxControllerCount = XUSER_MAX_COUNT;
 
 		game_controller_input* oldKeyboardController = GetController(oldInput, 0);
@@ -838,7 +954,7 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 		{
 		    newKeyboardController->buttons[buttonIndex].endedDown =
 			oldKeyboardController->buttons[buttonIndex].endedDown;
-		}
+		};
 
 		POINT mouseP;
 		GetCursorPos(&mouseP);
@@ -846,18 +962,69 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 		newInput->mouseX = mouseP.x;
 		newInput->mouseY = mouseP.y;
 
-		r32 xChange = (r32)oldInput->mouseX - (r32)newInput->mouseX;
-		r32 yChange = (r32)oldInput->mouseY - (r32)newInput->mouseY;
+		r32 xChange = 0.01f * ((r32)mouseP.x - lastMouseX);
+		r32 yChange = 0.01f * (lastMouseY - (r32)mouseP.y);
+
+		lastMouseX = (r32)newInput->mouseX;
+		lastMouseY = (r32)newInput->mouseY;
 		
 		Win32ProcessPendingMessages(newKeyboardController, oldKeyboardController, &camera);
+#if CAMERA_BUFFER
 		ProcessPlayerMovement(newKeyboardController, &camera, deltaTime);
 		ProcessMouseControl(&camera, xChange, yChange);
-		
-		
-		Update();
+		CalculateViewMatrix(&camera);
+		UpdateCamera(&camera);		
+#endif
+
+
+#if 0		
+		char textBuffer[256];
+		sprintf_s(textBuffer, sizeof(textBuffer),
+			  "xChange: %f, yChange: %f\n", xChange, yChange);
+		OutputDebugString(textBuffer);
+#endif		
+
+		Update(&camera);
+
 		
 		Render(context, renderTarget, depthStencilView, shaders.constantBuffer, &shaders, &loadedBuffers, &camera);
 		swapChain->Present(1, 0);
+
+		//Spinner to slow down to a locked fps for testing purposes, also bc it's running too fast when
+		//there isn't much for the computer to do atm
+
+#if 1	
+		LARGE_INTEGER workCounter = Win32GetWallClock();
+		r32 workSecondsElapsed = Win32GetSecondsElapsed(lastCounter, workCounter);
+		r32 secondsElapsedForFrame = workSecondsElapsed;
+		if (secondsElapsedForFrame < targetSecondsPerFrame)
+		{
+		    DWORD sleepMs = 0;
+		    while (secondsElapsedForFrame < targetSecondsPerFrame)
+		    {
+			if (sleepIsGranular)
+			{
+			    sleepMs = (DWORD) (1000.0f * (targetSecondsPerFrame - secondsElapsedForFrame));
+			    if (sleepMs > 0)
+			    {
+				Sleep(sleepMs - 1);
+			    }
+			}
+			secondsElapsedForFrame = Win32GetSecondsElapsed(lastCounter, Win32GetWallClock());
+
+		    }
+		    r32 testSecondsElapsedForFrame = Win32GetSecondsElapsed(lastCounter, Win32GetWallClock());
+		    if (testSecondsElapsedForFrame < targetSecondsPerFrame)
+		    {
+			//LOG THAT WE MISSSED SLEEP 
+		    }
+		}
+		else
+		{
+		    //If secondsElapsedForFrame is higher than the target, then we missed a frame
+		}
+#endif
+
 	    }
 	}
     }
