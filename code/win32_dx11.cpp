@@ -1,4 +1,4 @@
-#define CAMERA_BUFFER 1
+
 #include <windows.h>
 #include <stdio.h>
 #include <math.h>
@@ -84,35 +84,14 @@ CreateViewAndPerspective(dx_camera* camera)
 
     r32 aspectRatioX = GetAspectRatio();
     r32 aspectRatioY = aspectRatioX < (16.0f / 9.0f) ? aspectRatioX / (16.0f / 9.0f) : 1.0f;
-    
-#if !CAMERA_BUFFER
-    DirectX::XMStoreFloat4x4(
-	&constantBufferData.view,
-	DirectX::XMMatrixTranspose(
-	    DirectX::XMMatrixLookAtRH(
-		eye,
-		at,
-		up)
-	    )
-	);
 
-    DirectX::XMStoreFloat4x4(
-	&constantBufferData.projection,
-	DirectX::XMMatrixTranspose(
-	    DirectX::XMMatrixPerspectiveFovRH(
-		2.0f * (r32)(atan(tan(DirectX::XMConvertToRadians(70) * 0.5f)) / aspectRatioY),
-		aspectRatioX,
-		0.01f,
-		100.0f)
-	    )
-	);    
-#else
+
     camera->up = up;
     camera->worldUp = up;
     camera->yaw = -90.0f;
     camera->pitch = 0.0f;
     camera->front = {0.0f, 0.0f, -1.0f, 0.0f};
-    camera->movementSpeed = 50.0f;
+    camera->movementSpeed = 5.0f;
     camera->turnSpeed = 0.2f;
     camera->position = {10.0f, 10.0f, 10.0f};
     
@@ -137,7 +116,7 @@ CreateViewAndPerspective(dx_camera* camera)
 		100.0f)
 	    )
 	);
-#endif    
+
 
 }
 
@@ -167,8 +146,7 @@ UpdateCamera(dx_camera* camera)
     camera->front =
 	{
 	    (r32)(cos(camera->pitch) * sin(camera->yaw)),
-	    (r32)(-sin(camera->pitch)),
-
+	    (r32)(sin(camera->pitch)),
 	    (r32)(cos(camera->yaw) * cos(camera->pitch)),	    	    
 	};
 #else
@@ -202,8 +180,10 @@ ProcessMouseControl(dx_camera* camera, r32 xChange, r32 yChange)
 	camera->pitch = -89.0f;
     }
 
-    char textBuffer[256];        
-#if 1
+#if 0    
+    char textBuffer[256];
+    
+#if 0
     sprintf_s(textBuffer, sizeof(textBuffer),
 	      "X: %f, Y: %f, Z: %f\n",
 	      DirectX::XMVectorGetX(camera->front),
@@ -220,7 +200,8 @@ ProcessMouseControl(dx_camera* camera, r32 xChange, r32 yChange)
 	      DirectX::XMVectorGetY(camera->position),
 	      DirectX::XMVectorGetZ(camera->position));
     OutputDebugString(textBuffer);
-    
+
+#endif    
 #endif    
 }
 
@@ -233,6 +214,7 @@ ProcessPlayerMovement(game_controller_input* controller, dx_camera* camera, r32 
     if (controller->moveUp.endedDown)
     {
 	camera->position = DirectX::XMVectorAdd(camera->position, DirectX::XMVectorScale(camera->front, velocity));
+	OutputDebugString("Moving forward\n");
     }
     if (controller->moveDown.endedDown)
     {
@@ -294,22 +276,24 @@ Win32ProcessPendingMessages(game_controller_input* keyboardController, game_cont
 
 	    if (wasDown != isDown)
 	    {
+		OutputDebugString("Button was pressed\n");
 		if (VKCode == 'W')
 		{
 		    Win32ProcessKeyboardMessage(&keyboardController->moveUp,
 						&oldKeyboardController->moveUp, isDown);
+		    OutputDebugString("W was Pressed\n");
 		}
-		if (VKCode == 'A')
+		else if (VKCode == 'A')
 		{
 		    Win32ProcessKeyboardMessage(&keyboardController->moveLeft,
 						&oldKeyboardController->moveLeft, isDown);
 		}
-		if (VKCode == 'S')
+		else if (VKCode == 'S')
 		{
 		    Win32ProcessKeyboardMessage(&keyboardController->moveDown,
 						&oldKeyboardController->moveDown, isDown);
 		}
-		if (VKCode == 'D')
+		else if (VKCode == 'D')
 		{
 		    Win32ProcessKeyboardMessage(&keyboardController->moveRight,
 						&oldKeyboardController->moveRight, isDown);
@@ -497,10 +481,6 @@ Update(dx_camera* camera)
 {
 
     //Simply rotates the cube once per frame
-#if 1   
-#if CAMERA_BUFFER
-
-#if 1    
     DirectX::XMStoreFloat4x4(
 	&camera->constantBufferData.view,
 	DirectX::XMMatrixTranspose(
@@ -510,23 +490,6 @@ Update(dx_camera* camera)
 		camera->up)
 	    )
 	);
-#endif        
-#else
-    
-    DirectX::XMStoreFloat4x4(
-	&constantBufferData.world,
-	DirectX::XMMatrixTranspose(
-	    DirectX::XMMatrixRotationY(
-		DirectX::XMConvertToRadians(
-		    (r32)frameCount++
-		    )
-		)
-	    )
-	);
-
-    if (frameCount == MAXUINT) frameCount = 0;
-#endif
-#endif    
 }
 
 //NOTE: this function should be called asynchronously, Take the time to have it execute
@@ -552,7 +515,7 @@ CreateDeviceDependentResources(ID3D11Device* device, shaders* shaders, direct_x_
 internal void
 Render(ID3D11DeviceContext* context, ID3D11RenderTargetView* renderTarget, ID3D11DepthStencilView* depthStencil, ID3D11Buffer* constantBuffer, shaders* shader, direct_x_loaded_buffers* loadedBuffers, dx_camera* camera)
 {
-#if CAMERA_BUFFER
+
     context->UpdateSubresource(
 	shader->constantBuffer,
 	0,
@@ -560,15 +523,7 @@ Render(ID3D11DeviceContext* context, ID3D11RenderTargetView* renderTarget, ID3D1
 	&camera->constantBufferData,
 	0,
 	0);    
-#else
-    context->UpdateSubresource(
-	shader->constantBuffer,
-	0,
-	nullptr,
-	&constantBufferData,
-	0,
-	0);    
-#endif    
+
     //Clear the render target and z buffer
     r32 teal [] = {0.098f, 0.439f, 0.439f, 1.000f};
     context->ClearRenderTargetView(
@@ -901,7 +856,7 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 	    r32 lastMouseX = 0.0f;
 	    r32 lastMouseY = 0.0f;
 
-#if CAMERA_BUFFER	    
+
 	    DirectX::XMStoreFloat4x4(
 		&camera.constantBufferData.world,
 		DirectX::XMMatrixTranspose(
@@ -912,18 +867,7 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 			)
 		    )
 		);
-#else
-	    DirectX::XMStoreFloat4x4(
-		&constantBufferData.world,
-		DirectX::XMMatrixTranspose(
-		    DirectX::XMMatrixRotationY(
-			DirectX::XMConvertToRadians(
-			    (r32)frameCount++
-			    )
-			)
-		    )
-		);	    
-#endif
+
 
 	    LARGE_INTEGER lastCounter = Win32GetWallClock();
 	    u64 lastCycleCount = __rdtsc();
@@ -955,26 +899,29 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 		    newKeyboardController->buttons[buttonIndex].endedDown =
 			oldKeyboardController->buttons[buttonIndex].endedDown;
 		};
-
+		
+		Win32ProcessPendingMessages(newKeyboardController, oldKeyboardController, &camera);
+		
 		POINT mouseP;
 		GetCursorPos(&mouseP);
 		ScreenToClient(windowHandle, &mouseP);
 		newInput->mouseX = mouseP.x;
 		newInput->mouseY = mouseP.y;
 
-		r32 xChange = 0.01f * ((r32)mouseP.x - lastMouseX);
-		r32 yChange = 0.01f * (lastMouseY - (r32)mouseP.y);
+		r32 xChange = deltaTime * (0.1f * ((r32)mouseP.x - lastMouseX));
+		r32 yChange = deltaTime * (0.1f * (lastMouseY - (r32)mouseP.y));
 
 		lastMouseX = (r32)newInput->mouseX;
 		lastMouseY = (r32)newInput->mouseY;
 		
-		Win32ProcessPendingMessages(newKeyboardController, oldKeyboardController, &camera);
-#if CAMERA_BUFFER
-		ProcessPlayerMovement(newKeyboardController, &camera, deltaTime);
-		ProcessMouseControl(&camera, xChange, yChange);
+
+
+
+		ProcessMouseControl(&camera, -xChange, yChange);
 		CalculateViewMatrix(&camera);
+		ProcessPlayerMovement(newKeyboardController, &camera, deltaTime);		
 		UpdateCamera(&camera);		
-#endif
+
 
 
 #if 0		
@@ -1025,6 +972,9 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 		}
 #endif
 
+		game_input* temp = newInput;
+		newInput = oldInput;
+		oldInput = temp;
 	    }
 	}
     }
