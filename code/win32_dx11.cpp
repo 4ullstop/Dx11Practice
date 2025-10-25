@@ -205,12 +205,12 @@ ProcessPlayerMovement(game_controller_input* controller, dx_camera* camera, r32 
     //Now comes the hard part...
 
     r32 velocity = camera->movementSpeed * deltaTime;
-    if (controller->moveUp.endedDown)
+    if (controller->moveForward.endedDown)
     {
 	camera->position = DirectX::XMVectorAdd(camera->position, DirectX::XMVectorScale(camera->front, velocity));
 	OutputDebugString("Moving forward\n");
     }
-    if (controller->moveDown.endedDown)
+    if (controller->moveBackward.endedDown)
     {
 	camera->position = DirectX::XMVectorSubtract(camera->position, DirectX::XMVectorScale(camera->front, velocity));
     }
@@ -221,6 +221,14 @@ ProcessPlayerMovement(game_controller_input* controller, dx_camera* camera, r32 
     if (controller->moveLeft.endedDown)
     {
 	camera->position = DirectX::XMVectorSubtract(camera->position, DirectX::XMVectorScale(camera->right, velocity));	
+    }
+    if (controller->moveUp.endedDown)
+    {
+	camera->position = DirectX::XMVectorAdd(camera->position, DirectX::XMVectorScale(camera->worldUp, velocity));
+    }
+    if (controller->moveDown.endedDown)
+    {
+	camera->position = DirectX::XMVectorSubtract(camera->position, DirectX::XMVectorScale(camera->worldUp, velocity));
     }
     
 }
@@ -276,10 +284,6 @@ Win32ProcessPendingMessages(game_controller_input* keyboardController, game_cont
 	    RAWINPUT* raw = (RAWINPUT*)lpb;
 	    if (raw->header.dwType == RIM_TYPEMOUSE)
 	    {
-		char textBuffer[256];
-		sprintf_s(textBuffer, sizeof(textBuffer),
-			  "xChange: %f, yChange: %f\n", (r32)raw->data.mouse.lLastX, (r32)raw->data.mouse.lLastY);
-		OutputDebugString(textBuffer);
 		mouse->x = (r32)raw->data.mouse.lLastX;
 		mouse->y = (r32)raw->data.mouse.lLastY;
 	    }
@@ -298,8 +302,8 @@ Win32ProcessPendingMessages(game_controller_input* keyboardController, game_cont
 	    {
 		if (VKCode == 'W')
 		{
-		    Win32ProcessKeyboardMessage(&keyboardController->moveUp,
-						&oldKeyboardController->moveUp, isDown);
+		    Win32ProcessKeyboardMessage(&keyboardController->moveForward,
+						&oldKeyboardController->moveForward, isDown);
 		}
 		else if (VKCode == 'A')
 		{
@@ -308,13 +312,23 @@ Win32ProcessPendingMessages(game_controller_input* keyboardController, game_cont
 		}
 		else if (VKCode == 'S')
 		{
-		    Win32ProcessKeyboardMessage(&keyboardController->moveDown,
-						&oldKeyboardController->moveDown, isDown);
+		    Win32ProcessKeyboardMessage(&keyboardController->moveBackward,
+						&oldKeyboardController->moveBackward, isDown);
 		}
 		else if (VKCode == 'D')
 		{
 		    Win32ProcessKeyboardMessage(&keyboardController->moveRight,
 						&oldKeyboardController->moveRight, isDown);
+		}
+		else if (VKCode == 'Q')
+		{
+		    Win32ProcessKeyboardMessage(&keyboardController->moveDown,
+						&oldKeyboardController->moveDown, isDown);
+		}
+		else if (VKCode == 'E')
+		{
+		    Win32ProcessKeyboardMessage(&keyboardController->moveUp,
+						&oldKeyboardController->moveUp, isDown);
 		}
 		else if (VKCode == VK_ESCAPE)
 		{

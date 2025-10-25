@@ -23,13 +23,15 @@ struct game_controller_input
 
     union
     {
-	game_button_state buttons[5];
+	game_button_state buttons[7];
 	struct
 	{
-	    game_button_state moveUp;
-	    game_button_state moveDown;
+	    game_button_state moveForward;
+	    game_button_state moveBackward;
 	    game_button_state moveRight;
 	    game_button_state moveLeft;
+	    game_button_state moveUp;
+	    game_button_state moveDown;
 
 	    game_button_state terminator;
 	};
@@ -50,6 +52,9 @@ inline game_controller_input* GetController(game_input* input, u32 controllerInd
     game_controller_input* result = &input->controllers[controllerIndex];
     return(result);
 }
+
+#define GAME_UPDATE(name) void name(program_memory* memory, game_input* input)
+typedef GAME_UPDATE(game_update);
 
 #define GAME_LAYER_H
 #endif
