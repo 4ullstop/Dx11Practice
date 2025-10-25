@@ -1,0 +1,16 @@
+Quick and Easy:
+ - Add Q and E buttons for expert camera movement
+ - Fix cursor issues
+   - Mouse only goes as far as screen space (therefore limited turning)
+   - You can see the cursor
+
+Longer, probably not as easy:
+ - Add materials to OBJ loader
+ - Make it so there can be more than one object loaded in
+ - Add Collision System
+
+Reaching now:
+- Buff out backend to be used for multiple games
+- Start on design of the game
+   - Sculptor? -prob this bc a little less complicated
+   - Boatlike?

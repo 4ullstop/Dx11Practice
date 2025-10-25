@@ -35,6 +35,9 @@ struct shader_info
 struct program_state
 {
     memory_arena setupArena;
+    memory_arena perFrameArena;
+
+    u8* arenaBase;
     
     shader_info* shaderInfo;
 };
@@ -127,42 +130,33 @@ CreateWindowSizeDependentResources(dx_camera* camera)
 }
 
 internal void
-CalculateViewMatrix(dx_camera* camera)
-{
-    DirectX::XMStoreFloat4x4(
-	&camera->constantBufferData.view,
-	DirectX::XMMatrixLookAtRH(camera->position,
-				  DirectX::XMVectorAdd(camera->position,
-						       camera->front),
-				  camera->up)
-	);
-}
-
-internal void
 UpdateCamera(dx_camera* camera)
 {
-
-#if 1
+    //Calculate the forward vector of our camera (this is the equation)
     camera->front =
 	{
 	    (r32)(cos(camera->pitch) * sin(camera->yaw)),
 	    (r32)(sin(camera->pitch)),
 	    (r32)(cos(camera->yaw) * cos(camera->pitch)),	    	    
 	};
-#else
-    camera->front =
-	{
-	    (r32)(cos(ToRadians(camera->yaw)) * cos(ToRadians(camera->pitch))),	    
-	    (r32)(sin(ToRadians(camera->pitch))),
-	    (r32)(cos(ToRadians(camera->pitch) * sin(ToRadians(camera->yaw)))),	    
-	};
-#endif
+
     //Normalize the magnitude
 
     camera->front = DirectX::XMVector3Normalize(camera->front);
 
     camera->right = DirectX::XMVector4Normalize(DirectX::XMVector3Cross(camera->front, camera->worldUp));
     camera->up = DirectX::XMVector4Normalize(DirectX::XMVector3Cross(camera->right, camera->front));
+
+    //Update our view matrix
+    DirectX::XMStoreFloat4x4(
+	&camera->constantBufferData.view,
+	DirectX::XMMatrixTranspose(
+	    DirectX::XMMatrixLookAtRH(
+		camera->position,
+		DirectX::XMVectorAdd(camera->front, camera->position),
+		camera->up)
+	    )
+	);    
 }
 
 internal void
@@ -249,8 +243,13 @@ Win32ProcessKeyboardMessage(game_button_state* newState, game_button_state* oldS
     }
 }
 
+struct mouse_movements
+{
+    r32 x, y;
+};
+
 internal void
-Win32ProcessPendingMessages(game_controller_input* keyboardController, game_controller_input* oldKeyboardController, dx_camera* camera)
+Win32ProcessPendingMessages(game_controller_input* keyboardController, game_controller_input* oldKeyboardController, dx_camera* camera, mouse_movements* mouse)
 {
     MSG msg;
     while(PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
@@ -265,6 +264,27 @@ Win32ProcessPendingMessages(game_controller_input* keyboardController, game_cont
 	{
 	    CreateWindowSizeDependentResources(camera);
 	} break;
+	case WM_INPUT:
+	{
+	    UINT dwSize = 0;
+	    
+	    
+	    GetRawInputData((HRAWINPUT)msg.lParam, RID_INPUT, NULL, &dwSize, sizeof(RAWINPUTHEADER));
+	    LPBYTE lpb = (LPBYTE)memoryPoolCode.PushStruct(&programState->perFrameArena, (sizeof(BYTE)) * dwSize);
+	    GetRawInputData((HRAWINPUT)msg.lParam, RID_INPUT, lpb, &dwSize, sizeof(RAWINPUTHEADER));
+
+	    RAWINPUT* raw = (RAWINPUT*)lpb;
+	    if (raw->header.dwType == RIM_TYPEMOUSE)
+	    {
+		char textBuffer[256];
+		sprintf_s(textBuffer, sizeof(textBuffer),
+			  "xChange: %f, yChange: %f\n", (r32)raw->data.mouse.lLastX, (r32)raw->data.mouse.lLastY);
+		OutputDebugString(textBuffer);
+		mouse->x = (r32)raw->data.mouse.lLastX;
+		mouse->y = (r32)raw->data.mouse.lLastY;
+	    }
+	    
+	} break;
 	case WM_SYSKEYDOWN:
 	case WM_SYSKEYUP:
 	case WM_KEYUP:
@@ -276,12 +296,10 @@ Win32ProcessPendingMessages(game_controller_input* keyboardController, game_cont
 
 	    if (wasDown != isDown)
 	    {
-		OutputDebugString("Button was pressed\n");
 		if (VKCode == 'W')
 		{
 		    Win32ProcessKeyboardMessage(&keyboardController->moveUp,
 						&oldKeyboardController->moveUp, isDown);
-		    OutputDebugString("W was Pressed\n");
 		}
 		else if (VKCode == 'A')
 		{
@@ -297,6 +315,10 @@ Win32ProcessPendingMessages(game_controller_input* keyboardController, game_cont
 		{
 		    Win32ProcessKeyboardMessage(&keyboardController->moveRight,
 						&oldKeyboardController->moveRight, isDown);
+		}
+		else if (VKCode == VK_ESCAPE)
+		{
+		    running = false; 
 		}
 	    }
 	} break;
@@ -476,21 +498,7 @@ CreateCube(ID3D11Device* device, cube_buffers* cubeBuffer)
 	&cubeBuffer->indexBuffer);
 }
 
-internal void
-Update(dx_camera* camera)
-{
 
-    //Simply rotates the cube once per frame
-    DirectX::XMStoreFloat4x4(
-	&camera->constantBufferData.view,
-	DirectX::XMMatrixTranspose(
-	    DirectX::XMMatrixLookAtRH(
-		camera->position,
-		DirectX::XMVectorAdd(camera->front, camera->position),
-		camera->up)
-	    )
-	);
-}
 
 //NOTE: this function should be called asynchronously, Take the time to have it execute
 //on a separate thread
@@ -606,7 +614,8 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 	memoryPoolCode.PushStruct = (memory_pool_push_struct*)GetProcAddress(memoryPoolLibrary, "PushStruct");
 	memoryPoolCode.PushArray = (memory_pool_push_array*)GetProcAddress(memoryPoolLibrary, "PushArray");
 	memoryPoolCode.PoolAlloc = (memory_pool_alloc*)GetProcAddress(memoryPoolLibrary, "PoolAlloc");
-	memoryPoolCode.InitializeArena = (memory_pool_initialize_arena*)GetProcAddress(memoryPoolLibrary, "InitializeArena");	
+	memoryPoolCode.InitializeArena = (memory_pool_initialize_arena*)GetProcAddress(memoryPoolLibrary, "InitializeArena");
+	memoryPoolCode.ClearArena = (memory_pool_clear_arena*)GetProcAddress(memoryPoolLibrary, "ClearArena");
     }
     if (memoryPoolCode.PushStruct && memoryPoolCode.PushArray && memoryPoolCode.PoolAlloc)
     {
@@ -628,9 +637,14 @@ int CALLBACK WinMain(HINSTANCE hInstance,
     memoryPoolCode.PoolAlloc(0, MEM_RESERVE|MEM_COMMIT, PAGE_READWRITE, &memory);
 
     programState = (program_state*)memory.permanentStorage;    
-    
+
+    //arena, size, base
+
     memoryPoolCode.InitializeArena(&programState->setupArena, memory.permanentStorageSize - sizeof(program_state),
 				   (u8*)memory.permanentStorage + sizeof(program_state));
+
+    memoryPoolCode.InitializeArena(&programState->perFrameArena, memory.transientStorageSize - sizeof(program_state),
+				   (u8*)memory.transientStorage + sizeof(program_state));
 
     programState->shaderInfo = (shader_info*)memoryPoolCode.PushStruct(&programState->setupArena, sizeof(programState->shaderInfo));
 
@@ -850,11 +864,25 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 	    game_input* newInput = &input[0];
 	    game_input* oldInput = &input[1];
 
+
+	    ShowCursor(false);
+	    
+	    RAWINPUTDEVICE rid[1];
+	    rid[0].usUsagePage = 0x01;
+	    rid[0].usUsage = 0x02;
+	    rid[0].dwFlags = RIDEV_NOLEGACY;
+	    rid[0].hwndTarget = 0;
+
+	    if (RegisterRawInputDevices(rid, 1, sizeof(rid[0])) == FALSE)
+	    {
+		lastError = GetLastError();
+	    }
+	    
 	    
 	    r32 lastTime = 0.0f;
 
-	    r32 lastMouseX = 0.0f;
-	    r32 lastMouseY = 0.0f;
+
+
 
 
 	    DirectX::XMStoreFloat4x4(
@@ -867,6 +895,8 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 			)
 		    )
 		);
+
+
 
 
 	    LARGE_INTEGER lastCounter = Win32GetWallClock();
@@ -900,25 +930,18 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 			oldKeyboardController->buttons[buttonIndex].endedDown;
 		};
 		
-		Win32ProcessPendingMessages(newKeyboardController, oldKeyboardController, &camera);
+		mouse_movements mouse = {};
 		
-		POINT mouseP;
-		GetCursorPos(&mouseP);
-		ScreenToClient(windowHandle, &mouseP);
-		newInput->mouseX = mouseP.x;
-		newInput->mouseY = mouseP.y;
+		Win32ProcessPendingMessages(newKeyboardController, oldKeyboardController, &camera, &mouse);
 
-		r32 xChange = deltaTime * (0.1f * ((r32)mouseP.x - lastMouseX));
-		r32 yChange = deltaTime * (0.1f * (lastMouseY - (r32)mouseP.y));
 
-		lastMouseX = (r32)newInput->mouseX;
-		lastMouseY = (r32)newInput->mouseY;
+		r32 xChange = deltaTime * (0.3f * mouse.x);
+		r32 yChange = deltaTime * (0.3f * mouse.y);
 		
 
 
 
-		ProcessMouseControl(&camera, -xChange, yChange);
-		CalculateViewMatrix(&camera);
+		ProcessMouseControl(&camera, -xChange, -yChange);
 		ProcessPlayerMovement(newKeyboardController, &camera, deltaTime);		
 		UpdateCamera(&camera);		
 
@@ -931,7 +954,7 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 		OutputDebugString(textBuffer);
 #endif		
 
-		Update(&camera);
+
 
 		
 		Render(context, renderTarget, depthStencilView, shaders.constantBuffer, &shaders, &loadedBuffers, &camera);
@@ -975,7 +998,10 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 		game_input* temp = newInput;
 		newInput = oldInput;
 		oldInput = temp;
-	    }
+
+
+		memoryPoolCode.ClearArena(&programState->perFrameArena);
+	    } //Loop Bracket
 	}
     }
 
