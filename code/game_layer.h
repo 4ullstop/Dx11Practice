@@ -1,6 +1,10 @@
 #if !defined (GAME_LAYER_H)
 
 #include "D:/ExternalCustomAPIs/Types/direct_x_typedefs.h"
+#include "D:/ExternalCustomAPIs/MemoryPools/code/memory_pools.h"
+#include "D:/ExternalCustomAPIs/OBJLoader/code/obj_parser_dll_include.h"
+
+
 
 struct game_button_state
 {
@@ -53,8 +57,12 @@ inline game_controller_input* GetController(game_input* input, u32 controllerInd
     return(result);
 }
 
+
 #define GAME_UPDATE(name) void name(program_memory* memory, game_input* input)
 typedef GAME_UPDATE(game_update);
+
+#define GAME_INITIALIZE(name) obj* name(memory_arena* objLocationArena, program_memory* mainProgramMemory, i32* numOfGameObjects, parse_obj_data_code* parseOBJCode)
+typedef GAME_INITIALIZE(game_initialize);
 
 #define GAME_LAYER_H
 #endif

@@ -1,4 +1,4 @@
-
+#define DIRECTXLOAD 0
 #include <windows.h>
 #include <stdio.h>
 #include <math.h>
@@ -14,14 +14,16 @@
 #include "D:/ExternalCustomAPIs/FileReader/file_reader.h"
 #include "D:/ExternalCustomAPIs/FileReader/file_reader.cpp"
 
+#if DIRECTXLOAD
 #include "D:/ExternalCustomAPIs/OBJLoader/code/directx_obj_loader_dll_include.h"
-
+#else
+#include "D:/ExternalCustomAPIs/OBJLoader/code/obj_parser_dll_include.h"
+#endif
 
 #include "D:/ExternalCustomAPIs/Types/typedefs.h"
 #include <d3d11_2.h>
 #include <dxgi1_3.h>
 #include "win32_dx11.h"
-#include "game_layer.h"
 
 
 #include <xinput.h>
@@ -42,17 +44,230 @@ struct program_state
     shader_info* shaderInfo;
 };
 
+struct direct_x_loaded_buffers
+{
+    ID3D11Buffer* vertexBuffer;
+    ID3D11Buffer* indexBuffer;    
+    i32 indexCount;
+};
 
 
 global_variable memory_pool_dll_code memoryPoolCode;
+#if DIRECTXLOAD
 global_variable direct_x_load_obj_code directXOBJCode;
+#else
+global_variable parse_obj_data_code parseObjCode;
+#endif
 global_variable bool32 running;
 global_variable program_state* programState;
 global_variable ID3D11Texture2D* backBuffer;
 global_variable u32 frameCount;
 global_variable i64 perfCountFrequency;
 global_variable constant_buffer_struct constantBufferData;
+global_variable ID3D11Device* d3dDevice;
 
+#include "game_layer.h"
+
+internal void
+Win32UnloadGameCode(win32_game_code* gameCode)
+{
+    if (gameCode->gameCodeDLL)
+    {
+	FreeLibrary(gameCode->gameCodeDLL);
+	gameCode->gameCodeDLL = 0;
+    }
+    gameCode->isValid = false;
+    gameCode->GameUpdate = 0;
+    gameCode->GameInitialize = 0;
+}
+
+inline FILETIME
+Win32GetLastWriteTime(char* filename)
+{
+    FILETIME lastWriteTime = {};
+    WIN32_FILE_ATTRIBUTE_DATA data;
+    if (GetFileAttributesEx(filename, GetFileExInfoStandard, &data))
+    {
+	lastWriteTime = data.ftLastWriteTime;
+    }
+    return(lastWriteTime);
+}
+
+internal win32_game_code
+Win32LoadGameCode(char* sourceDLLName, char* tempDLLName, char* lockFilename)
+{
+    win32_game_code result = {};
+    WIN32_FILE_ATTRIBUTE_DATA ignored;
+    DWORD lastError = 0;
+
+#if 0
+    GetFileAttributesEx(lockFilename, GetFileExInfoStandard, &ignored);
+    lastError = GetLastError();    
+#else    
+    
+    if (!GetFileAttributesEx(lockFilename, GetFileExInfoStandard, &ignored))
+    {
+	result.dllLastWriteTime = Win32GetLastWriteTime(sourceDLLName);
+	CopyFile(sourceDLLName, tempDLLName, FALSE);
+	result.gameCodeDLL = LoadLibrary(tempDLLName);
+	if (result.gameCodeDLL)
+	{
+	    result.GameUpdate = (game_update*)GetProcAddress(result.gameCodeDLL, "GameUpdate");
+
+	    
+	    result.GameInitialize = (game_initialize*)GetProcAddress(result.gameCodeDLL, "GameInitialize");
+	    result.isValid = (result.GameUpdate && result.GameInitialize);
+	}
+    }
+#endif    
+
+    if (!result.isValid)
+    {
+	result.GameUpdate = 0;
+	result.GameInitialize = 0;
+    }
+    return(result);
+}
+
+struct r32_3
+{
+    r32 x;
+    r32 y;
+    r32 z;    
+};
+
+internal void
+Win32GetEXEFilename(win32_state* state)
+{
+    DWORD sizeOfFilename = GetModuleFileName(0, state->exeFilename, sizeof(state->exeFilename));
+    state->onePastExeFilenameSlash = state->exeFilename;
+    for (char* scan = state->exeFilename; *scan; ++scan)
+    {
+	if (*scan == '\\')
+	{
+	    state->onePastExeFilenameSlash = scan + 1;
+	}
+    }
+}
+
+internal void
+CatStrings(size_t sourceACount, char* sourceA,
+	   size_t sourceBCount, char* sourceB,
+	   size_t destCount, char* dest)
+{
+    for (i32 index = 0; index < sourceACount; ++index)
+    {
+	*dest++ = *sourceA++;
+    }
+    for (i32 index = 0; index < sourceBCount; ++index)
+    {
+	*dest++ = *sourceB++;
+    }
+    *dest++ = 0;
+}
+
+internal i32
+StringLength(char* string)
+{
+    i32 count = 0;
+    while (*string++)
+    {
+	++count;
+    }
+    return(count);
+}
+
+internal void
+Win32BuildExePathFilename(win32_state* state, char* filename, i32 destCount, char* dest)
+{
+    CatStrings(state->onePastExeFilenameSlash - state->exeFilename, state->exeFilename,
+	       StringLength(filename), filename,
+	       destCount, dest);
+}
+
+internal void
+LoadAllOBJs(obj* allOBJs, i32 numOfGameObjects, direct_x_loaded_buffers* loadedBuffers, memory_arena* objLocationArena)
+{
+    HRESULT hr = {};
+
+//At some point you will loop all of these depending on the loaded objects in the game, but rn you only need to load
+    //one so I'm loading one
+
+    u32 objVertsSize = sizeof(vertex_position_color) * (allOBJs->vertexCount);
+
+    vertex_position_color* objVerts =
+	(vertex_position_color*)memoryPoolCode.PushArraySized(objLocationArena, objVertsSize);
+
+
+    r32_3 testColors[] =
+    {
+	{0, 0, 0}, //0 Black
+	{1, 0, 0}, //1 Red
+	{0, 1, 0}, //2 Green
+	{0, 0, 1}, //3 Blue
+	{1, 0, 1}, //4 Magenta
+	{0, 1, 1}, //5 Cyan
+	{1, 1, 0}, //6 Yellow
+	{1, 1, 1}, //7 White
+    };
+
+
+
+    for (i32 i = 0, j = 0; j < allOBJs->vertexCount; i += 3, j++)
+    {
+	objVerts[j].pos.x = allOBJs->vertices[i];
+	objVerts[j].pos.y = allOBJs->vertices[i + 2];
+	objVerts[j].pos.z = allOBJs->vertices[i + 1];
+
+#if 0
+	DirectX::XMFLOAT3 vertColor = {1.0f, 1.0f, 1.0f};
+
+#else
+	DirectX::XMFLOAT3 vertColor = {testColors[j].x, testColors[j].y, testColors[j].z};
+#endif	
+
+	objVerts[j].color = vertColor;
+
+    }
+
+    for (i32 i = 0; i < allOBJs->faceLastIndex; i++)
+    {
+	allOBJs->vertexIndices[i]--;
+    }
+    
+    
+    CD3D11_BUFFER_DESC vertexDesc(
+	objVertsSize,
+	D3D11_BIND_VERTEX_BUFFER);
+
+    D3D11_SUBRESOURCE_DATA vertexData;
+    ZeroMemory(&vertexData, sizeof(D3D11_SUBRESOURCE_DATA));
+    vertexData.pSysMem = objVerts;
+    vertexData.SysMemPitch = 0;
+    vertexData.SysMemSlicePitch = 0;
+
+    hr = d3dDevice->CreateBuffer(
+	&vertexDesc,
+	&vertexData,
+	&loadedBuffers->vertexBuffer);
+
+    CD3D11_BUFFER_DESC indexDesc(
+	sizeof(u16) * allOBJs->faceLastIndex,
+	D3D11_BIND_INDEX_BUFFER);
+
+    D3D11_SUBRESOURCE_DATA indexData;
+    ZeroMemory(&indexData, sizeof(D3D11_SUBRESOURCE_DATA));
+    indexData.pSysMem = allOBJs->vertexIndices;
+    indexData.SysMemPitch = 0;
+    indexData.SysMemSlicePitch = 0;
+
+    hr = d3dDevice->CreateBuffer(
+	&indexDesc,
+	&indexData,
+	&loadedBuffers->indexBuffer);
+
+    loadedBuffers->indexCount = allOBJs->faceLastIndex;
+}
 
 inline LARGE_INTEGER
 Win32GetWallClock(void)
@@ -208,7 +423,6 @@ ProcessPlayerMovement(game_controller_input* controller, dx_camera* camera, r32 
     if (controller->moveForward.endedDown)
     {
 	camera->position = DirectX::XMVectorAdd(camera->position, DirectX::XMVectorScale(camera->front, velocity));
-	OutputDebugString("Moving forward\n");
     }
     if (controller->moveBackward.endedDown)
     {
@@ -362,7 +576,7 @@ struct shaders
 };
 
 internal void
-CreateShaders(ID3D11Device* device, shaders* shaderResources)
+CreateShaders(shaders* shaderResources)
 {
 
 
@@ -382,7 +596,7 @@ CreateShaders(ID3D11Device* device, shaders* shaderResources)
     debug_read_file_result fileResult = DEBUGPlatformReadEntireFile(&blankThread, "../build/CubeVertexShader.cso");
 
     bytes = (BYTE*)fileResult.contents;
-    hr = device->CreateVertexShader(fileResult.contents,
+    hr = d3dDevice->CreateVertexShader(fileResult.contents,
 				  fileResult.contentsSize,
 				  nullptr,
 				  &shaderResources->vertexShader);
@@ -402,7 +616,7 @@ CreateShaders(ID3D11Device* device, shaders* shaderResources)
     };
 
 
-    hr = device->CreateInputLayout(
+    hr = d3dDevice->CreateInputLayout(
 	iaDesc,
 	ArrayCount(iaDesc),
 	bytes,
@@ -415,7 +629,7 @@ CreateShaders(ID3D11Device* device, shaders* shaderResources)
     debug_read_file_result pixelShaderResult = DEBUGPlatformReadEntireFile(&blankThread, "../build/CubePixelShader.cso");
     
     bytes = (BYTE*)pixelShaderResult.contents;
-    hr = device->CreatePixelShader(
+    hr = d3dDevice->CreatePixelShader(
 	pixelShaderResult.contents,
 	pixelShaderResult.contentsSize,
 	nullptr,
@@ -425,7 +639,7 @@ CreateShaders(ID3D11Device* device, shaders* shaderResources)
 	sizeof(constant_buffer_struct),
 	D3D11_BIND_CONSTANT_BUFFER);
 
-    hr = device->CreateBuffer(
+    hr = d3dDevice->CreateBuffer(
 	&cbDesc,
 	nullptr,
 	&shaderResources->constantBuffer);
@@ -463,7 +677,7 @@ CreateCube(ID3D11Device* device, cube_buffers* cubeBuffer)
     vData.SysMemPitch = 0;
     vData.SysMemSlicePitch = 0;
 
-    hr = device->CreateBuffer(
+    hr = d3dDevice->CreateBuffer(
 	&vDesc,
 	&vData,
 	&cubeBuffer->vertexBuffer);
@@ -506,7 +720,7 @@ CreateCube(ID3D11Device* device, cube_buffers* cubeBuffer)
     iData.SysMemPitch = 0;
     iData.SysMemSlicePitch = 0;
 
-    hr = device->CreateBuffer(
+    hr = d3dDevice->CreateBuffer(
 	&iDesc,
 	&iData,
 	&cubeBuffer->indexBuffer);
@@ -517,20 +731,22 @@ CreateCube(ID3D11Device* device, cube_buffers* cubeBuffer)
 //NOTE: this function should be called asynchronously, Take the time to have it execute
 //on a separate thread
 internal void
-CreateDeviceDependentResources(ID3D11Device* device, shaders* shaders, direct_x_loaded_buffers* loadedBuffers, memory_arena* mainArena, program_memory* programMemory)
+CreateDeviceDependentResources(shaders* shaders, direct_x_loaded_buffers* loadedBuffers, memory_arena* mainArena, program_memory* programMemory)
 {
 
-    CreateShaders(device, shaders);
+    CreateShaders(shaders);
 
 #if 0     
     CreateCube(device, cubeBuffer);
 #else
 
+#if DIRECTXLOAD    
 #if 1
-    directXOBJCode.DirectXLoadOBJ("D:/ExternalCustomAPIs/OBJLoader/misc/cubetester_normals.obj", mainArena, programMemory, device, loadedBuffers);
+    directXOBJCode.DirectXLoadOBJ("D:/ExternalCustomAPIs/OBJLoader/misc/cubetester_normals.obj", mainArena, programMemory, d3dDevice, loadedBuffers);
 #else
-    directXOBJCode.DirectXLoadOBJ("D:/ExternalCustomAPIs/OBJLoader/misc/monkey.obj", mainArena, programMemory, device, loadedBuffers);
+    directXOBJCode.DirectXLoadOBJ("D:/ExternalCustomAPIs/OBJLoader/misc/monkey.obj", mainArena, programMemory, d3dDevice, loadedBuffers);
 #endif    
+#endif
 #endif    
 }
 
@@ -615,11 +831,21 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 		     LPSTR lpCmdLine,
 		     int nCmdShow)
 {
-    /*
+    win32_state win32State = {};
+
+    Win32GetEXEFilename(&win32State);
+
+    char sourceGameCodeDLLFullPath[WIN32_STATE_FILE_NAME_COUNT];
+    Win32BuildExePathFilename(&win32State, "game_layer.dll", sizeof(sourceGameCodeDLLFullPath), sourceGameCodeDLLFullPath);
+
+    char tempGameCodeDLLFullPath[WIN32_STATE_FILE_NAME_COUNT];
+    Win32BuildExePathFilename(&win32State, "game_temp.dll", sizeof(tempGameCodeDLLFullPath), tempGameCodeDLLFullPath);
+
+    char gameCodeLockFullPath[WIN32_STATE_FILE_NAME_COUNT];
+    Win32BuildExePathFilename(&win32State, "lock.tmp", sizeof(gameCodeLockFullPath), gameCodeLockFullPath);
+/*
       Load our memory pool library
-     */
-
-
+*/
 
     HMODULE memoryPoolLibrary = LoadLibrary("D:/ExternalCustomAPIs/MemoryPools/dll/memory_pools.dll");
 
@@ -630,17 +856,27 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 	memoryPoolCode.PoolAlloc = (memory_pool_alloc*)GetProcAddress(memoryPoolLibrary, "PoolAlloc");
 	memoryPoolCode.InitializeArena = (memory_pool_initialize_arena*)GetProcAddress(memoryPoolLibrary, "InitializeArena");
 	memoryPoolCode.ClearArena = (memory_pool_clear_arena*)GetProcAddress(memoryPoolLibrary, "ClearArena");
+	memoryPoolCode.PushArraySized = (memory_pool_push_array_sized*)GetProcAddress(memoryPoolLibrary, "PushArraySized");
     }
     if (memoryPoolCode.PushStruct && memoryPoolCode.PushArray && memoryPoolCode.PoolAlloc)
     {
 	OutputDebugString("Memory Pool Code Successfully Loaded");
     }
 
+#if DIRECTXLOAD
     HMODULE directXOBJLibrary = LoadLibrary("D:/ExternalCustomAPIs/OBJLoader/dll/directx_obj_loader.dll");
     if (directXOBJLibrary)
     {
 	directXOBJCode.DirectXLoadOBJ = (direct_x_load_obj*)GetProcAddress(directXOBJLibrary, "DirectXLoadOBJ");
     }
+#else
+    HMODULE parseOBJLibrary = LoadLibrary("D:/ExternalCustomAPIs/OBJLoader/dll/obj_loader.dll");
+    if (parseOBJLibrary)
+    {
+	parseObjCode.ParseOBJData = (parse_obj_data*)GetProcAddress(parseOBJLibrary, "ParseOBJData");
+    }
+#endif    
+    
     
     program_memory memory = {};
 
@@ -684,7 +920,7 @@ int CALLBACK WinMain(HINSTANCE hInstance,
     deviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif    
     
-    ID3D11Device* d3dDevice = {};
+
     ID3D11DeviceContext* context;
 
     D3D_FEATURE_LEVEL featureLevel;
@@ -833,10 +1069,11 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 	    cube_buffers cubeBuffer = {};
 	    direct_x_loaded_buffers loadedBuffers = {};
 	    
-	    CreateDeviceDependentResources(d3dDevice, &shaders, &loadedBuffers, &programState->setupArena, &memory);
+	    CreateDeviceDependentResources(&shaders, &loadedBuffers, &programState->setupArena, &memory);
 
-
-
+	    //GameInitialize();
+	    //LoadOBJs();
+	    
 	    //Creating the depth stencil
 	    CD3D11_TEXTURE2D_DESC depthStencilDesc(
 		DXGI_FORMAT_D24_UNORM_S8_UINT,
@@ -868,6 +1105,18 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 	    CreateViewAndPerspective(&camera);
 
 
+	    //GameCode loading
+	    char* sourceDLLName = "game_layer.dll";
+	    win32_game_code game = Win32LoadGameCode(sourceGameCodeDLLFullPath, tempGameCodeDLLFullPath, gameCodeLockFullPath);
+
+//(memory_arena* objLocationArena, program_memory* mainProgramMemory, obj* allGameObjects, i32* numOfGameObjects)
+
+	    obj* allGameObjects = 0;
+	    i32 numOfGameObjects = 0;
+	    allGameObjects = game.GameInitialize(&programState->setupArena, &memory, &numOfGameObjects, &parseObjCode);
+	    LoadAllOBJs(allGameObjects, numOfGameObjects, &loadedBuffers, &programState->setupArena);
+
+	    u32 loadCounter = 120;
 
 	    /* MAIN GAME LOOP */
 	    /* MAIN GAME LOOP */
@@ -920,6 +1169,14 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 	    while(running)
 	    {
 
+		FILETIME newDLLWriteTime = Win32GetLastWriteTime(sourceGameCodeDLLFullPath);
+		if (CompareFileTime(&newDLLWriteTime, &game.dllLastWriteTime) != 0)
+		{
+		    Win32UnloadGameCode(&game);
+		    game = Win32LoadGameCode(sourceGameCodeDLLFullPath, tempGameCodeDLLFullPath, gameCodeLockFullPath);
+		    loadCounter = 0;
+		}
+		
 #if 0
 		LARGE_INTEGER wallClockTime = Win32GetWallClock();
 

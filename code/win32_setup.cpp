@@ -1,6 +1,8 @@
 // raddbg 0.9.20 project file
 
 recent_file: path: "win32_dx11.cpp"
+recent_file: path: "game_layer.cpp"
+recent_file: path: "F:/code/win32_apart.cpp"
 recent_file: path: "D:/ExternalCustomAPIs/OBJLoader/code/directx_obj_loader.cpp"
 recent_file: path: "P:/code/inst_decoder.cpp"
 recent_file: path: "D:/ExternalCustomAPIs/OBJLoader/code/obj_loader.cpp"
@@ -36,16 +38,35 @@ target:
 {
   executable: "D:/ExternalCustomAPIs/OBJLoader/dll/directx_obj_loader.exe"
   working_directory: "D:/ExternalCustomAPIs/OBJLoader/misc/"
-  enabled: 0
 }
 target:
 {
   executable: "P:/build/inst_decoder.exe"
   working_directory: "P:/data/"
-  enabled: 0
 }
 breakpoint:
 {
   source_location: "P:/code/inst_decoder.cpp:73:1"
+  hit_count: 0
+}
+target:
+{
+  executable: "F:/build/win32_apart.exe"
+  working_directory: "F:/data/"
+  enabled: 0
+}
+breakpoint:
+{
+  source_location: "F:/code/win32_apart.cpp:941:1"
+  hit_count: 0
+}
+breakpoint:
+{
+  source_location: "F:/code/win32_apart.cpp:242:1"
+  hit_count: 0
+}
+breakpoint:
+{
+  source_location: "F:/code/win32_apart.cpp:1020:1"
   hit_count: 0
 }

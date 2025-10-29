@@ -1,9 +1,10 @@
 Quick and Easy:
-
+ - Fullscreen mode
 
 
 Longer, probably not as easy:
  - DLL Loading for Game Code
+ - Loading OBJ files with DLL (game code vs windows specific code)
  - Add materials to OBJ loader
  - Make it so there can be more than one object loaded in
  - Add Collision System
@@ -14,3 +15,8 @@ Reaching now:
 - Start on design of the game
    - Sculptor? -prob this bc a little less complicated
    - Boatlike?
+
+
+GameInitialize()
+ - Calls into obj loader API
+ - Has to call back to Win32API somehow
