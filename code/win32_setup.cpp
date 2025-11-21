@@ -2,6 +2,8 @@
 
 recent_file: path: "win32_dx11.cpp"
 recent_file: path: "game_layer.cpp"
+recent_file: path: "T:/code/win32_brayn.cpp"
+recent_file: path: "D:/Backups/Dx11Practice/Dx11Practice1111/code/win32_dx11.cpp"
 recent_file: path: "F:/code/win32_apart.cpp"
 recent_file: path: "D:/ExternalCustomAPIs/OBJLoader/code/directx_obj_loader.cpp"
 recent_file: path: "P:/code/inst_decoder.cpp"
@@ -21,14 +23,10 @@ target:
 {
   executable: "../build/win32_dx11.exe"
   working_directory: "../data"
+  label: "Current project in progress"
   enabled: 1
 }
 tab_width: 2
-target:
-{
-  executable: "K:/build/doc_reader.exe"
-  working_directory: "K:/data/"
-}
 target:
 {
   executable: "D:/ExternalCustomAPIs/OBJLoader/dll/obj_loader.exe"
@@ -36,37 +34,19 @@ target:
 }
 target:
 {
-  executable: "D:/ExternalCustomAPIs/OBJLoader/dll/directx_obj_loader.exe"
-  working_directory: "D:/ExternalCustomAPIs/OBJLoader/misc/"
-}
-target:
-{
   executable: "P:/build/inst_decoder.exe"
   working_directory: "P:/data/"
 }
-breakpoint:
+target:
 {
-  source_location: "P:/code/inst_decoder.cpp:73:1"
-  hit_count: 0
+  executable: "T:/build/win32_brayn.exe"
+  working_directory: "T:/data/"
+  enabled: 0
 }
 target:
 {
-  executable: "F:/build/win32_apart.exe"
-  working_directory: "F:/data/"
+  executable: "D:/Backups/Dx11Practice/Dx11Practice1111/build/win32_dx11.exe"
+  working_directory: "D:/Backups/Dx11Practice/Dx11Practice1111/data/"
   enabled: 0
-}
-breakpoint:
-{
-  source_location: "F:/code/win32_apart.cpp:941:1"
-  hit_count: 0
-}
-breakpoint:
-{
-  source_location: "F:/code/win32_apart.cpp:242:1"
-  hit_count: 0
-}
-breakpoint:
-{
-  source_location: "F:/code/win32_apart.cpp:1020:1"
-  hit_count: 0
+  label: "Backup of dx11 practice, first person camera"
 }

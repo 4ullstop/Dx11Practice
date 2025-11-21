@@ -1,13 +1,20 @@
+Design Focused:
+ - Voxel engine
+  - Voxel R&D
+  - Create ability to load in multiple cubes, probably not with objs, just regular cube buffers should be fine
+  - Create chunks (probably look back on the way they are done in handmade hero)
+  - Create forward facing geo.
+
+
+
 Quick and Easy:
  - Fullscreen mode
 
 
 Longer, probably not as easy:
- - DLL Loading for Game Code
- - Loading OBJ files with DLL (game code vs windows specific code)
- - Add materials to OBJ loader
- - Make it so there can be more than one object loaded in
- - Add Collision System
+- Make it so there can be more than one object loaded in
+- Add materials to OBJ loader
+- Add Collision System
    - Requires game layer fill out (dll)
 
 Reaching now:
@@ -17,6 +24,40 @@ Reaching now:
    - Boatlike?
 
 
-GameInitialize()
- - Calls into obj loader API
- - Has to call back to Win32API somehow
+But first make it even possible to load more objects into your directX pipeline
+What would be an interesting way to store this?:
+ - File
+   - Load in the file with all of the information, (file location, location of object), written by hand at first
+   then write a writer
+ - At some point I imagine you'll want to be able to edit things like in most engines
+ - So doing some sort of file reading and writing might be necessary
+
+
+
+Voxel Research info:
+ - Create a bounding box with dimesions (see Seen code for bounding box creation)
+ - VoxelResolution = (BoundingBoxExtent * 2) / VoxelSize;
+ Create a compute buffer of this resolution value and send it to the gpu
+ Then instance cubes equal to our voxel count
+
+To get the location of a box:
+x = i % width;
+y = (i / width) % height;
+z = i / (width * height);
+
+To get world space:
+(x, y, z) * voxelResolution - BoundingBoxExtent;
+
+Add this world position to the verts of the instanced cubes
+
+You have to create a buffer for every single object you load into the world, except for when you are
+instancing the object in which case you have one which you reference throughout the code
+
+
+Throw the array into a constant buffer, use the SV_InstanceID as the index into the array that holds all of the location information
+
+
+Here's what I know:
+ - Our box is being created properly, I stepped through everything, had to allocate on the heap for the verts and stuff for our bounding box which we don't even use but it is what it is
+ - I need return values from these Michaelsoft binbows functions that make no sense
+   - It also sucks that you can't see the memory, like at all

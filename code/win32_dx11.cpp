@@ -27,6 +27,8 @@
 
 
 #include <xinput.h>
+#include <d3dcompiler.h>
+
 
 
 struct shader_info
@@ -47,8 +49,10 @@ struct program_state
 struct direct_x_loaded_buffers
 {
     ID3D11Buffer* vertexBuffer;
-    ID3D11Buffer* indexBuffer;    
+    ID3D11Buffer* indexBuffer;
+    ID3D11Buffer* vertInstanceBuffer;
     i32 indexCount;
+    i32 instanceCount;
 };
 
 
@@ -67,6 +71,8 @@ global_variable constant_buffer_struct constantBufferData;
 global_variable ID3D11Device* d3dDevice;
 
 #include "game_layer.h"
+
+global_variable ID3D11DeviceContext* context;
 
 internal void
 Win32UnloadGameCode(win32_game_code* gameCode)
@@ -184,12 +190,183 @@ Win32BuildExePathFilename(win32_state* state, char* filename, i32 destCount, cha
 	       StringLength(filename), filename,
 	       destCount, dest);
 }
+struct shaders
+{
+    ID3D11VertexShader* vertexShader;
+    ID3D11InputLayout* inputLayout;
+    ID3D11PixelShader* pixelShader;
+    ID3D11Buffer* constantBuffer;
+    ID3D11Buffer* instanceBuffer;
+};
+
+struct dx_instance_data
+{
+    DirectX::XMFLOAT3 pos;
+};
+
+internal void
+CreateInstanceBuffer(direct_x_loaded_buffers* loadedBuffers, shaders* shaderResources, voxel_chunk* voxelChunk, memory_arena* arena)
+{
+    //Assumes we've called CreateVoxelChunk from our game code
+    //Converting all of voxel space in to world space for the instand_data buffer
+
+    HRESULT hr = {};
+    DirectX::XMVECTOR boundsExtent = DirectX::XMVectorSet(voxelChunk->voxelChunkExtent.x,
+							  voxelChunk->voxelChunkExtent.y,
+							  voxelChunk->voxelChunkExtent.z,
+							  0.0f);
+    
+    inst_buffer_struct* instBuffer = (inst_buffer_struct*)memoryPoolCode.PushArraySized(arena, (size_t)(sizeof(inst_buffer_struct) * voxelChunk->voxelResolution));
+
+
+    DirectX::XMVECTOR tempPos;
+
+    for (int i = 0; i < voxelChunk->voxelResolution; i++)
+    {
+	r32 x, y, z;
+	x = (r32)fmod(i, voxelChunk->width);
+	y = (r32)fmod((i / voxelChunk->width), voxelChunk->height);
+	z = i / (voxelChunk->width * voxelChunk->height);
+
+	tempPos = DirectX::XMVectorSet(x, y, z, 0.0f);
+	tempPos = DirectX::XMVectorScale(tempPos, voxelChunk->voxelResolution);
+	tempPos = DirectX::XMVectorSubtract(tempPos, boundsExtent);
+	DirectX::XMVectorSetW(tempPos, 1.0f);
+
+	XMStoreFloat4(&instBuffer[i].instancePosition, tempPos);
+    }
+
+    //Step through this and see what happens
+    D3D11_BUFFER_DESC instBufferDesc;
+    ZeroMemory(&instBufferDesc, sizeof(instBufferDesc));
+
+    instBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+    instBufferDesc.ByteWidth = (UINT)(sizeof(inst_buffer_struct) * voxelChunk->voxelResolution);
+    instBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+    instBufferDesc.CPUAccessFlags = 0;
+    instBufferDesc.MiscFlags = 0;
+
+    D3D11_SUBRESOURCE_DATA instData;
+    ZeroMemory(&instData, sizeof(instData));
+    instData.pSysMem = &instBuffer[0];
+
+    hr = d3dDevice->CreateBuffer(&instBufferDesc, &instData, &shaderResources->instanceBuffer);
+
+
+}
+
+struct obj_conversion
+{
+    vertex_position_color* objVerts;
+    u16* indices;
+    u32 objVertsSize;
+    u32 indexCount;
+};
+
+internal obj_conversion
+ConvertGameOBJToDXOBJ(obj* currObj, memory_arena* arena)
+{
+    obj_conversion result;
+    HRESULT hr = {};
+
+//At some point you will loop all of these depending on the loaded objects in the game, but rn you only need to load
+    //one so I'm loading one
+
+    result.objVertsSize = sizeof(vertex_position_color) * (currObj->vertexCount);
+
+    result.objVerts =
+	(vertex_position_color*)memoryPoolCode.PushArraySized(arena, result.objVertsSize);
+
+    size_t indexSize = sizeof(u16) * currObj->faceLastIndex;
+    result.indices = (u16*)memoryPoolCode.PushArraySized(arena, indexSize);
+
+    r32_3 testColors[] =
+    {
+	{0, 0, 0}, //0 Black
+	{1, 0, 0}, //1 Red
+	{0, 1, 0}, //2 Green
+	{0, 0, 1}, //3 Blue
+	{1, 0, 1}, //4 Magenta
+	{0, 1, 1}, //5 Cyan
+	{1, 1, 0}, //6 Yellow
+	{1, 1, 1}, //7 White
+    };
+
+
+
+    for (i32 i = 0, j = 0; j < currObj->vertexCount; i += 3, j++)
+    {
+	result.objVerts[j].pos.x = currObj->vertices[i];
+	result.objVerts[j].pos.y = currObj->vertices[i + 1];
+	result.objVerts[j].pos.z = currObj->vertices[i + 2];
+
+#if 0
+	DirectX::XMFLOAT3 vertColor = {1.0f, 1.0f, 1.0f};
+
+#else
+	DirectX::XMFLOAT3 vertColor = {testColors[j].x, testColors[j].y, testColors[j].z};
+#endif	
+
+	result.objVerts[j].color = vertColor;
+
+    }
+
+    for (i32 i = 0; i < currObj->faceLastIndex; i++)
+    {
+	result.indices[i] = currObj->vertexIndices[i] - 1;
+    }
+
+    result.indexCount = currObj->faceLastIndex;
+    return(result);
+}
+
+internal void
+LoadInstancedOBJ(obj* allInstancedOBJs, memory_arena* objLocationArena, direct_x_loaded_buffers* loadedBuffers, voxel_chunk* voxelChunk, shaders* shaderResources)
+{
+    HRESULT hr = {};
+
+    obj_conversion convertedObj = ConvertGameOBJToDXOBJ(allInstancedOBJs, objLocationArena);
+
+    CreateInstanceBuffer(loadedBuffers, shaderResources, voxelChunk, objLocationArena);
+    loadedBuffers->indexCount = convertedObj.indexCount;
+    loadedBuffers->instanceCount = (i32)voxelChunk->voxelResolution;
+
+    CD3D11_BUFFER_DESC vertexDesc(
+	convertedObj.objVertsSize,
+	D3D11_BIND_VERTEX_BUFFER);
+
+    D3D11_SUBRESOURCE_DATA vertexData;
+    ZeroMemory(&vertexData, sizeof(D3D11_SUBRESOURCE_DATA));
+    vertexData.pSysMem =  convertedObj.objVerts;
+    vertexData.SysMemPitch = 0;
+    vertexData.SysMemSlicePitch = 0;
+
+    hr =  d3dDevice->CreateBuffer(
+	&vertexDesc,
+	&vertexData,
+	&loadedBuffers->vertexBuffer);
+
+    CD3D11_BUFFER_DESC indexDesc(
+	sizeof(u16) * convertedObj.indexCount,
+	D3D11_BIND_INDEX_BUFFER);
+
+    D3D11_SUBRESOURCE_DATA indexData;
+    ZeroMemory(&indexData, sizeof(D3D11_SUBRESOURCE_DATA));
+    indexData.pSysMem = convertedObj.indices;
+    indexData.SysMemPitch = 0;
+    indexData.SysMemSlicePitch = 0;
+
+    hr = d3dDevice->CreateBuffer(
+	&indexDesc,
+	&indexData,
+	&loadedBuffers->indexBuffer);
+}
 
 internal void
 LoadAllOBJs(obj* allOBJs, i32 numOfGameObjects, direct_x_loaded_buffers* loadedBuffers, memory_arena* objLocationArena)
 {
-    HRESULT hr = {};
-
+    HRESULT hr = {};    
+#if 0
 //At some point you will loop all of these depending on the loaded objects in the game, but rn you only need to load
     //one so I'm loading one
 
@@ -216,8 +393,8 @@ LoadAllOBJs(obj* allOBJs, i32 numOfGameObjects, direct_x_loaded_buffers* loadedB
     for (i32 i = 0, j = 0; j < allOBJs->vertexCount; i += 3, j++)
     {
 	objVerts[j].pos.x = allOBJs->vertices[i];
-	objVerts[j].pos.y = allOBJs->vertices[i + 2];
-	objVerts[j].pos.z = allOBJs->vertices[i + 1];
+	objVerts[j].pos.y = allOBJs->vertices[i + 1];
+	objVerts[j].pos.z = allOBJs->vertices[i + 2];
 
 #if 0
 	DirectX::XMFLOAT3 vertColor = {1.0f, 1.0f, 1.0f};
@@ -234,15 +411,20 @@ LoadAllOBJs(obj* allOBJs, i32 numOfGameObjects, direct_x_loaded_buffers* loadedB
     {
 	allOBJs->vertexIndices[i]--;
     }
+#else
+
+    //If something doesn't work here it's bc the memory has a lifetime in this function
+    obj_conversion convertedObj = ConvertGameOBJToDXOBJ(allOBJs, objLocationArena);
     
+#endif
     
     CD3D11_BUFFER_DESC vertexDesc(
-	objVertsSize,
+	convertedObj.objVertsSize,
 	D3D11_BIND_VERTEX_BUFFER);
 
     D3D11_SUBRESOURCE_DATA vertexData;
     ZeroMemory(&vertexData, sizeof(D3D11_SUBRESOURCE_DATA));
-    vertexData.pSysMem = objVerts;
+    vertexData.pSysMem = convertedObj.objVerts;
     vertexData.SysMemPitch = 0;
     vertexData.SysMemSlicePitch = 0;
 
@@ -567,19 +749,25 @@ LRESULT CALLBACK Win32MainWindowProc(HWND hwnd,
     return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
 
-struct shaders
+struct shader_code
 {
-    ID3D11VertexShader* vertexShader;
-    ID3D11InputLayout* inputLayout;
-    ID3D11PixelShader* pixelShader;
-    ID3D11Buffer* constantBuffer;
+    ID3DBlob* vertexShaderCode;
+    ID3DBlob* pixelShaderCode;    
 };
 
-internal void
+internal shader_code
+CompileShaders(void)
+{
+    HRESULT hr;
+    shader_code result;
+    hr = D3DCompileFromFile(L"vshader.hlsl", 0, 0, "main", "vs_5_0", 0, 0, &result.vertexShaderCode, 0);
+    hr = D3DCompileFromFile(L"pshader.hlsl", 0, 0, "main", "ps_5_0", 0, 0, &result.pixelShaderCode, 0);
+    return(result);
+}
+
+internal void 
 CreateShaders(shaders* shaderResources)
 {
-
-
     HRESULT hr = {};
     
     FILE* vShader, *pShader; //vertex (v) pixel (p)
@@ -608,14 +796,19 @@ CreateShaders(shaders* shaderResources)
     //to fit the struct
     D3D11_INPUT_ELEMENT_DESC iaDesc[] =
     {
-	{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,
-	  0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+	{
+	    "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,
+	    0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0
+	},
 
-	{ "COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT,
-	  0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0},
+	{
+	    "COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT,
+	    0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0
+	},
     };
 
-
+    //What is the input for the function in our VertexShader??? This...
+    
     hr = d3dDevice->CreateInputLayout(
 	iaDesc,
 	ArrayCount(iaDesc),
@@ -643,90 +836,17 @@ CreateShaders(shaders* shaderResources)
 	&cbDesc,
 	nullptr,
 	&shaderResources->constantBuffer);
-}
 
-
-internal void
-CreateCube(ID3D11Device* device, cube_buffers* cubeBuffer)
-{
-    cube_buffers result = {};
-
-    HRESULT hr = S_OK;
-
-    //Cube geo
-    vertex_position_color CubeVertices[] =
-    {
-	{DirectX::XMFLOAT3(-0.5f, -0.5f, -0.5f), DirectX::XMFLOAT3(0, 0, 0),},
-	{DirectX::XMFLOAT3(-0.5f, -0.5f, 0.5f), DirectX::XMFLOAT3(0, 0, 1),},
-	{DirectX::XMFLOAT3(-0.5f, 0.5f, -0.5f), DirectX::XMFLOAT3(0, 1, 0),},
-	{DirectX::XMFLOAT3(-0.5f, 0.5f, 0.5f), DirectX::XMFLOAT3(0, 1, 1),},
-	{DirectX::XMFLOAT3(0.5f, -0.5f, -0.5f), DirectX::XMFLOAT3(1, 0, 0),},
-	{DirectX::XMFLOAT3(0.5f, -0.5f, 0.5f), DirectX::XMFLOAT3(1, 0, 1),},
-	{DirectX::XMFLOAT3(-0.5f, -0.5f, 0.5f), DirectX::XMFLOAT3(1, 1, 0),},
-	{DirectX::XMFLOAT3(0.5f, 0.5f, 0.5f), DirectX::XMFLOAT3(1, 1, 1),},
-    };
-
-    //Create the vertex buffer
-    CD3D11_BUFFER_DESC vDesc(
-	sizeof(CubeVertices),
-	D3D11_BIND_VERTEX_BUFFER);
-
-    D3D11_SUBRESOURCE_DATA vData;
-    ZeroMemory(&vData, sizeof(D3D11_SUBRESOURCE_DATA));
-    vData.pSysMem = CubeVertices;
-    vData.SysMemPitch = 0;
-    vData.SysMemSlicePitch = 0;
-
-    hr = d3dDevice->CreateBuffer(
-	&vDesc,
-	&vData,
-	&cubeBuffer->vertexBuffer);
-
-    //For fun make a file loader that loads and obj file, doesn't have to be great atm, make it better later
-
-    //For fun he says... make a file loader for fun he says...
+    CD3D11_BUFFER_DESC instDesc(
+	sizeof(inst_buffer_struct),
+	D3D11_BIND_CONSTANT_BUFFER);
     
-    unsigned short cubeIndices[] =
-    {
-	0,2,1,
-	1,2,3,
-
-	4,5,6,
-	5,7,6,
-
-	0,1,5,
-	0,5,4,
-	
-	2,6,7,
-	2,7,3,
-
-	0,4,6,
-	0,6,2,
-
-	1,3,7,
-	1,7,5,
-    };
-
-
-    //Read over why we are doing this again...
-    cubeBuffer->indexCount = ArrayCount(cubeIndices);
-    CD3D11_BUFFER_DESC iDesc(
-	sizeof(cubeIndices),
-	D3D11_BIND_INDEX_BUFFER);
-
-    D3D11_SUBRESOURCE_DATA iData;
-    ZeroMemory(&iData, sizeof(D3D11_SUBRESOURCE_DATA));
-    iData.pSysMem = cubeIndices;
-    iData.SysMemPitch = 0;
-    iData.SysMemSlicePitch = 0;
-
+    
     hr = d3dDevice->CreateBuffer(
-	&iDesc,
-	&iData,
-	&cubeBuffer->indexBuffer);
+	&instDesc,
+	nullptr,
+	&shaderResources->instanceBuffer);
 }
-
-
 
 //NOTE: this function should be called asynchronously, Take the time to have it execute
 //on a separate thread
@@ -736,10 +856,6 @@ CreateDeviceDependentResources(shaders* shaders, direct_x_loaded_buffers* loaded
 
     CreateShaders(shaders);
 
-#if 0     
-    CreateCube(device, cubeBuffer);
-#else
-
 #if DIRECTXLOAD    
 #if 1
     directXOBJCode.DirectXLoadOBJ("D:/ExternalCustomAPIs/OBJLoader/misc/cubetester_normals.obj", mainArena, programMemory, d3dDevice, loadedBuffers);
@@ -747,11 +863,11 @@ CreateDeviceDependentResources(shaders* shaders, direct_x_loaded_buffers* loaded
     directXOBJCode.DirectXLoadOBJ("D:/ExternalCustomAPIs/OBJLoader/misc/monkey.obj", mainArena, programMemory, d3dDevice, loadedBuffers);
 #endif    
 #endif
-#endif    
+
 }
 
 internal void
-Render(ID3D11DeviceContext* context, ID3D11RenderTargetView* renderTarget, ID3D11DepthStencilView* depthStencil, ID3D11Buffer* constantBuffer, shaders* shader, direct_x_loaded_buffers* loadedBuffers, dx_camera* camera)
+Render(ID3D11RenderTargetView* renderTarget, ID3D11DepthStencilView* depthStencil, ID3D11Buffer* constantBuffer, shaders* shader, direct_x_loaded_buffers* loadedBuffers, dx_camera* camera)
 {
 
     context->UpdateSubresource(
@@ -781,6 +897,19 @@ Render(ID3D11DeviceContext* context, ID3D11RenderTargetView* renderTarget, ID3D1
 	depthStencil);
 
     //Set the IA stage by setting the input topology and layout
+#if 0    
+    UINT strides[2] = {sizeof(vertex_position_color), sizeof(inst_buffer_struct)};
+    UINT offsets[2] = {0, 0};
+
+    ID3D11Buffer* vertInstBuffers[2] = {loadedBuffers->vertexBuffer, loadedBuffers->vertInstanceBuffer};
+    
+    context->IASetVertexBuffers(
+	0,
+	2,
+	vertInstBuffers,
+	strides,
+	offsets);    
+#else
     UINT stride = sizeof(vertex_position_color);
     UINT offset = 0;
 
@@ -790,6 +919,8 @@ Render(ID3D11DeviceContext* context, ID3D11RenderTargetView* renderTarget, ID3D1
 	&loadedBuffers->vertexBuffer,
 	&stride,
 	&offset);
+    
+#endif    
 
     context->IASetIndexBuffer(
 	loadedBuffers->indexBuffer,
@@ -806,10 +937,13 @@ Render(ID3D11DeviceContext* context, ID3D11RenderTargetView* renderTarget, ID3D1
 	nullptr,
 	0);
 
+    ID3D11Buffer* cb[2] = {shader->constantBuffer, shader->instanceBuffer};
+    
     context->VSSetConstantBuffers(
 	0,
-	1,
-	&shader->constantBuffer);
+	2,
+	cb);
+
 
     //Setup the pixel shader stage
     context->PSSetShader(
@@ -819,11 +953,21 @@ Render(ID3D11DeviceContext* context, ID3D11RenderTargetView* renderTarget, ID3D1
 
     //Calling draw tells d3d to start sending commands to the graphics device
 
+#if 0
     context->DrawIndexed(
 	loadedBuffers->indexCount,
 	0,
 	0);
+#else
 
+    context->DrawIndexedInstanced(
+	loadedBuffers->indexCount,
+	loadedBuffers->instanceCount,
+	0,
+	0,
+	0);
+
+#endif    
 }
 
 int CALLBACK WinMain(HINSTANCE hInstance,
@@ -915,13 +1059,13 @@ int CALLBACK WinMain(HINSTANCE hInstance,
     };
 
     UINT deviceFlags = D3D11_CREATE_DEVICE_BGRA_SUPPORT; //If we want to be able to have d3d interact w/ d2d
-    //https://learn.microsoft.com/en-us/windows/win32/api/d3d11/ne-d3d11-d3d11_create_device_flag
-#if TEST_INTERNAL
+    //https://learn.microsoft.com/en-us/windows/win32/api/d3d11/ne-d3d11-d3d11_create_device_flag7
+#if 1
     deviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif    
     
 
-    ID3D11DeviceContext* context;
+
 
     D3D_FEATURE_LEVEL featureLevel;
 
@@ -932,8 +1076,8 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 
     HR(CreateDXGIFactory2(0, __uuidof(IDXGIFactory2), (void**)&factory));
 
- 
-    factory->EnumAdapters(1, &adapter);
+    //Set this back to 1 after debugging graphics
+    factory->EnumAdapters(0, &adapter);
 
     IDXGIOutput* adapterOutput = {};
     adapter->EnumOutputs(1, &adapterOutput);
@@ -1113,9 +1257,14 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 
 	    obj* allGameObjects = 0;
 	    i32 numOfGameObjects = 0;
-	    allGameObjects = game.GameInitialize(&programState->setupArena, &memory, &numOfGameObjects, &parseObjCode);
-	    LoadAllOBJs(allGameObjects, numOfGameObjects, &loadedBuffers, &programState->setupArena);
+	    game_initialize_data initializedData;
+	    initializedData = game.GameInitialize(&memoryPoolCode, &programState->setupArena, &memory, &numOfGameObjects, &parseObjCode);
+	    
+//	    LoadAllOBJs(allGameObjects, numOfGameObjects, &loadedBuffers, &programState->setupArena);
 
+
+	    LoadInstancedOBJ(initializedData.allObjs, &programState->setupArena, &loadedBuffers, &initializedData.voxels, &shaders);
+	    
 	    u32 loadCounter = 120;
 
 	    /* MAIN GAME LOOP */
@@ -1228,7 +1377,7 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 
 
 		
-		Render(context, renderTarget, depthStencilView, shaders.constantBuffer, &shaders, &loadedBuffers, &camera);
+		Render(renderTarget, depthStencilView, shaders.constantBuffer, &shaders, &loadedBuffers, &camera);
 		swapChain->Present(1, 0);
 
 		//Spinner to slow down to a locked fps for testing purposes, also bc it's running too fast when
