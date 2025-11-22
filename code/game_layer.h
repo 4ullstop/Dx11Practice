@@ -23,7 +23,7 @@ struct bounding_box
 
 struct voxel_chunk
 {
-    r32 length, width, height;
+    r32 length, width, height, voxelSize;
     r32 voxelResolution;
     v3 voxelChunkExtent;
 };

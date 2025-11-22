@@ -29,7 +29,10 @@ VS_OUTPUT main(VS_INPUT input)
 	VS_OUTPUT output;
 	float4 pos = float4(input.vPos, 1.0f);
 
-	pos += instancePosition[input.id];
+	float4 inPos = instancePosition[input.id];
+	
+	pos += inPos;
+
 
 	pos = mul(pos, mWorld);
 	pos = mul(pos, View);

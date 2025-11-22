@@ -13,8 +13,8 @@ REM cl %commonCompilerFlags% ..\code\win32_handmade.cpp %commonLinkerFlags%
 REM fxc compiler for shaders...
 REM start "C:\Program Files (x86)\Windows Kits\10\bin\10.0.18362.0\x64\fxc.exe" "L:\code\vshader.hlsl"
 
-fxc.exe /Od /T vs_5_0 /Fo CubeVertexShader.cso "L:\code\vshader.hlsl"
-fxc.exe /Od /T ps_5_0 /Fo CubePixelShader.cso "L:\code\pshader.hlsl" 
+fxc.exe /Od /Zi /T vs_5_0 /Fo CubeVertexShader.cso "L:\code\vshader.hlsl"
+fxc.exe /Od /Zi /T ps_5_0 /Fo CubePixelShader.cso "L:\code\pshader.hlsl" 
 
 
 cl %commonCompilerFlags% ..\code\game_layer.cpp /LD /link /EXPORT:GameUpdate /EXPORT:GameInitialize

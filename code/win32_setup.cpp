@@ -50,3 +50,15 @@ target:
   enabled: 0
   label: "Backup of dx11 practice, first person camera"
 }
+breakpoint:
+{
+  source_location: "win32_dx11.cpp:253:1"
+  hit_count: 0
+  enabled: 0
+}
+breakpoint:
+{
+  source_location: "win32_dx11.cpp:944:1"
+  hit_count: 0
+  enabled: 0
+}

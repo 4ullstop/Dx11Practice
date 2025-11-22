@@ -58,6 +58,5 @@ Throw the array into a constant buffer, use the SV_InstanceID as the index into 
 
 
 Here's what I know:
- - Our box is being created properly, I stepped through everything, had to allocate on the heap for the verts and stuff for our bounding box which we don't even use but it is what it is
- - I need return values from these Michaelsoft binbows functions that make no sense
-   - It also sucks that you can't see the memory, like at all
+
+ - Looking through RenderDoc, our buffer is only being set for the first 3 locations, even if you've set them in the code properly

@@ -229,7 +229,7 @@ CreateInstanceBuffer(direct_x_loaded_buffers* loadedBuffers, shaders* shaderReso
 	z = i / (voxelChunk->width * voxelChunk->height);
 
 	tempPos = DirectX::XMVectorSet(x, y, z, 0.0f);
-	tempPos = DirectX::XMVectorScale(tempPos, voxelChunk->voxelResolution);
+	tempPos = DirectX::XMVectorScale(tempPos, voxelChunk->voxelSize);
 	tempPos = DirectX::XMVectorSubtract(tempPos, boundsExtent);
 	DirectX::XMVectorSetW(tempPos, 1.0f);
 
@@ -836,16 +836,6 @@ CreateShaders(shaders* shaderResources)
 	&cbDesc,
 	nullptr,
 	&shaderResources->constantBuffer);
-
-    CD3D11_BUFFER_DESC instDesc(
-	sizeof(inst_buffer_struct),
-	D3D11_BIND_CONSTANT_BUFFER);
-    
-    
-    hr = d3dDevice->CreateBuffer(
-	&instDesc,
-	nullptr,
-	&shaderResources->instanceBuffer);
 }
 
 //NOTE: this function should be called asynchronously, Take the time to have it execute

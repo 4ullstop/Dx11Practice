@@ -48,26 +48,25 @@ bounding_box CreateBoundingBox(v3 location, r32 length, r32 width, r32 height, m
     return(result);
 }
 
-obj* CreateSingleVoxel(memory_pool_dll_code* memoryPoolCode, memory_arena* objLocationArena)
+obj* CreateSingleVoxel(memory_pool_dll_code* memoryPoolCode, memory_arena* objLocationArena, r32 voxelSize)
 {
     //we have to take this and translate it into the specific api, similar to how we load in the obj file
     obj* result = (obj*)memoryPoolCode->PushStruct(objLocationArena, sizeof(obj));
     result->vertexCount = 8;
     result->vertices = (r32*)memoryPoolCode->PushArraySized(objLocationArena, (sizeof(r32) * result->vertexCount) * 3); 
 
-    //Eventually this should be the resolution
     r32 unassignedVerts[24] =
     {
-	-0.5f, -0.5f, -0.5f,
-	-0.5f, -0.5f, 0.5f,
-	-0.5f, 0.5f, -0.5f,
-	-0.5f, 0.5f, 0.5f,
-	0.5f, -0.5f, -0.5f,
-	0.5f, -0.5f, 0.5f,
-	0.5f, 0.5f, -0.5f,
-	0.5f, 0.5f, 0.5f,
+	-voxelSize, -voxelSize, -voxelSize,
+	-voxelSize, -voxelSize, voxelSize,
+	-voxelSize, voxelSize, -voxelSize,
+	-voxelSize, voxelSize, voxelSize,
+	voxelSize, -voxelSize, -voxelSize,
+	voxelSize, -voxelSize, voxelSize,
+	voxelSize, voxelSize, -voxelSize,
+	voxelSize, voxelSize, voxelSize,
     };
-
+    
     for (int i = 0; i < (result->vertexCount) * 3; i++)
     {
 	result->vertices[i] = unassignedVerts[i];
@@ -118,14 +117,29 @@ voxel_chunk CreateVoxelChunk(v3 location, r32 voxelSize, memory_pool_dll_code* m
     result.width = 0.5;
     result.height = 2;
 
+    result.voxelChunkExtent = v3{result.length, result.width, result.height};
+    
+
+    
+    
+    bounding_box voxelBounds = CreateBoundingBox(location, result.length, result.width, result.height, memoryPoolCode, objLocationArena);
+
+    r32 resLen, resWidth, resHeight;
+
+#if 0    
     result.length = (result.length * 2) / voxelSize;
     result.width = (result.width * 2) / voxelSize;
     result.height = (result.height * 2) / voxelSize;
+    result.voxelResolution = result.length * result.width * result.height;    
+#else
+    resLen = (result.length * 2) / voxelSize;
+    resWidth = (result.width * 2) / voxelSize;
+    resHeight = (result.height * 2) / voxelSize;
     
-    result.voxelChunkExtent = v3{result.length, result.width, result.height};
-    bounding_box voxelBounds = CreateBoundingBox(location, result.length, result.width, result.height, memoryPoolCode, objLocationArena);
+    result.voxelResolution = resLen * resWidth * resHeight;    
+#endif    
 
-    result.voxelResolution = result.length * result.width * result.height; 
+    result.voxelSize = voxelSize;
 
     return(result);
     
@@ -146,9 +160,10 @@ extern "C" GAME_INITIALIZE(GameInitialize)
     char* fileLocation = "D:/ExternalCustomAPIs/OBJLoader/misc/cubetester_normals.obj";
     obj* result = parseOBJCode->ParseOBJData(fileLocation, objLocationArena, mainProgramMemory);
 #else
-    result.allObjs = CreateSingleVoxel(memoryPoolCode, objLocationArena);
+    r32 voxelSize = 0.5f;
+    result.allObjs = CreateSingleVoxel(memoryPoolCode, objLocationArena, voxelSize);
     v3 location = v3{0.0f, 0.0f, 0.0f};
-    result.voxels = CreateVoxelChunk(location, 0.5f, memoryPoolCode, objLocationArena);
+    result.voxels = CreateVoxelChunk(location, voxelSize, memoryPoolCode, objLocationArena);
 #endif    
     return(result);
 }
