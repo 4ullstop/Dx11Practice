@@ -204,6 +204,8 @@ struct dx_instance_data
     DirectX::XMFLOAT3 pos;
 };
 
+#define DEF_ARRAY 1
+
 internal void
 CreateInstanceBuffer(direct_x_loaded_buffers* loadedBuffers, shaders* shaderResources, voxel_chunk* voxelChunk, memory_arena* arena)
 {
@@ -215,7 +217,7 @@ CreateInstanceBuffer(direct_x_loaded_buffers* loadedBuffers, shaders* shaderReso
 							  voxelChunk->voxelChunkExtent.y,
 							  voxelChunk->voxelChunkExtent.z,
 							  0.0f);
-    
+#if DEF_ARRAY    
     inst_buffer_struct* instBuffer = (inst_buffer_struct*)memoryPoolCode.PushArraySized(arena, (size_t)(sizeof(inst_buffer_struct) * voxelChunk->voxelResolution));
 
 
@@ -224,12 +226,13 @@ CreateInstanceBuffer(direct_x_loaded_buffers* loadedBuffers, shaders* shaderReso
     for (int i = 0; i < voxelChunk->voxelResolution; i++)
     {
 	r32 x, y, z;
+
 	x = (r32)fmod(i, voxelChunk->width);
-	y = (r32)fmod((i / voxelChunk->width), voxelChunk->height);
-	z = i / (voxelChunk->width * voxelChunk->height);
+	y = (r32)floor(fmod((i / voxelChunk->width), voxelChunk->height));
+	z = (r32)floor(i / (voxelChunk->width * voxelChunk->height));
 
 	tempPos = DirectX::XMVectorSet(x, y, z, 0.0f);
-	tempPos = DirectX::XMVectorScale(tempPos, voxelChunk->voxelSize);
+	tempPos = DirectX::XMVectorScale(tempPos, (voxelChunk->voxelSize * 2));
 	tempPos = DirectX::XMVectorSubtract(tempPos, boundsExtent);
 	DirectX::XMVectorSetW(tempPos, 1.0f);
 
@@ -242,7 +245,7 @@ CreateInstanceBuffer(direct_x_loaded_buffers* loadedBuffers, shaders* shaderReso
 
     instBufferDesc.Usage = D3D11_USAGE_DEFAULT;
     instBufferDesc.ByteWidth = (UINT)(sizeof(inst_buffer_struct) * voxelChunk->voxelResolution);
-    instBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+    instBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
     instBufferDesc.CPUAccessFlags = 0;
     instBufferDesc.MiscFlags = 0;
 
@@ -251,7 +254,31 @@ CreateInstanceBuffer(direct_x_loaded_buffers* loadedBuffers, shaders* shaderReso
     instData.pSysMem = &instBuffer[0];
 
     hr = d3dDevice->CreateBuffer(&instBufferDesc, &instData, &shaderResources->instanceBuffer);
+#else
+    inst_buffer_struct_2* instBuffer = (inst_buffer_struct_2*)memoryPoolCode.PushStruct(arena, sizeof(inst_buffer_struct_2));
 
+    instBuffer->voxelWidth = voxelChunk->width;
+    instBuffer->voxelHeight = voxelChunk->height;
+    instBuffer->voxelResolution = voxelChunk->voxelResolution;
+    XMStoreFloat4(&instBuffer->boundingBoxExtent, boundsExtent);
+
+
+    D3D11_BUFFER_DESC instBufferDesc;
+    ZeroMemory(&instBufferDesc, sizeof(instBufferDesc));
+
+    instBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+    instBufferDesc.ByteWidth = (UINT)(sizeof(inst_buffer_struct_2));
+    instBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+    instBufferDesc.CPUAccessFlags = 0;
+    instBufferDesc.MiscFlags = 0;
+
+    D3D11_SUBRESOURCE_DATA instData;
+    ZeroMemory(&instData, sizeof(instData));
+
+    instData.pSysMem = &instBuffer;
+
+    hr = d3dDevice->CreateBuffer(&instBufferDesc, &instData, &shaderResources->instanceBuffer);
+#endif    
 
 }
 
@@ -805,6 +832,11 @@ CreateShaders(shaders* shaderResources)
 	    "COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT,
 	    0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0
 	},
+
+	{
+	    "INSTANCEPOS", 0, DXGI_FORMAT_R32G32B32_FLOAT,
+	    1, 0, D3D11_INPUT_PER_INSTANCE_DATA, 1
+	},
     };
 
     //What is the input for the function in our VertexShader??? This...
@@ -887,11 +919,11 @@ Render(ID3D11RenderTargetView* renderTarget, ID3D11DepthStencilView* depthStenci
 	depthStencil);
 
     //Set the IA stage by setting the input topology and layout
-#if 0    
+#if 1
     UINT strides[2] = {sizeof(vertex_position_color), sizeof(inst_buffer_struct)};
     UINT offsets[2] = {0, 0};
 
-    ID3D11Buffer* vertInstBuffers[2] = {loadedBuffers->vertexBuffer, loadedBuffers->vertInstanceBuffer};
+    ID3D11Buffer* vertInstBuffers[2] = {loadedBuffers->vertexBuffer, shader->instanceBuffer};
     
     context->IASetVertexBuffers(
 	0,
@@ -927,13 +959,19 @@ Render(ID3D11RenderTargetView* renderTarget, ID3D11DepthStencilView* depthStenci
 	nullptr,
 	0);
 
+#if 0    
     ID3D11Buffer* cb[2] = {shader->constantBuffer, shader->instanceBuffer};
     
     context->VSSetConstantBuffers(
 	0,
 	2,
 	cb);
-
+#else
+    context->VSSetConstantBuffers(
+	0,
+	1,
+	&shader->constantBuffer);    
+#endif
 
     //Setup the pixel shader stage
     context->PSSetShader(

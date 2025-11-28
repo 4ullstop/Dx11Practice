@@ -113,9 +113,9 @@ voxel_chunk CreateVoxelChunk(v3 location, r32 voxelSize, memory_pool_dll_code* m
     //Step through here to see if our voxelResolution value is a value that will evenly round out to
     //a normal value for the resolution
     voxel_chunk result;
-    result.length = 2;
-    result.width = 0.5;
-    result.height = 2;
+    result.length = 5;
+    result.width = 2;
+    result.height = 5;
 
     result.voxelChunkExtent = v3{result.length, result.width, result.height};
     
@@ -124,20 +124,12 @@ voxel_chunk CreateVoxelChunk(v3 location, r32 voxelSize, memory_pool_dll_code* m
     
     bounding_box voxelBounds = CreateBoundingBox(location, result.length, result.width, result.height, memoryPoolCode, objLocationArena);
 
-    r32 resLen, resWidth, resHeight;
 
-#if 0    
+
     result.length = (result.length * 2) / voxelSize;
     result.width = (result.width * 2) / voxelSize;
     result.height = (result.height * 2) / voxelSize;
     result.voxelResolution = result.length * result.width * result.height;    
-#else
-    resLen = (result.length * 2) / voxelSize;
-    resWidth = (result.width * 2) / voxelSize;
-    resHeight = (result.height * 2) / voxelSize;
-    
-    result.voxelResolution = resLen * resWidth * resHeight;    
-#endif    
 
     result.voxelSize = voxelSize;
 
