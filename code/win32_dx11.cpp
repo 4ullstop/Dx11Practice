@@ -23,6 +23,7 @@
 #include "D:/ExternalCustomAPIs/Types/typedefs.h"
 #include <d3d11_2.h>
 #include <dxgi1_3.h>
+#include <dxgi1_6.h>
 #include "win32_dx11.h"
 
 
@@ -68,11 +69,110 @@ global_variable ID3D11Texture2D* backBuffer;
 global_variable u32 frameCount;
 global_variable i64 perfCountFrequency;
 global_variable constant_buffer_struct constantBufferData;
-global_variable ID3D11Device* d3dDevice;
+
+
 
 #include "game_layer.h"
 
 global_variable ID3D11DeviceContext* context;
+global_variable ID3D11Device* d3dDevice;
+global_variable WINDOWPLACEMENT windowPosition = {sizeof(windowPosition)};
+global_variable IDXGISwapChain1* swapChain;
+global_variable ID3D11RenderTargetView* renderTarget;
+global_variable ID3D11DepthStencilView* depthStencilView;
+global_variable ID3D11Texture2D* depthStencil;
+global_variable D3D11_TEXTURE2D_DESC bbDesc;
+
+internal void
+ConfigureBackBuffer(void)
+{
+    HRESULT hr = {};
+    hr = swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&backBuffer);
+    hr = d3dDevice->CreateRenderTargetView(backBuffer,
+				      nullptr,
+				      &renderTarget);
+
+    backBuffer->GetDesc(&bbDesc);
+
+    CD3D11_TEXTURE2D_DESC depthStencilDesc(
+	DXGI_FORMAT_D24_UNORM_S8_UINT,
+	(UINT)bbDesc.Width,
+	(UINT)bbDesc.Height,
+	1, //The depth stencil view has only one texture
+	1, //Use a single mipmap levelx
+	D3D11_BIND_DEPTH_STENCIL
+	);
+
+    hr = d3dDevice->CreateTexture2D(
+	&depthStencilDesc,
+	nullptr,
+	&depthStencil);
+
+    CD3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc(D3D11_DSV_DIMENSION_TEXTURE2D);
+
+    hr = d3dDevice->CreateDepthStencilView(depthStencil,
+				      &depthStencilViewDesc,
+				      &depthStencilView);
+    D3D11_VIEWPORT viewport = {};
+    viewport.Height = (r32)bbDesc.Height;
+    viewport.Width = (r32)bbDesc.Width;
+    viewport.MinDepth = 0;
+    viewport.MaxDepth = 1;
+
+    context->RSSetViewports(
+	1,
+	&viewport);
+    
+}
+
+internal void
+ToggleFullscreen(HWND hwnd)
+{
+    HRESULT hr = 0;
+
+
+    DWORD dwStyle = GetWindowLong(hwnd, GWL_STYLE);
+    if (dwStyle & WS_OVERLAPPEDWINDOW)
+    {
+	MONITORINFO mi = {sizeof(mi)};
+
+	if (GetWindowPlacement(hwnd, &windowPosition) &&
+	    GetMonitorInfo(MonitorFromWindow(hwnd, MONITOR_DEFAULTTOPRIMARY),
+			   &mi))
+	{
+	    hr = swapChain->SetFullscreenState(TRUE, NULL);
+
+	    context->ClearState();
+	
+	    //Release buffers
+	    renderTarget->Release();
+	    backBuffer->Release();
+	    depthStencilView->Release();
+	    depthStencil = 0;
+
+	    hr = swapChain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0);
+
+	    ConfigureBackBuffer();
+	    
+	}
+    }
+    else
+    {
+	hr = swapChain->SetFullscreenState(FALSE, NULL);
+
+
+	
+#if 0	
+	SetWindowLong(hwnd, GWL_STYLE, dwStyle | WS_OVERLAPPEDWINDOW);
+	SetWindowPlacement(hwnd, &windowPosition);
+	SetWindowPos(hwnd, 0, 0, 0, 0, 0,
+		     SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER |
+		     SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+#endif	
+    }
+
+
+}
 
 internal void
 Win32UnloadGameCode(win32_game_code* gameCode)
@@ -204,7 +304,7 @@ struct dx_instance_data
     DirectX::XMFLOAT3 pos;
 };
 
-#define DEF_ARRAY 1
+
 
 internal void
 CreateInstanceBuffer(direct_x_loaded_buffers* loadedBuffers, shaders* shaderResources, voxel_chunk* voxelChunk, memory_arena* arena)
@@ -217,26 +317,26 @@ CreateInstanceBuffer(direct_x_loaded_buffers* loadedBuffers, shaders* shaderReso
 							  voxelChunk->voxelChunkExtent.y,
 							  voxelChunk->voxelChunkExtent.z,
 							  0.0f);
-#if DEF_ARRAY    
-    inst_buffer_struct* instBuffer = (inst_buffer_struct*)memoryPoolCode.PushArraySized(arena, (size_t)(sizeof(inst_buffer_struct) * voxelChunk->voxelResolution));
 
+    inst_buffer_struct* instBuffer = (inst_buffer_struct*)memoryPoolCode.PushArraySized(arena, (size_t)(sizeof(inst_buffer_struct) * voxelChunk->voxelResolution));
 
     DirectX::XMVECTOR tempPos;
 
     for (int i = 0; i < voxelChunk->voxelResolution; i++)
     {
-	r32 x, y, z;
-
-	x = (r32)fmod(i, voxelChunk->width);
-	y = (r32)floor(fmod((i / voxelChunk->width), voxelChunk->height));
-	z = (r32)floor(i / (voxelChunk->width * voxelChunk->height));
-
-	tempPos = DirectX::XMVectorSet(x, y, z, 0.0f);
-	tempPos = DirectX::XMVectorScale(tempPos, (voxelChunk->voxelSize * 2));
-	tempPos = DirectX::XMVectorSubtract(tempPos, boundsExtent);
-	DirectX::XMVectorSetW(tempPos, 1.0f);
-
+#if 0
+	tempPos = DirectX::XMVectorSet(voxelChunk->voxelPositions[i].x,
+				       voxelChunk->voxelPositions[i].y,
+				       voxelChunk->voxelPositions[i].z,
+				       1.0f);
+#else
+	tempPos = DirectX::XMVectorSet(voxelChunk->renderedVoxelPositions[i].x,
+				       voxelChunk->renderedVoxelPositions[i].y,
+				       voxelChunk->renderedVoxelPositions[i].z,
+				       1.0f);
+#endif	
 	XMStoreFloat4(&instBuffer[i].instancePosition, tempPos);
+	instBuffer[i].renderWholeCube = voxelChunk->voxelFaceInfo[i].renderWholeVoxel;
     }
 
     //Step through this and see what happens
@@ -245,7 +345,7 @@ CreateInstanceBuffer(direct_x_loaded_buffers* loadedBuffers, shaders* shaderReso
 
     instBufferDesc.Usage = D3D11_USAGE_DEFAULT;
     instBufferDesc.ByteWidth = (UINT)(sizeof(inst_buffer_struct) * voxelChunk->voxelResolution);
-    instBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    instBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
     instBufferDesc.CPUAccessFlags = 0;
     instBufferDesc.MiscFlags = 0;
 
@@ -254,31 +354,7 @@ CreateInstanceBuffer(direct_x_loaded_buffers* loadedBuffers, shaders* shaderReso
     instData.pSysMem = &instBuffer[0];
 
     hr = d3dDevice->CreateBuffer(&instBufferDesc, &instData, &shaderResources->instanceBuffer);
-#else
-    inst_buffer_struct_2* instBuffer = (inst_buffer_struct_2*)memoryPoolCode.PushStruct(arena, sizeof(inst_buffer_struct_2));
 
-    instBuffer->voxelWidth = voxelChunk->width;
-    instBuffer->voxelHeight = voxelChunk->height;
-    instBuffer->voxelResolution = voxelChunk->voxelResolution;
-    XMStoreFloat4(&instBuffer->boundingBoxExtent, boundsExtent);
-
-
-    D3D11_BUFFER_DESC instBufferDesc;
-    ZeroMemory(&instBufferDesc, sizeof(instBufferDesc));
-
-    instBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-    instBufferDesc.ByteWidth = (UINT)(sizeof(inst_buffer_struct_2));
-    instBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-    instBufferDesc.CPUAccessFlags = 0;
-    instBufferDesc.MiscFlags = 0;
-
-    D3D11_SUBRESOURCE_DATA instData;
-    ZeroMemory(&instData, sizeof(instData));
-
-    instData.pSysMem = &instBuffer;
-
-    hr = d3dDevice->CreateBuffer(&instBufferDesc, &instData, &shaderResources->instanceBuffer);
-#endif    
 
 }
 
@@ -358,9 +434,13 @@ LoadInstancedOBJ(obj* allInstancedOBJs, memory_arena* objLocationArena, direct_x
     loadedBuffers->indexCount = convertedObj.indexCount;
     loadedBuffers->instanceCount = (i32)voxelChunk->voxelResolution;
 
-    CD3D11_BUFFER_DESC vertexDesc(
-	convertedObj.objVertsSize,
-	D3D11_BIND_VERTEX_BUFFER);
+    D3D11_BUFFER_DESC vertexDesc;
+    vertexDesc.Usage = D3D11_USAGE_DEFAULT;
+    vertexDesc.ByteWidth = convertedObj.objVertsSize;
+    vertexDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+    vertexDesc.CPUAccessFlags = 0;
+    vertexDesc.MiscFlags = 0;
+    
 
     D3D11_SUBRESOURCE_DATA vertexData;
     ZeroMemory(&vertexData, sizeof(D3D11_SUBRESOURCE_DATA));
@@ -496,7 +576,7 @@ Win32GetSecondsElapsed(LARGE_INTEGER start, LARGE_INTEGER end)
 internal r32
 GetAspectRatio(void)
 {
-    D3D11_TEXTURE2D_DESC bbDesc;
+
     backBuffer->GetDesc(&bbDesc);
     r32 result = (r32)bbDesc.Width / (r32)bbDesc.Height;
     return(result);
@@ -757,6 +837,27 @@ Win32ProcessPendingMessages(game_controller_input* keyboardController, game_cont
 		{
 		    running = false; 
 		}
+		else if (VKCode == 'F')
+		{
+		    ToggleFullscreen(msg.hwnd);
+		}
+
+		
+		
+#if 0
+		if (isDown)
+		{
+		    bool32 altKeyWasDown = ((msg.lParam & (1 << 29)) != 0);
+		    if ((VKCode == VK_RETURN) && altKeyWasDown)
+		    {
+			OutputDebugString("Hitting here?\n");
+			if (msg.hwnd)
+			{
+			    ToggleFullscreen(msg.hwnd);
+			}
+		    }
+		}
+#endif		
 	    }
 	} break;
 	default:
@@ -837,6 +938,11 @@ CreateShaders(shaders* shaderResources)
 	    "INSTANCEPOS", 0, DXGI_FORMAT_R32G32B32_FLOAT,
 	    1, 0, D3D11_INPUT_PER_INSTANCE_DATA, 1
 	},
+
+	{
+	    "RENDERCUBE", 0, DXGI_FORMAT_R8_UINT,
+	    1, 12, D3D11_INPUT_PER_INSTANCE_DATA, 1
+	},
     };
 
     //What is the input for the function in our VertexShader??? This...
@@ -889,7 +995,7 @@ CreateDeviceDependentResources(shaders* shaders, direct_x_loaded_buffers* loaded
 }
 
 internal void
-Render(ID3D11RenderTargetView* renderTarget, ID3D11DepthStencilView* depthStencil, ID3D11Buffer* constantBuffer, shaders* shader, direct_x_loaded_buffers* loadedBuffers, dx_camera* camera)
+Render(ID3D11Buffer* constantBuffer, shaders* shader, direct_x_loaded_buffers* loadedBuffers, dx_camera* camera)
 {
 
     context->UpdateSubresource(
@@ -907,7 +1013,7 @@ Render(ID3D11RenderTargetView* renderTarget, ID3D11DepthStencilView* depthStenci
 	teal);
 
     context->ClearDepthStencilView(
-	depthStencil,
+	depthStencilView,
 	D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
 	1.0f,
 	0);
@@ -916,10 +1022,10 @@ Render(ID3D11RenderTargetView* renderTarget, ID3D11DepthStencilView* depthStenci
     context->OMSetRenderTargets(
 	1,
 	&renderTarget,
-	depthStencil);
+	depthStencilView);
 
     //Set the IA stage by setting the input topology and layout
-#if 1
+
     UINT strides[2] = {sizeof(vertex_position_color), sizeof(inst_buffer_struct)};
     UINT offsets[2] = {0, 0};
 
@@ -931,18 +1037,7 @@ Render(ID3D11RenderTargetView* renderTarget, ID3D11DepthStencilView* depthStenci
 	vertInstBuffers,
 	strides,
 	offsets);    
-#else
-    UINT stride = sizeof(vertex_position_color);
-    UINT offset = 0;
 
-    context->IASetVertexBuffers(
-	0,
-	1,
-	&loadedBuffers->vertexBuffer,
-	&stride,
-	&offset);
-    
-#endif    
 
     context->IASetIndexBuffer(
 	loadedBuffers->indexBuffer,
@@ -959,19 +1054,12 @@ Render(ID3D11RenderTargetView* renderTarget, ID3D11DepthStencilView* depthStenci
 	nullptr,
 	0);
 
-#if 0    
-    ID3D11Buffer* cb[2] = {shader->constantBuffer, shader->instanceBuffer};
-    
-    context->VSSetConstantBuffers(
-	0,
-	2,
-	cb);
-#else
+
     context->VSSetConstantBuffers(
 	0,
 	1,
 	&shader->constantBuffer);    
-#endif
+
 
     //Setup the pixel shader stage
     context->PSSetShader(
@@ -981,12 +1069,7 @@ Render(ID3D11RenderTargetView* renderTarget, ID3D11DepthStencilView* depthStenci
 
     //Calling draw tells d3d to start sending commands to the graphics device
 
-#if 0
-    context->DrawIndexed(
-	loadedBuffers->indexCount,
-	0,
-	0);
-#else
+
 
     context->DrawIndexedInstanced(
 	loadedBuffers->indexCount,
@@ -995,7 +1078,6 @@ Render(ID3D11RenderTargetView* renderTarget, ID3D11DepthStencilView* depthStenci
 	0,
 	0);
 
-#endif    
 }
 
 int CALLBACK WinMain(HINSTANCE hInstance,
@@ -1054,6 +1136,7 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 
 
     memory.transientStorageSize = Megabytes(64);
+
     memory.permanentStorageSize = Gigabytes(1);
     
     memoryPoolCode.PoolAlloc(0, MEM_RESERVE|MEM_COMMIT, PAGE_READWRITE, &memory);
@@ -1100,18 +1183,25 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 
 
     IDXGIAdapter* adapter = NULL;
-    IDXGIFactory2* factory = 0;
+    IDXGIFactory6* factory = 0;
 
-    HR(CreateDXGIFactory2(0, __uuidof(IDXGIFactory2), (void**)&factory));
+    HR(CreateDXGIFactory1(__uuidof(IDXGIFactory6), (void**)&factory));
 
     //Set this back to 1 after debugging graphics
-    factory->EnumAdapters(0, &adapter);
-
+//    factory->EnumAdapters(1, &adapter);
+    HRESULT hr = {};
+    
+    hr = factory->EnumAdapterByGpuPreference(0,
+					DXGI_GPU_PREFERENCE::DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE,
+					__uuidof(IDXGIAdapter),
+					(void**)&adapter);
+					
+#if 1    
     IDXGIOutput* adapterOutput = {};
     adapter->EnumOutputs(1, &adapterOutput);
+#endif
     
-    
-    HRESULT hr = 
+
     D3D11CreateDevice(
 	adapter,
 	D3D_DRIVER_TYPE_UNKNOWN,
@@ -1194,17 +1284,6 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 	    desc.Height = windowHeight;
 
 
-	    IDXGISwapChain1* swapChain = 0;
-
-	    ID3D11RenderTargetView* renderTarget = 0;
-
-	    D3D11_TEXTURE2D_DESC bbDesc;
-
-	    ID3D11Texture2D* depthStencil;
-	    ID3D11DepthStencilView* depthStencilView;
-	    
-
-
 
 	    hr = factory->CreateSwapChainForHwnd(
 		d3dDevice,
@@ -1214,28 +1293,11 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 		0,
 		&swapChain);
 
+	    //use this bc you are repeating code
+	    ConfigureBackBuffer();
+
 	    
 	    //Getting the back buffer from the swap chain (since we defined DXGI_USAGE_RENDER_TARGET_OUTPUT)
-	    hr = swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&backBuffer);
-	    backBuffer->GetDesc(&bbDesc);
-
-	    D3D11_VIEWPORT viewport = {};
-	    viewport.Height = (r32)bbDesc.Height;
-	    viewport.Width = (r32)bbDesc.Width;
-	    viewport.MinDepth = 0;
-	    viewport.MaxDepth = 1;
-
-	    context->RSSetViewports(
-		1,
-		&viewport);
-
-	    
-	    //Creating a render target view that is bound to the back buffer resource (remember the definition
-	    //of a 'render target' as well as 'view'
-	    hr = d3dDevice->CreateRenderTargetView(
-		backBuffer,
-		nullptr,
-		&renderTarget);
 
 	    shaders shaders = {};
 	    cube_buffers cubeBuffer = {};
@@ -1246,28 +1308,7 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 	    //GameInitialize();
 	    //LoadOBJs();
 	    
-	    //Creating the depth stencil
-	    CD3D11_TEXTURE2D_DESC depthStencilDesc(
-		DXGI_FORMAT_D24_UNORM_S8_UINT,
-		(UINT)bbDesc.Width,
-		(UINT)bbDesc.Height,
-		1, //The depth stencil view has only one texture
-		1, //Use a single mipmap levelx
-		D3D11_BIND_DEPTH_STENCIL
-		);
 
-
-	    d3dDevice->CreateTexture2D(
-		&depthStencilDesc,
-		nullptr,
-		&depthStencil);
-
-	    CD3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc(D3D11_DSV_DIMENSION_TEXTURE2D);
-
-	    d3dDevice->CreateDepthStencilView(
-		depthStencil,
-		&depthStencilViewDesc,
-		&depthStencilView);
 
 	    	    
 	    running = true;
@@ -1405,13 +1446,13 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 
 
 		
-		Render(renderTarget, depthStencilView, shaders.constantBuffer, &shaders, &loadedBuffers, &camera);
+		Render(shaders.constantBuffer, &shaders, &loadedBuffers, &camera);
 		swapChain->Present(1, 0);
 
 		//Spinner to slow down to a locked fps for testing purposes, also bc it's running too fast when
 		//there isn't much for the computer to do atm
 
-#if 1	
+#if 0	
 		LARGE_INTEGER workCounter = Win32GetWallClock();
 		r32 workSecondsElapsed = Win32GetSecondsElapsed(lastCounter, workCounter);
 		r32 secondsElapsedForFrame = workSecondsElapsed;

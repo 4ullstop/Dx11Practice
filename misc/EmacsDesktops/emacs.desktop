@@ -2,67 +2,79 @@
 ;; --------------------------------------------------------------------------
 ;; Desktop File for Emacs
 ;; --------------------------------------------------------------------------
-;; Created Thu Nov 27 21:50:11 2025
+;; Created Fri Dec  5 10:47:47 2025
 ;; Desktop file format version 208
 ;; Emacs version 29.1
 
 ;; Global section:
-(setq desktop-saved-frameset [frameset 1 (26921 3555 981580 0) (desktop . "208") "easte@MSI" nil nil ((((minibuffer . t) (undecorated) (skip-taskbar) (font . "-outline-Courier New-regular-normal-normal-mono-14-*-*-*-c-*-iso8859-1") (border-width . 0) (internal-border-width . 0) (child-frame-border-width) (right-divider-width . 0) (bottom-divider-width . 0) (vertical-scroll-bars) (horizontal-scroll-bars) (foreground-color . "#c6a57b") (background-color . "#151515") (mouse-color . "black") (border-color . "black") (screen-gamma) (line-spacing) (left-fringe . 10) (right-fringe . 10) (no-focus-on-map) (no-accept-focus) (no-special-glyphs) (alpha-background) (alpha) (menu-bar-lines . 0) (tab-bar-lines . 0) (height . 59) (tool-bar-lines . 0) (inhibit-double-buffering) (title) (icon-type) (auto-raise) (auto-lower) (cursor-type . box) (scroll-bar-width . 17) (scroll-bar-height . 17) (fullscreen . maximized) (z-group) (visibility . t) (scroll-bar-foreground . "systemscrollbar") (scroll-bar-background) (display-type . color) (background-mode . dark) (cursor-color . "#c6a57b") (font-parameter) (last-focus-update) (frameset--id . "DCC4-C833-EA75-C515") (frameset--mini t) (modeline . t) (unsplittable) (icon-name) (display . "w32") (explicit-name) (tool-bar-position . top) (width . 237) (left + -8) (top + -8)) ((min-height . 4) (min-width . 10) (min-height-ignore . 3) (min-width-ignore . 5) (min-height-safe . 1) (min-width-safe . 2) (min-pixel-height . 68) (min-pixel-width . 80) (min-pixel-height-ignore . 51) (min-pixel-width-ignore . 40) (min-pixel-height-safe . 17) (min-pixel-width-safe . 16)) leaf (pixel-width . 1920) (pixel-height . 992) (total-width . 240) (total-height . 58) (normal-height . 1.0) (normal-width . 1.0) (buffer "TODO.txt" (selected) (hscroll . 0) (fringes 10 10 nil nil) (margins nil) (scroll-bars nil 0 t nil 0 t nil) (vscroll . 0) (dedicated) (point . 2075) (start . 785)) (prev-buffers ("l:/" 1 198) ("win32_brayn.cpp" 2718 3392) ("code<4>" 1 263))) (((minibuffer . t) (undecorated) (skip-taskbar) (font . "-outline-Courier New-regular-normal-normal-mono-14-*-*-*-c-*-iso8859-1") (border-width . 0) (internal-border-width . 0) (child-frame-border-width) (right-divider-width . 0) (bottom-divider-width . 0) (vertical-scroll-bars) (horizontal-scroll-bars) (foreground-color . "#c6a57b") (background-color . "#151515") (mouse-color . "black") (border-color . "black") (screen-gamma) (line-spacing) (left-fringe . 10) (right-fringe . 10) (no-focus-on-map) (no-accept-focus) (no-special-glyphs) (alpha-background) (alpha) (menu-bar-lines . 0) (tab-bar-lines . 0) (height . 59) (tool-bar-lines . 0) (inhibit-double-buffering) (title) (icon-type) (auto-raise) (auto-lower) (cursor-type . box) (scroll-bar-width . 17) (scroll-bar-height . 17) (fullscreen . maximized) (z-group) (visibility . t) (scroll-bar-foreground . "systemscrollbar") (scroll-bar-background) (display-type . color) (background-mode . dark) (cursor-color . "#c6a57b") (font-parameter) (last-focus-update) (frameset--id . "4E5D-8AA1-F344-4AF0") (frameset--mini t) (modeline . t) (unsplittable) (icon-name) (display . "w32") (explicit-name) (tool-bar-position . top) (width . 237) (left + -8) (top + -8)) ((min-height . 4) (min-width . 10) (min-height-ignore . 3) (min-width-ignore . 5) (min-height-safe . 1) (min-width-safe . 2) (min-pixel-height . 68) (min-pixel-width . 80) (min-pixel-height-ignore . 51) (min-pixel-width-ignore . 40) (min-pixel-height-safe . 17) (min-pixel-width-safe . 16)) leaf (pixel-width . 1920) (pixel-height . 992) (total-width . 240) (total-height . 58) (normal-height . 1.0) (normal-width . 1.0) (buffer "game_layer.cpp<>" (selected) (hscroll . 0) (fringes 10 10 nil nil) (margins nil) (scroll-bars nil 0 t nil 0 t nil) (vscroll . 0) (dedicated) (point . 3477) (start . 3078)) (prev-buffers ("code<>" 1 279) ("vshader.hlsl" 287 608) ("game_layer.cpp<>" 2573 2622) ("game_layer.h<>" 165 543) ("code" 1 279) ("l:/" 1 198) ("win32_brayn.cpp" 3603 4503) ("code<2>" 1 263) ("t:/" 1 199) ("Types" 1 173) ("direct_x_typedefs.h" 1 542))) (((minibuffer . t) (undecorated) (skip-taskbar) (font . "-outline-Courier New-regular-normal-normal-mono-14-*-*-*-c-*-iso8859-1") (border-width . 0) (internal-border-width . 0) (child-frame-border-width) (right-divider-width . 0) (bottom-divider-width . 0) (vertical-scroll-bars) (horizontal-scroll-bars) (foreground-color . "#c6a57b") (background-color . "#151515") (mouse-color . "black") (border-color . "black") (screen-gamma) (line-spacing) (left-fringe . 10) (right-fringe . 10) (no-focus-on-map) (no-accept-focus) (no-special-glyphs) (alpha-background) (alpha) (menu-bar-lines . 0) (tab-bar-lines . 0) (height . 59) (tool-bar-lines . 0) (inhibit-double-buffering) (title) (icon-type) (auto-raise) (auto-lower) (cursor-type . box) (scroll-bar-width . 17) (scroll-bar-height . 17) (fullscreen . maximized) (z-group) (visibility . t) (scroll-bar-foreground) (scroll-bar-background) (display-type . color) (background-mode . dark) (cursor-color . "#c6a57b") (font-parameter) (environment) (last-focus-update) (frameset--id . "B974-B932-104D-E2D7") (frameset--mini t . t) (modeline . t) (unsplittable) (icon-name) (display . "w32") (explicit-name) (tool-bar-position . top) (width . 237) (left + -8) (top + -8)) ((min-height . 4) (min-width . 20) (min-height-ignore . 3) (min-width-ignore . 10) (min-height-safe . 1) (min-width-safe . 4) (min-pixel-height . 68) (min-pixel-width . 160) (min-pixel-height-ignore . 51) (min-pixel-width-ignore . 80) (min-pixel-height-safe . 17) (min-pixel-width-safe . 32)) hc (pixel-width . 1920) (pixel-height . 992) (total-width . 240) (total-height . 58) (normal-height . 1.0) (normal-width . 1.0) (combination-limit) (leaf (pixel-width . 956) (pixel-height . 992) (total-width . 119) (total-height . 58) (normal-height . 1.0) (normal-width . 0.49696969696969695) (buffer "*Compiler Shell*" (selected . t) (hscroll . 0) (fringes 10 10 nil nil) (margins nil) (scroll-bars nil 0 t nil 0 t nil) (vscroll . 0) (dedicated) (point . 5772) (start . 3661)) (prev-buffers ("game_layer.cpp<>" 3843 4795) ("*Compiler Shell*" 2239 5772) ("code<>" 1 279) ("game_layer.h<>" 1 574) ("vshader.hlsl" 200 733) ("win32_dx11.cpp<>" 24516 24862) ("code" 1 279) ("NEWS" 1 1))) (leaf (last . t) (pixel-width . 964) (pixel-height . 992) (total-width . 121) (total-height . 58) (normal-height . 1.0) (normal-width . 0.503030303030303) (buffer "win32_dx11.cpp<>" (selected) (hscroll . 0) (fringes 10 10 nil nil) (margins nil) (scroll-bars nil 0 t nil 0 t nil) (vscroll . 0) (dedicated) (point . 5799) (start . 4692)) (prev-buffers ("win32_dx11.cpp<>" 4692 6309) ("code<>" 1 626) ("vshader.hlsl" 227 800)))))])
+(setq desktop-saved-frameset [frameset 1 (26930 65187 995587 0) (desktop . "208") "easte@MSI" nil nil ((((minibuffer . t) (undecorated) (skip-taskbar) (font . "-outline-Courier New-regular-normal-normal-mono-14-*-*-*-c-*-iso8859-1") (border-width . 0) (internal-border-width . 0) (child-frame-border-width) (right-divider-width . 0) (bottom-divider-width . 0) (vertical-scroll-bars) (horizontal-scroll-bars) (foreground-color . "#c6a57b") (background-color . "#151515") (mouse-color . "black") (border-color . "black") (screen-gamma) (line-spacing) (left-fringe . 10) (right-fringe . 10) (no-focus-on-map) (no-accept-focus) (no-special-glyphs) (alpha-background) (alpha) (menu-bar-lines . 0) (tab-bar-lines . 0) (height . 59) (tool-bar-lines . 0) (inhibit-double-buffering) (title) (icon-type) (auto-raise) (auto-lower) (cursor-type . box) (scroll-bar-width . 17) (scroll-bar-height . 17) (fullscreen . maximized) (z-group) (visibility . t) (scroll-bar-foreground . "systemscrollbar") (scroll-bar-background) (display-type . color) (background-mode . dark) (cursor-color . "#c6a57b") (font-parameter) (last-focus-update) (frameset--id . "2A0D-CCD2-D759-43DA") (frameset--mini t) (modeline . t) (unsplittable) (icon-name) (display . "w32") (explicit-name) (tool-bar-position . top) (width . 237) (left + -8) (top + -8)) ((min-height . 4) (min-width . 10) (min-height-ignore . 3) (min-width-ignore . 5) (min-height-safe . 1) (min-width-safe . 2) (min-pixel-height . 68) (min-pixel-width . 80) (min-pixel-height-ignore . 51) (min-pixel-width-ignore . 40) (min-pixel-height-safe . 17) (min-pixel-width-safe . 16)) leaf (pixel-width . 1920) (pixel-height . 992) (total-width . 240) (total-height . 58) (normal-height . 1.0) (normal-width . 1.0) (buffer "TODO.txt" (selected) (hscroll . 0) (fringes 10 10 nil nil) (margins nil) (scroll-bars nil 0 t nil 0 t nil) (vscroll . 0) (dedicated) (point . 1) (start . 1)) (prev-buffers ("code<>" 1 526) ("win32_dx11.cpp" 1 1))) (((minibuffer . t) (undecorated) (skip-taskbar) (font . "-outline-Courier New-regular-normal-normal-mono-14-*-*-*-c-*-iso8859-1") (border-width . 0) (internal-border-width . 0) (child-frame-border-width) (right-divider-width . 0) (bottom-divider-width . 0) (vertical-scroll-bars) (horizontal-scroll-bars) (foreground-color . "#c6a57b") (background-color . "#151515") (mouse-color . "black") (border-color . "black") (screen-gamma) (line-spacing) (left-fringe . 10) (right-fringe . 10) (no-focus-on-map) (no-accept-focus) (no-special-glyphs) (alpha-background) (alpha) (menu-bar-lines . 0) (tab-bar-lines . 0) (height . 59) (tool-bar-lines . 0) (inhibit-double-buffering) (title) (icon-type) (auto-raise) (auto-lower) (cursor-type . box) (scroll-bar-width . 17) (scroll-bar-height . 17) (fullscreen . maximized) (z-group) (visibility . t) (scroll-bar-foreground . "systemscrollbar") (scroll-bar-background) (display-type . color) (background-mode . dark) (cursor-color . "#c6a57b") (font-parameter) (last-focus-update) (frameset--id . "1BB1-42B6-7ACD-C2DA") (frameset--mini t) (modeline . t) (unsplittable) (icon-name) (display . "w32") (explicit-name) (tool-bar-position . top) (width . 237) (left + -1036) (top + -1088)) ((min-height . 4) (min-width . 20) (min-height-ignore . 3) (min-width-ignore . 10) (min-height-safe . 1) (min-width-safe . 4) (min-pixel-height . 68) (min-pixel-width . 160) (min-pixel-height-ignore . 51) (min-pixel-width-ignore . 80) (min-pixel-height-safe . 17) (min-pixel-width-safe . 32)) hc (pixel-width . 1920) (pixel-height . 992) (total-width . 240) (total-height . 58) (normal-height . 1.0) (normal-width . 1.0) (combination-limit) (leaf (pixel-width . 956) (pixel-height . 992) (total-width . 119) (total-height . 58) (normal-height . 1.0) (normal-width . 0.49696969696969695) (buffer "vshader.hlsl" (selected) (hscroll . 0) (fringes 10 10 nil nil) (margins nil) (scroll-bars nil 0 t nil 0 t nil) (vscroll . 0) (dedicated) (point . 603) (start . 1)) (prev-buffers ("vshader.hlsl" 1 624) ("code<>" 1 691) ("win32_dx11.cpp" 6528 8288) ("l:/" 1 199) ("direct_x_typedefs.h" 1 1) ("Types" 1 172) ("ExternalCustomAPIs" 1 578) ("OBJLoader" 1 176) ("code<OBJLoader>" 1 516) ("d:/" 1 2207) ("game_layer.cpp" 1 1))) (leaf (last . t) (pixel-width . 964) (pixel-height . 992) (total-width . 121) (total-height . 58) (normal-height . 1.0) (normal-width . 0.503030303030303) (buffer "direct_x_typedefs.h" (selected) (hscroll . 0) (fringes 10 10 nil nil) (margins nil) (scroll-bars nil 0 t nil 0 t nil) (vscroll . 0) (dedicated) (point . 1) (start . 1)))) (((minibuffer . t) (undecorated) (skip-taskbar) (font . "-outline-Courier New-regular-normal-normal-mono-14-*-*-*-c-*-iso8859-1") (border-width . 0) (internal-border-width . 0) (child-frame-border-width) (right-divider-width . 0) (bottom-divider-width . 0) (vertical-scroll-bars) (horizontal-scroll-bars) (foreground-color . "#c6a57b") (background-color . "#151515") (mouse-color . "black") (border-color . "black") (screen-gamma) (line-spacing) (left-fringe . 10) (right-fringe . 10) (no-focus-on-map) (no-accept-focus) (no-special-glyphs) (alpha-background) (alpha) (menu-bar-lines . 0) (tab-bar-lines . 0) (height . 59) (tool-bar-lines . 0) (inhibit-double-buffering) (title) (icon-type) (auto-raise) (auto-lower) (cursor-type . box) (scroll-bar-width . 17) (scroll-bar-height . 17) (fullscreen . maximized) (z-group) (visibility . t) (scroll-bar-foreground) (scroll-bar-background) (display-type . color) (background-mode . dark) (cursor-color . "#c6a57b") (font-parameter) (environment) (last-focus-update) (frameset--id . "6A1D-92A7-3EAE-2D06") (frameset--mini t . t) (modeline . t) (unsplittable) (icon-name) (display . "w32") (explicit-name) (tool-bar-position . top) (width . 237) (left + -1928) (top + -7)) ((min-height . 4) (min-width . 20) (min-height-ignore . 3) (min-width-ignore . 10) (min-height-safe . 1) (min-width-safe . 4) (min-pixel-height . 68) (min-pixel-width . 160) (min-pixel-height-ignore . 51) (min-pixel-width-ignore . 80) (min-pixel-height-safe . 17) (min-pixel-width-safe . 32)) hc (pixel-width . 1920) (pixel-height . 992) (total-width . 240) (total-height . 58) (normal-height . 1.0) (normal-width . 1.0) (combination-limit) (leaf (pixel-width . 956) (pixel-height . 992) (total-width . 119) (total-height . 58) (normal-height . 1.0) (normal-width . 0.49696969696969695) (buffer "*Compiler Shell*" (selected . t) (hscroll . 0) (fringes 10 10 nil nil) (margins nil) (scroll-bars nil 0 t nil 0 t nil) (vscroll . 0) (dedicated) (point . 5933) (start . 3974)) (prev-buffers ("win32_dx11.cpp" 28736 29373) ("*Compiler Shell*" 1 5933) ("code<>" 1 751) ("game_layer.h" 1 747) ("game_layer.cpp" 1 1))) (leaf (last . t) (pixel-width . 964) (pixel-height . 992) (total-width . 121) (total-height . 58) (normal-height . 1.0) (normal-width . 0.503030303030303) (buffer "game_layer.cpp" (selected) (hscroll . 0) (fringes 10 10 nil nil) (margins nil) (scroll-bars nil 0 t nil 0 t nil) (vscroll . 0) (dedicated) (point . 6112) (start . 4679)))))])
 (setq desktop-missing-file-warning nil)
 (setq tags-file-name nil)
 (setq tags-table-list nil)
-(setq search-ring '(#("CreateInstancew" 0 15 (isearch-case-fold-search nil isearch-regexp-function nil)) #("voxelChunk" 0 10 (isearch-case-fold-search nil isearch-regexp-function nil)) #("CreateInstanceBuffer" 0 20 (isearch-case-fold-search nil isearch-regexp-function nil)) #("CreateDevice" 0 12 (isearch-case-fold-search nil isearch-regexp-function nil)) #("layout" 0 6 (isearch-case-fold-search t isearch-regexp-function nil)) #("Render" 0 6 (isearch-case-fold-search nil isearch-regexp-function nil)) #("DEF" 0 3 (isearch-case-fold-search nil isearch-regexp-function nil)) #("CreateInstanc" 0 13 (isearch-case-fold-search nil isearch-regexp-function nil)) #("instanceBuffer" 0 14 (isearch-case-fold-search nil isearch-regexp-function nil)) #("CreateSi" 0 8 (isearch-case-fold-search nil isearch-regexp-function nil)) #("objVerts" 0 8 (isearch-case-fold-search nil isearch-regexp-function nil)) #("CreateInstance" 0 14 (isearch-case-fold-search nil isearch-regexp-function nil)) #("d3dDev" 0 6 (isearch-case-fold-search nil isearch-regexp-function nil)) #("CreateInstan" 0 12 (isearch-case-fold-search nil isearch-regexp-function nil)) #("direct_x" 0 8 (isearch-case-fold-search t isearch-regexp-function nil)) #("VSSet" 0 5 (isearch-case-fold-search nil isearch-regexp-function nil))))
+(setq search-ring '(#("InitializeArena" 0 15 (isearch-case-fold-search nil isearch-regexp-function nil)) #("CreateInstance" 0 14 (isearch-case-fold-search nil isearch-regexp-function nil)) #("Draw" 0 4 (isearch-case-fold-search nil isearch-regexp-function nil)) #("Rende" 0 5 (isearch-case-fold-search nil isearch-regexp-function nil)) #("CreateIn" 0 8 (isearch-case-fold-search nil isearch-regexp-function nil))))
 (setq regexp-search-ring nil)
 (setq register-alist nil)
-(setq file-name-history '("l:/code/" "d:/" "d:/Backups/Dx11Practice/Dx11Practice1111/code/" "l:/code/" "d:/Backups/Dx11Practice/Dx11Practice1111/code/" "d:/Backups" "d:/ExternalCustomAPIs/OBJLoader/code/" "l:" "d:/ExternalCustomAPIs/Types/" "l:/code/" "t:" "d:/ExternalCustomAPIs/Types/" "l:/code/" "l:" "t:/code/" "d:" "l:/code/" "t:/code/" "l:/code/" "t:" "l:/code/" "l:" "d:/Backups/Dx11Practice/Dx11Practice1111/code/" "d:" "" "d:" "l:/code/" "l:/code/braynzarsoft.cpp" "l:/code/" "d:/ExternalCustomAPIs/OBJLoader/code/" "l:/code/" "d:/ExternalCustomAPIs/OBJLoader/code/" "l:/code/" "d:/ExternalCustomAPIs/" "l:/code/" "l:" "k:/code/" "d:/CFiles/FirstGame/collision/" "d:" "l:/code/" "d:/ExternalCustomAPIs/MemoryPools/code/" "d:/ExternalCustomAPIs/" "d:/ExternalCustomAPIs/OBJLoader/code/" "l:/code/" "d:/ExternalCustomAPIs/OBJLoader/code/" "l:/code/" "f:/code/" "f:" "w:/code/" "l:/code/" "w:/code/" "w:" "d:/ExternalCustomAPIs/OBJLoader/code/" "l:/code/" "d:/ExternalCustomAPIs/OBJLoader/code/" "l:/code/" "d:/ExternalCustomAPIs/OBJLoader/code/" "l:" "l:/code/" "d:/ExternalCustomAPIs/OBJLoader/code/" "d:/ExternalCustomAPIs/OBJLoader/code/obj_parser_dll_include.h" "d:/ExternalCustomAPIs/OBJLoader/code/" "d:/ExternalCustomAPIs/Types/" "d:" "l:/code/" "d:/ExternalCustomAPIs/" "d:/ExternalCustomAPIs/OBJLoader/code/" "d:/ExternalCustomAPIs/OBJLoader/code/base_loader.h" "d:/ExternalCustomAPIs/OBJLoader/code/" "d:/ExternalCustomAPIs/OBJLoader/code/base_loader.cpp" "d:" "l:/code/" "d:/ExternalCustomAPIs/OBJLoader/code/" "l:/code/" "d:/ExternalCustomAPIs/" "d:/ExternalCustomAPIs/MemoryPools/code/" "d:" "l:" "l:/code/" "d:" "l:/code/" "w:/code/" "l:/code/" "l:" "w:" "l:/code/" "d:" "w:/code/" "w:" "d:" "l:/code/TODO.txt" "w:/code/" "w:" "l:/code/" "f:/code/" "d:/VSFiles/OpenGLLearning/OpenGLCourseApp/OpenGLCourseApp/" "l:/code/" "l:" "d:/ExternalCustomAPIs/OBJLoader/code/" "d:"))
+(setq file-name-history '("l:/code/" "l:/misc/EmacsDesktops/" "l:/code/" "l:" "d:" "l:/code/" "l:/misc/"))
 
 ;; Buffer section -- buffers listed in same order as in buffer list:
-(desktop-create-buffer 208
-  "l:/code/win32_dx11.cpp"
-  "win32_dx11.cpp"
-  'c++-mode
-  '(font-lock-mode)
-  5799
-  '(3701 nil)
-  nil
-  nil
-  '((indent-tabs-mode . t) (buffer-display-time 26921 3248 804613 0) (buffer-file-coding-system . undecided-dos) (fill-column . 42))
-  '((mark-ring (5685 33613 21855 23294 24992 24985 21905 5685 6923 24937 22646 22647 22647 1 24937 5777))))
-
 (desktop-create-buffer 208
   "l:/code/game_layer.cpp"
   "game_layer.cpp"
   'c++-mode
   '(font-lock-mode)
-  4795
-  '(3975 nil)
+  6112
+  '(6112 nil)
   nil
   nil
-  '((indent-tabs-mode . t) (buffer-display-time 26921 3387 176535 0) (buffer-file-coding-system . iso-latin-1-dos) (fill-column . 33))
-  '((mark-ring (3895 3477 3975 3896 3975 3862 3975 3811 3975 3759 3587 3739 3587 3504 2178 2178))))
+  '((indent-tabs-mode . t) (buffer-display-time 26930 65103 942465 0) (buffer-file-coding-system . undecided-dos))
+  '((mark-ring (6068 5760 6112 6112 6112 4630 4934 3886 7003 6979 1549 6552 7730 6859 7132 6554))))
 
 (desktop-create-buffer 208
-  "l:/code/game_layer.h"
-  "game_layer.h"
-  'c-mode
+  "l:/code/win32_dx11.cpp"
+  "win32_dx11.cpp"
+  'c++-mode
   '(font-lock-mode)
-  574
-  '(2413 nil)
+  29373
+  '(8196 nil)
   nil
   nil
-  '((indent-tabs-mode . t) (buffer-display-time 26921 3250 958032 0) (buffer-file-coding-system . iso-latin-1-dos) (fill-column . 41))
-  '((mark-ring (1761 2250 1983 2080 2080 2079 2080 2455 2251 1692 89 1692 1835 1301 1744 574))))
+  '((indent-tabs-mode . t) (buffer-display-time 26930 63416 960064 0) (buffer-file-coding-system . undecided-dos))
+  '((mark-ring (8026 7849 26217 25904 8366 1 8366))))
 
 (desktop-create-buffer 208
   nil
   "code"
   'dired-mode
   '(font-lock-mode)
-  279
-  '(1 nil)
+  751
+  '(nil nil)
   t
   '("l:/code/")
-  '((buffer-display-time 26921 3254 229622 0))
+  '((buffer-display-time 26930 50771 748705 0))
+  '((mark-ring nil)))
+
+(desktop-create-buffer 208
+  "l:/code/game_layer.h"
+  "game_layer.h"
+  'c-mode
+  '(font-lock-mode)
+  747
+  '(688 nil)
+  nil
+  nil
+  '((indent-tabs-mode . t) (buffer-display-time 26930 50771 586854 0) (buffer-file-coding-system . undecided-dos))
+  '((mark-ring nil)))
+
+(desktop-create-buffer 208
+  "l:/code/vshader.hlsl"
+  "vshader.hlsl"
+  'fundamental-mode
+  '(font-lock-mode)
+  603
+  '(603 nil)
+  nil
+  nil
+  '((buffer-display-time 26930 63284 206121 0) (buffer-file-coding-system . undecided-dos))
   '((mark-ring nil)))
 
 (desktop-create-buffer 208
@@ -70,36 +82,36 @@
   "TODO.txt"
   'text-mode
   '(font-lock-mode)
-  2075
-  '(1944 nil)
+  1
+  '(nil nil)
   nil
   nil
-  '((buffer-display-time 26921 957 160064 0) (buffer-file-coding-system . iso-latin-1-dos) (fill-column . 0))
-  '((mark-ring (1085 736 340 340 655 340 308 427 654 655 736 928 1083 1083 1084 1320))))
+  '((buffer-display-time 26930 63284 277625 0) (buffer-file-coding-system . undecided-dos))
+  '((mark-ring nil)))
+
+(desktop-create-buffer 208
+  nil
+  "l:/"
+  'dired-mode
+  '(font-lock-mode)
+  199
+  '(nil nil)
+  t
+  '("l:/")
+  '((buffer-display-time 26930 42729 154912 0))
+  '((mark-ring nil)))
 
 (desktop-create-buffer 208
   "d:/ExternalCustomAPIs/Types/direct_x_typedefs.h"
   "direct_x_typedefs.h"
   'c-mode
   '(font-lock-mode)
-  734
-  '(542 nil)
+  1
+  '(nil nil)
   nil
   nil
-  '((indent-tabs-mode . t) (buffer-display-time 26920 64465 209731 0) (buffer-file-coding-system . iso-latin-1-dos) (fill-column . 10))
-  '((mark-ring (603 503 395 1 795 414 795 479 448 414 394 366 366 337 366 795))))
-
-(desktop-create-buffer 208
-  "l:/code/vshader.hlsl"
-  "vshader.hlsl"
-  'fundamental-mode
-  '(font-lock-mode)
-  608
-  '(615 nil)
-  nil
-  nil
-  '((buffer-display-time 26920 64465 214597 0) (buffer-file-coding-system . iso-latin-1-dos) (fill-column . 13))
-  '((mark-ring (865 816 816 1409 816 1376 1376 1376 796 801 472 1311 1246 1181 398 398))))
+  '((indent-tabs-mode . t) (buffer-display-time 26930 63284 206106 0) (buffer-file-coding-system . undecided-dos))
+  '((mark-ring nil)))
 
 (desktop-create-buffer 208
   nil
@@ -110,139 +122,7 @@
   '(nil nil)
   t
   '("d:/ExternalCustomAPIs/Types/")
-  '((buffer-display-time 26920 62838 37994 0))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  nil
-  "ExternalCustomAPIs"
-  'dired-mode
-  '(font-lock-mode)
-  578
-  '(nil nil)
-  t
-  '("d:/ExternalCustomAPIs/")
-  '((buffer-display-time 26920 58798 829598 0))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  nil
-  "d:/"
-  'dired-mode
-  '(font-lock-mode)
-  2207
-  '(6644 nil)
-  t
-  '("d:/")
-  '((buffer-display-time 26920 58797 137408 0))
-  '((mark-ring (2946))))
-
-(desktop-create-buffer 208
-  "d:/Backups/Dx11Practice/Dx11Practice1111/code/game_layer.h"
-  "game_layer.h"
-  'c-mode
-  '(font-lock-mode)
-  1
-  '(nil nil)
-  nil
-  nil
-  '((indent-tabs-mode . t) (buffer-display-time 26920 58794 255460 0) (buffer-file-coding-system . undecided-unix))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  nil
-  "code"
-  'dired-mode
-  '(font-lock-mode)
-  310
-  '(nil nil)
-  t
-  '("d:/Backups/Dx11Practice/Dx11Practice1111/code/")
-  '((buffer-display-time 26920 58787 259097 0))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  "d:/Backups/Dx11Practice/Dx11Practice1111/code/game_layer.cpp"
-  "game_layer.cpp"
-  'c++-mode
-  '(font-lock-mode)
-  472
-  '(309 nil)
-  nil
-  nil
-  '((indent-tabs-mode . t) (buffer-display-time 26920 58787 81986 0) (buffer-file-coding-system . undecided-unix))
-  '((mark-ring (391 391 679 680))))
-
-(desktop-create-buffer 208
-  "l:/code/build.bat"
-  "build.bat"
-  'bat-mode
-  '(font-lock-mode)
-  712
-  '(696 nil)
-  nil
-  nil
-  '((buffer-display-time 26920 45958 343056 0) (buffer-file-coding-system . undecided-dos))
-  '((mark-ring (622 529 335 953 953 289 335 953 953 953 622 622 953 714 953))))
-
-(desktop-create-buffer 208
-  "d:/emacs/emacs-29.0.92/emacs-29.1/share/emacs/29.1/etc/NEWS"
-  "NEWS"
-  'emacs-news-view-mode
-  '(font-lock-mode outline-minor-mode button-mode)
-  1
-  '(nil nil)
-  t
-  nil
-  '((buffer-display-time 26920 55562 269705 0) (buffer-file-coding-system . utf-8-unix))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  "d:/Backups/Dx11Practice/Dx11Practice1111/code/win32_dx11.cpp"
-  "win32_dx11.cpp"
-  'c++-mode
-  '(font-lock-mode)
-  18164
-  '(18163 nil)
-  nil
-  nil
-  '((indent-tabs-mode . t) (buffer-display-time 26920 39446 194202 0) (buffer-file-coding-system . undecided-unix))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  nil
-  "Dx11Practice1111"
-  'dired-mode
-  '(font-lock-mode)
-  236
-  '(nil nil)
-  t
-  '("d:/Backups/Dx11Practice/Dx11Practice1111/")
-  '((buffer-display-time 26920 39320 918478 0))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  nil
-  "Dx11Practice"
-  'dired-mode
-  '(font-lock-mode)
-  159
-  '(nil nil)
-  t
-  '("d:/Backups/Dx11Practice/")
-  '((buffer-display-time 26920 39320 314557 0))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  nil
-  "Backups"
-  'dired-mode
-  '(font-lock-mode)
-  164
-  '(nil nil)
-  t
-  '("d:/Backups/")
-  '((buffer-display-time 26920 39319 480763 0))
+  '((buffer-display-time 26930 42723 129123 0))
   '((mark-ring nil)))
 
 (desktop-create-buffer 208
@@ -254,44 +134,8 @@
   '(nil nil)
   t
   '("d:/ExternalCustomAPIs/OBJLoader/code/")
-  '((buffer-display-time 26920 39315 83600 0))
+  '((buffer-display-time 26930 42715 642404 0))
   '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  "d:/ExternalCustomAPIs/OBJLoader/code/obj_loader.h"
-  "obj_loader.h"
-  'c-mode
-  '(font-lock-mode)
-  532
-  '(502 nil)
-  nil
-  nil
-  '((indent-tabs-mode . t) (buffer-display-time 26920 39312 19357 0) (buffer-file-coding-system . undecided-dos))
-  '((mark-ring (502 502 502 149 124 44 88 182 532 498 500 532 532 532 532))))
-
-(desktop-create-buffer 208
-  "d:/ExternalCustomAPIs/OBJLoader/code/directx_obj_loader.h"
-  "directx_obj_loader.h"
-  'c-mode
-  '(font-lock-mode)
-  199
-  '(356 nil)
-  nil
-  nil
-  '((indent-tabs-mode . t) (buffer-display-time 26920 37434 236686 0) (buffer-file-coding-system . iso-latin-1-dos) (fill-column . 0))
-  '((mark-ring (356 356))))
-
-(desktop-create-buffer 208
-  "d:/ExternalCustomAPIs/OBJLoader/code/directx_obj_loader_dll_include.h"
-  "directx_obj_loader_dll_include.h"
-  'c-mode
-  '(font-lock-mode)
-  47
-  '(638 nil)
-  nil
-  nil
-  '((indent-tabs-mode . t) (buffer-display-time 26920 37431 83417 0) (buffer-file-coding-system . iso-latin-1-dos))
-  '((mark-ring (687 13 687 687 687 687))))
 
 (desktop-create-buffer 208
   nil
@@ -302,739 +146,31 @@
   '(nil nil)
   t
   '("d:/ExternalCustomAPIs/OBJLoader/")
-  '((buffer-display-time 26920 37428 712699 0))
+  '((buffer-display-time 26930 42721 384619 0))
   '((mark-ring nil)))
 
 (desktop-create-buffer 208
   nil
-  "l:/"
+  "ExternalCustomAPIs"
   'dired-mode
   '(font-lock-mode)
-  198
+  578
   '(nil nil)
   t
-  '("l:/")
-  '((buffer-display-time 26920 37405 123671 0))
+  '("d:/ExternalCustomAPIs/")
+  '((buffer-display-time 26930 42722 59444 0))
   '((mark-ring nil)))
 
 (desktop-create-buffer 208
-  "t:/code/win32_brayn.cpp"
-  "win32_brayn.cpp"
-  'c++-mode
-  '(font-lock-mode)
-  4503
-  '(3392 nil)
   nil
-  nil
-  '((indent-tabs-mode . t) (buffer-display-time 26920 37401 264045 0) (buffer-file-coding-system . undecided-dos))
-  '((mark-ring (1204 1064 2966 1204))))
-
-(desktop-create-buffer 208
-  "l:/code/win32_dx11.h"
-  "win32_dx11.h"
-  'c-mode
-  '(font-lock-mode)
-  182
-  '(425 nil)
-  nil
-  nil
-  '((indent-tabs-mode . t) (buffer-display-time 26920 3277 73842 0) (buffer-file-coding-system . undecided-dos))
-  '((mark-ring (681))))
-
-(desktop-create-buffer 208
-  nil
-  "code"
+  "d:/"
   'dired-mode
   '(font-lock-mode)
-  263
+  2207
   '(nil nil)
   t
-  '("t:/code/")
-  '((buffer-display-time 26919 30298 618821 0))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  nil
-  "t:/"
-  'dired-mode
-  '(font-lock-mode)
-  199
-  '(nil nil)
-  t
-  '("t:/")
-  '((buffer-display-time 26919 30298 30778 0))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  "t:/code/build.bat"
-  "build.bat"
-  'bat-mode
-  '(font-lock-mode)
-  3
-  '(nil nil)
-  nil
-  nil
-  '((buffer-display-time 26919 6136 831503 0) (buffer-file-coding-system . undecided-dos))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  "l:/code/pshader.hlsl"
-  "pshader.hlsl"
-  'fundamental-mode
-  '(font-lock-mode)
-  126
-  '(1 nil)
-  nil
-  nil
-  '((buffer-display-time 26919 5396 989811 0) (buffer-file-coding-system . iso-latin-1-dos))
-  '((mark-ring (1 1 77 114 132 117 127 117))))
-
-(desktop-create-buffer 208
-  "d:/CFiles/FirstGame/collision/externcollision.c"
-  "externcollision.c"
-  'c-mode
-  '(font-lock-mode)
-  7081
-  '(7034 nil)
-  nil
-  nil
-  '((indent-tabs-mode . t) (buffer-display-time 26917 63991 450693 0) (buffer-file-coding-system . undecided-dos))
-  '((mark-ring (7137 7649 7125 7081))))
-
-(desktop-create-buffer 208
-  "l:/code/braynzarsoft.cpp"
-  "braynzarsoft.cpp"
-  'c++-mode
-  '(font-lock-mode)
-  9912
-  '(1 nil)
-  nil
-  nil
-  '((indent-tabs-mode . t) (buffer-display-time 26917 63598 198572 0) (buffer-file-coding-system . iso-latin-1-dos))
-  '((mark-ring (1))))
-
-(desktop-create-buffer 208
-  "d:/ExternalCustomAPIs/OBJLoader/code/obj_loader.cpp"
-  "obj_loader.cpp"
-  'c++-mode
-  '(font-lock-mode)
-  7699
-  '(8564 nil)
-  nil
-  nil
-  '((indent-tabs-mode . t) (buffer-display-time 26917 15511 641480 0) (buffer-file-coding-system . undecided-dos))
-  '((mark-ring (6908 7749 1987 2167 1853 1580 4570 5914 5913 12058 1 10242 10476 4414 9292 10430))))
-
-(desktop-create-buffer 208
-  "l:/code/win32_setup.cpp"
-  "win32_setup.cpp"
-  'c++-mode
-  '(font-lock-mode)
-  69
-  '(1 nil)
-  nil
-  nil
-  '((indent-tabs-mode . t) (buffer-display-time 26917 56980 152279 0) (buffer-file-coding-system . undecided-unix))
-  '((mark-ring (52 22 52))))
-
-(desktop-create-buffer 208
-  "d:/ExternalCustomAPIs/MemoryPools/code/memory_pool_dll_include.h"
-  "memory_pool_dll_include.h"
-  'c-mode
-  '(font-lock-mode)
-  2359
-  '(1424 nil)
-  nil
-  nil
-  '((indent-tabs-mode . t) (buffer-display-time 26917 4593 551220 0) (buffer-file-coding-system . iso-latin-1-dos))
-  '((mark-ring (2402 1 2402 1 2402 1 2402 1 2402 1 2402 1 2402 1 2402 1))))
-
-(desktop-create-buffer 208
-  "d:/ExternalCustomAPIs/OBJLoader/code/directx_obj_loader.cpp"
-  "directx_obj_loader.cpp"
-  'c++-mode
-  '(font-lock-mode)
-  742
-  '(201 nil)
-  nil
-  nil
-  '((indent-tabs-mode . t) (buffer-display-time 26916 35197 120143 0) (buffer-file-coding-system . iso-latin-1-dos) (fill-column . 0))
-  '((mark-ring (1498 743 653 2275 1 1351 743 957 1087 1383 3763 2275 1 1236 1194 742))))
-
-(desktop-create-buffer 208
-  "d:/ExternalCustomAPIs/MemoryPools/code/build.bat"
-  "build.bat"
-  'bat-mode
-  '(font-lock-mode)
-  459
-  '(278 nil)
-  nil
-  nil
-  '((buffer-display-time 26916 35189 325474 0) (buffer-file-coding-system . iso-latin-1-dos))
-  '((mark-ring (59 466 333))))
-
-(desktop-create-buffer 208
-  nil
-  "code"
-  'dired-mode
-  '(font-lock-mode)
-  211
-  '(nil nil)
-  t
-  '("k:/code/")
-  '((buffer-display-time 26917 2303 918415 0))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  nil
-  "collision"
-  'dired-mode
-  '(font-lock-mode)
-  424
-  '(nil nil)
-  t
-  '("d:/CFiles/FirstGame/collision/")
-  '((buffer-display-time 26916 3354 332630 0))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  "d:/CFiles/FirstGame/collision/interactionbox.c"
-  "interactionbox.c"
-  'c-mode
-  '(font-lock-mode)
-  2771
-  '(2771 nil)
-  nil
-  nil
-  '((indent-tabs-mode . t) (buffer-display-time 26916 3353 587388 0) (buffer-file-coding-system . undecided-dos))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  "d:/CFiles/FirstGame/collision/overlapboxes.c"
-  "overlapboxes.c"
-  'c-mode
-  '(font-lock-mode)
-  2151
-  '(nil nil)
-  nil
-  nil
-  '((indent-tabs-mode . t) (buffer-display-time 26916 3302 208388 0) (buffer-file-coding-system . undecided-dos))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  nil
-  "FirstGame"
-  'dired-mode
-  '(font-lock-mode)
-  173
-  '(nil nil)
-  t
-  '("d:/CFiles/FirstGame/")
-  '((buffer-display-time 26916 3268 170290 0))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  nil
-  "CFiles"
-  'dired-mode
-  '(font-lock-mode)
-  304
-  '(nil nil)
-  t
-  '("d:/CFiles/")
-  '((buffer-display-time 26916 3266 914751 0))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  "f:/code/win32_apart.cpp"
-  "win32_apart.cpp"
-  'c++-mode
-  '(font-lock-mode)
-  25889
-  '(5986 nil)
-  nil
-  nil
-  '((indent-tabs-mode . t) (buffer-display-time 26916 3260 180948 0) (buffer-file-coding-system . undecided-dos))
-  '((mark-ring (23372 5348 4968 24508 23758 34648 24786 34516 28234 29485 28763 18848 13594 29165 23111 25889))))
-
-(desktop-create-buffer 208
-  nil
-  "code"
-  'dired-mode
-  '(font-lock-mode)
-  183
-  '(nil nil)
-  t
-  '("d:/ExternalCustomAPIs/MemoryPools/code/")
-  '((buffer-display-time 26915 28150 995938 0))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  "d:/ExternalCustomAPIs/MemoryPools/code/memory_pools.cpp"
-  "memory_pools.cpp"
-  'c++-mode
-  '(font-lock-mode)
-  1410
-  '(1138 nil)
-  nil
-  nil
-  '((indent-tabs-mode . t) (buffer-display-time 26915 28151 355272 0) (buffer-file-coding-system . undecided-dos) (fill-column . 0))
-  '((mark-ring (453 490 888 747 1411 155 390 390 390 155 1314 390 1314 1314 154 886))))
-
-(desktop-create-buffer 208
-  nil
-  "MemoryPools"
-  'dired-mode
-  '(font-lock-mode)
-  178
-  '(1 nil)
-  t
-  '("d:/ExternalCustomAPIs/MemoryPools/")
-  '((buffer-display-time 26915 28118 142472 0))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  "d:/ExternalCustomAPIs/OBJLoader/code/obj_parser_dll_include.h"
-  "obj_parser_dll_include.h"
-  'c-mode
-  '(font-lock-mode)
-  494
-  '(494 nil)
-  nil
-  nil
-  '((indent-tabs-mode . t) (buffer-display-time 26915 26921 451451 0) (buffer-file-coding-system . iso-latin-1-dos))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  "d:/ExternalCustomAPIs/OBJLoader/code/build.bat"
-  "build.bat"
-  'bat-mode
-  '(font-lock-mode)
-  309
-  '(310 nil)
-  nil
-  nil
-  '((buffer-display-time 26915 27414 372539 0) (buffer-file-coding-system . undecided-dos))
-  '((mark-ring (321 348))))
-
-(desktop-create-buffer 208
-  "f:/code/build.bat"
-  "build.bat"
-  'bat-mode
-  '(font-lock-mode)
-  602
-  '(602 nil)
-  nil
-  nil
-  '((buffer-display-time 26915 26394 736276 0) (buffer-file-coding-system . undecided-dos))
-  '((mark-ring (65 602 602))))
-
-(desktop-create-buffer 208
-  nil
-  "code"
-  'dired-mode
-  '(font-lock-mode)
-  509
-  '(nil nil)
-  t
-  '("f:/code/")
-  '((buffer-display-time 26915 26458 535998 0))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  nil
-  "f:/"
-  'dired-mode
-  '(font-lock-mode)
-  199
-  '(nil nil)
-  t
-  '("f:/")
-  '((buffer-display-time 26914 61177 988560 0))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  "w:/code/win32_handmade.cpp"
-  "win32_handmade.cpp"
-  'c++-mode
-  '(font-lock-mode)
-  28625
-  '(2844 nil)
-  nil
-  nil
-  '((indent-tabs-mode . t) (buffer-display-time 26914 61175 860451 0) (buffer-file-coding-system . undecided-dos))
-  '((mark-ring (28564 34616 28503 35236 8588 35226 7597 34640 34599 2979 3083 28438 2543 28626 48422 16257))))
-
-(desktop-create-buffer 208
-  "w:/code/build.bat"
-  "build.bat"
-  'bat-mode
-  '(font-lock-mode)
-  748
-  '(748 nil)
-  nil
-  nil
-  '((buffer-display-time 26914 61063 52999 0) (buffer-file-coding-system . undecided-dos))
-  '((mark-ring (748))))
-
-(desktop-create-buffer 208
-  nil
-  "code"
-  'dired-mode
-  '(font-lock-mode)
-  155
-  '(nil nil)
-  t
-  '("w:/code/")
-  '((buffer-display-time 26914 61128 74559 0))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  "w:/code/win32_handmade.h"
-  "win32_handmade.h"
-  'c-mode
-  '(font-lock-mode)
-  1297
-  '(1152 nil)
-  nil
-  nil
-  '((indent-tabs-mode . t) (buffer-display-time 26914 57996 584083 0) (buffer-file-coding-system . undecided-dos))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  "w:/code/handmade.h"
-  "handmade.h"
-  'c-mode
-  '(font-lock-mode)
-  4898
-  '(2431 nil)
-  nil
-  nil
-  '((indent-tabs-mode . t) (buffer-display-time 26914 57990 330528 0) (buffer-file-coding-system . undecided-dos))
-  '((mark-ring (1013))))
-
-(desktop-create-buffer 208
-  nil
-  "w:/"
-  'dired-mode
-  '(font-lock-mode)
-  199
-  '(nil nil)
-  t
-  '("w:/")
-  '((buffer-display-time 26914 52829 819531 0))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  "d:/ExternalCustomAPIs/MemoryPools/code/memory_pools.h"
-  "memory_pools.h"
-  'c-mode
-  '(font-lock-mode)
-  195
-  '(370 nil)
-  nil
-  nil
-  '((indent-tabs-mode . t) (buffer-display-time 26914 47069 554229 0) (buffer-file-coding-system . undecided-dos))
-  '((mark-ring (370 370 370 370 64 65 370 65 65 64 151 227 152 152 152 152))))
-
-(desktop-create-buffer 208
-  "w:/code/handmade.cpp"
-  "handmade.cpp"
-  'c++-mode
-  '(font-lock-mode)
-  16966
-  '(3390 nil)
-  nil
-  nil
-  '((indent-tabs-mode . t) (buffer-display-time 26914 36613 385099 0) (buffer-file-coding-system . undecided-dos))
-  '((mark-ring (19031 17399 1 2992))))
-
-(desktop-create-buffer 208
-  "d:/VSFiles/OpenGLLearning/OpenGLCourseApp/OpenGLCourseApp/Camera.cpp"
-  "Camera.cpp"
-  'c++-mode
-  '(font-lock-mode)
-  1082
-  '(1699 nil)
-  nil
-  nil
-  '((indent-tabs-mode . t) (buffer-display-time 26914 34279 559876 0) (buffer-file-coding-system . undecided-dos))
-  '((mark-ring (1262 587 767 1262 727 1399 1699 1817))))
-
-(desktop-create-buffer 208
-  "f:/code/apart.cpp"
-  "apart.cpp"
-  'c++-mode
-  '(font-lock-mode)
-  22231
-  '(26060 nil)
-  nil
-  nil
-  '((indent-tabs-mode . t) (buffer-display-time 26914 12496 882327 0) (buffer-file-coding-system . undecided-dos))
-  '((mark-ring (13642 13656 9995 21461 21416 21930 21864 21782 21704 22079 26801 9806 8994 13065 13065 13066))))
-
-(desktop-create-buffer 208
-  "f:/code/apart_tile.cpp"
-  "apart_tile.cpp"
-  'c++-mode
-  '(font-lock-mode)
-  5181
-  '(1 nil)
-  nil
-  nil
-  '((indent-tabs-mode . t) (buffer-display-time 26914 8987 915688 0) (buffer-file-coding-system . undecided-dos))
-  '((mark-ring (7255 7405))))
-
-(desktop-create-buffer 208
-  nil
-  "OpenGLCourseApp"
-  'dired-mode
-  '(font-lock-mode)
-  208
-  '(nil nil)
-  t
-  '("d:/VSFiles/OpenGLLearning/OpenGLCourseApp/OpenGLCourseApp/")
-  '((buffer-display-time 26913 59180 996768 0))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  "d:/VSFiles/OpenGLLearning/OpenGLCourseApp/OpenGLCourseApp/Window.cpp"
-  "Window.cpp"
-  'c++-mode
-  '(font-lock-mode)
-  2671
-  '(1375 nil)
-  nil
-  nil
-  '((indent-tabs-mode . t) (buffer-display-time 26913 59180 546015 0) (buffer-file-coding-system . undecided-dos))
-  '((mark-ring (2671))))
-
-(desktop-create-buffer 208
-  "d:/VSFiles/OpenGLLearning/OpenGLCourseApp/OpenGLCourseApp/main.cpp"
-  "main.cpp"
-  'c++-mode
-  '(font-lock-mode)
-  1838
-  '(2150 nil)
-  nil
-  nil
-  '((indent-tabs-mode . t) (buffer-display-time 26912 52437 848568 0) (buffer-file-coding-system . undecided-dos))
-  '((mark-ring (2150))))
-
-(desktop-create-buffer 208
-  "d:/VSFiles/OpenGLLearning/OpenGLCourseApp/OpenGLCourseApp/Shader.cpp"
-  "Shader.cpp"
-  'c++-mode
-  '(font-lock-mode)
-  2107
-  '(nil nil)
-  nil
-  nil
-  '((indent-tabs-mode . t) (buffer-display-time 26912 12151 447841 0) (buffer-file-coding-system . undecided-dos))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  "d:/VSFiles/OpenGLLearning/OpenGLCourseApp/OpenGLCourseApp/Shaders/Shader.vert"
-  "Shader.vert"
-  'fundamental-mode
-  '(font-lock-mode)
-  219
-  '(nil nil)
-  nil
-  nil
-  '((buffer-display-time 26912 11580 467408 0) (buffer-file-coding-system . undecided-dos))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  "d:/VSFiles/OpenGLLearning/OpenGLCourseApp/OpenGLCourseApp/Shaders/Shader.frag"
-  "Shader.frag"
-  'fundamental-mode
-  '(font-lock-mode)
-  1
-  '(nil nil)
-  nil
-  nil
-  '((buffer-display-time 26912 12133 700224 0) (buffer-file-coding-system . undecided-dos))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  nil
-  "Shaders"
-  'dired-mode
-  '(font-lock-mode)
-  267
-  '(nil nil)
-  t
-  '("d:/VSFiles/OpenGLLearning/OpenGLCourseApp/OpenGLCourseApp/Shaders/")
-  '((buffer-display-time 26912 12133 668386 0))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  "d:/ExternalCustomAPIs/Types/typedefs.h"
-  "typedefs.h"
-  'c-mode
-  '(font-lock-mode)
-  560
-  '(1888 nil)
-  nil
-  nil
-  '((indent-tabs-mode . t) (buffer-display-time 26912 3529 149333 0) (buffer-file-coding-system . undecided-dos))
-  '((mark-ring (1 1140 504))))
-
-(desktop-create-buffer 208
-  "f:/code/apart.h"
-  "apart.h"
-  'c-mode
-  '(font-lock-mode)
-  5144
-  '(3264 nil)
-  nil
-  nil
-  '((indent-tabs-mode . t) (buffer-display-time 26911 40956 557251 0) (buffer-file-coding-system . undecided-dos) (fill-column . 37))
-  '((mark-ring (3375 4791 5735 5383 6621 1105 1160 5649 2983 45 620 913 1144 7858 3339 5649))))
-
-(desktop-create-buffer 208
-  nil
-  "OpenGLCourseApp"
-  'dired-mode
-  '(font-lock-mode)
-  237
-  '(nil nil)
-  t
-  '("d:/VSFiles/OpenGLLearning/OpenGLCourseApp/")
-  '((buffer-display-time 26911 41155 427686 0))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  nil
-  "OpenGLLearning"
-  'dired-mode
-  '(font-lock-mode)
-  161
-  '(nil nil)
-  t
-  '("d:/VSFiles/OpenGLLearning/")
-  '((buffer-display-time 26911 41154 565905 0))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  nil
-  "VSFiles"
-  'dired-mode
-  '(font-lock-mode)
-  294
-  '(nil nil)
-  t
-  '("d:/VSFiles/")
-  '((buffer-display-time 26911 41151 286554 0))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  nil
-  "practice"
-  'dired-mode
-  '(font-lock-mode)
-  165
-  '(nil nil)
-  t
-  '("d:/practice/")
-  '((buffer-display-time 26911 41134 254602 0))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  nil
-  "CPPReferences"
-  'dired-mode
-  '(font-lock-mode)
-  173
-  '(nil nil)
-  t
-  '("d:/C++Projects/CPPReferences/")
-  '((buffer-display-time 26911 41106 268600 0))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  nil
-  "CPPFiles"
-  'dired-mode
-  '(font-lock-mode)
-  168
-  '(nil nil)
-  t
-  '("d:/C++Projects/CPPFiles/")
-  '((buffer-display-time 26911 41108 438115 0))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  nil
-  "OtherCPP"
-  'dired-mode
-  '(font-lock-mode)
-  168
-  '(nil nil)
-  t
-  '("d:/C++Projects/OtherCPP/")
-  '((buffer-display-time 26911 41109 914981 0))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  nil
-  "Games"
-  'dired-mode
-  '(font-lock-mode)
-  165
-  '(nil nil)
-  t
-  '("d:/C++Projects/Games/")
-  '((buffer-display-time 26911 41111 76636 0))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  nil
-  "C++Projects"
-  'dired-mode
-  '(font-lock-mode)
-  282
-  '(nil nil)
-  t
-  '("d:/C++Projects/")
-  '((buffer-display-time 26911 41108 2677 0))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  nil
-  "Part 1 - Computer Graphics Fundamentals"
-  'dired-mode
-  '(font-lock-mode)
-  272
-  '(nil nil)
-  t
-  '("d:/LearnComputerGraphics/Part 1 - Computer Graphics Fundamentals/")
-  '((buffer-display-time 26911 41034 459015 0))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  nil
-  "LearnComputerGraphics"
-  'dired-mode
-  '(font-lock-mode)
-  178
-  '(nil nil)
-  t
-  '("d:/LearnComputerGraphics/")
-  '((buffer-display-time 26911 41037 963383 0))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  nil
-  "Capstone"
-  'dired-mode
-  '(font-lock-mode)
-  165
-  '(nil nil)
-  t
-  '("d:/Capstone/")
-  '((buffer-display-time 26911 40989 811243 0))
+  '("d:/")
+  '((buffer-display-time 26930 42709 325859 0))
   '((mark-ring nil)))
 
 (desktop-create-buffer 208
@@ -1043,633 +179,9 @@
   'dired-mode
   '(font-lock-mode)
   57
-  '(1 nil)
+  '(nil nil)
   t
   '("l:/misc/")
-  '((buffer-display-time 26911 34920 380342 0))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  "d:/ExternalCustomAPIs/Types/intrinsics.h"
-  "intrinsics.h"
-  'c-mode
-  '(font-lock-mode)
-  764
-  '(1065 nil)
-  nil
-  nil
-  '((indent-tabs-mode . t) (buffer-display-time 26909 11332 971529 0) (buffer-file-coding-system . iso-latin-1-dos))
-  '((mark-ring (1288))))
-
-(desktop-create-buffer 208
-  "w:/code/handmade_intrinsics.h"
-  "handmade_intrinsics.h"
-  'c-mode
-  '(font-lock-mode)
-  1690
-  '(1761 nil)
-  nil
-  nil
-  '((indent-tabs-mode . t) (buffer-display-time 26908 64438 654094 0) (buffer-file-coding-system . undecided-dos))
-  '((mark-ring (827))))
-
-(desktop-create-buffer 208
-  "f:/code/entity.cpp"
-  "entity.cpp"
-  'c++-mode
-  '(font-lock-mode)
-  1324
-  '(1888 nil)
-  nil
-  nil
-  '((indent-tabs-mode . t) (buffer-display-time 26907 37543 47706 0) (buffer-file-coding-system . undecided-dos))
-  '((mark-ring (2343 2388 2870 9534 8537 21 8828 760 8828 10155 224 2777 21 21 21 1324))))
-
-(desktop-create-buffer 208
-  nil
-  "k:/"
-  'dired-mode
-  '(font-lock-mode)
-  199
-  '(nil nil)
-  t
-  '("k:/")
-  '((buffer-display-time 26906 45166 452572 0))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  "d:/ExternalCustomAPIs/FileReader/file_reader.h"
-  "file_reader.h"
-  'c-mode
-  '(font-lock-mode)
-  312
-  '(nil nil)
-  nil
-  nil
-  '((indent-tabs-mode . t) (buffer-display-time 26906 26553 901021 0) (buffer-file-coding-system . iso-latin-1-dos))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  "d:/ExternalCustomAPIs/FileReader/file_reader.cpp"
-  "file_reader.cpp"
-  'c++-mode
-  '(font-lock-mode)
-  1219
-  '(675 nil)
-  nil
-  nil
-  '((indent-tabs-mode . t) (buffer-display-time 26906 26837 150748 0) (buffer-file-coding-system . iso-latin-1-dos))
-  '((mark-ring (1767 208 1294))))
-
-(desktop-create-buffer 208
-  nil
-  "FileReader"
-  'dired-mode
-  '(font-lock-mode)
-  177
-  '(nil nil)
-  t
-  '("d:/ExternalCustomAPIs/FileReader/")
-  '((buffer-display-time 26906 26837 893123 0))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  "d:/emacs/emacs-29.0.92/emacs-29.1/share/emacs/29.1/etc/PROBLEMS"
-  "PROBLEMS"
-  'outline-mode
-  '(font-lock-mode view-mode goto-address-mode)
-  1118
-  '(1118 nil)
-  t
-  nil
-  '((buffer-display-time 26905 44989 387693 0) (buffer-file-coding-system . utf-8-unix))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  "l:/code/typedefs.h"
-  "typedefs.h"
-  'c-mode
-  '(font-lock-mode)
-  1
-  '(1188 nil)
-  nil
-  nil
-  '((indent-tabs-mode . t) (buffer-display-time 26905 44958 670393 0) (buffer-file-coding-system . iso-latin-1-dos))
-  '((mark-ring (1147 22 1802 45 46 19 1))))
-
-(desktop-create-buffer 208
-  "d:/TestingFileFormats/fbxtester.fbx"
-  "fbxtester.fbx"
-  'fundamental-mode
-  '(font-lock-mode)
-  11024
-  '(nil nil)
-  nil
-  nil
-  '((buffer-display-time 26905 44090 631133 0) (buffer-file-coding-system . no-conversion))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  nil
-  "TestingFileFormats"
-  'dired-mode
-  '(font-lock-mode)
-  189
-  '(nil nil)
-  t
-  '("d:/TestingFileFormats/")
-  '((buffer-display-time 26905 44096 904695 0))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  nil
-  "D3DBeginner"
-  'dired-mode
-  '(font-lock-mode)
-  491
-  '(nil nil)
-  t
-  '("d:/D3DBeginner/")
-  '((buffer-display-time 26905 26855 162306 0))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  "d:/D3DBeginner/win32_direct.cpp"
-  "win32_direct.cpp"
-  'c++-mode
-  '(font-lock-mode)
-  14750
-  '(13044 nil)
-  nil
-  nil
-  '((indent-tabs-mode . t) (buffer-display-time 26905 26855 413449 0) (buffer-file-coding-system . undecided-dos))
-  '((mark-ring (2253 13548 12153 12728 13044 14750))))
-
-(desktop-create-buffer 208
-  "d:/CFiles/FirstGame/main.c"
-  "main.c"
-  'c-mode
-  '(font-lock-mode)
-  502
-  '(nil nil)
-  nil
-  nil
-  '((indent-tabs-mode . t) (buffer-display-time 26905 22199 317224 0) (buffer-file-coding-system . undecided-dos))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  "d:/d3d11/Chapter 10 Stenciling/Mirror/Effects.cpp"
-  "Effects.cpp"
-  'c++-mode
-  '(font-lock-mode)
-  1853
-  '(nil nil)
-  nil
-  nil
-  '((indent-tabs-mode . t) (buffer-display-time 26904 42310 64246 0) (buffer-file-coding-system . undecided-dos))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  nil
-  "Mirror"
-  'dired-mode
-  '(font-lock-mode)
-  185
-  '(nil nil)
-  t
-  '("d:/d3d11/Chapter 10 Stenciling/Mirror/")
-  '((buffer-display-time 26904 42316 147153 0))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  nil
-  "Chapter 10 Stenciling"
-  'dired-mode
-  '(font-lock-mode)
-  233
-  '(nil nil)
-  t
-  '("d:/d3d11/Chapter 10 Stenciling/")
-  '((buffer-display-time 26904 42316 686989 0))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  nil
-  "BoltAnim"
-  'dired-mode
-  '(font-lock-mode)
-  91
-  '(nil nil)
-  t
-  '("d:/d3d11/Chapter 10 Stenciling/BoltAnim/")
-  '((buffer-display-time 26904 42318 66299 0))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  nil
-  "d3d11"
-  'dired-mode
-  '(font-lock-mode)
-  162
-  '(nil nil)
-  t
-  '("d:/d3d11/")
-  '((buffer-display-time 26904 42319 322646 0))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  "l:/build/CubeVertexShader.cso"
-  "CubeVertexShader.cso"
-  'fundamental-mode
-  '(font-lock-mode)
-  1
-  '(nil nil)
-  nil
-  nil
-  '((buffer-display-time 26904 35339 887884 0) (buffer-file-coding-system . no-conversion))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  nil
-  "build"
-  'dired-mode
-  '(font-lock-mode)
-  162
-  '(nil nil)
-  t
-  '("l:/build/")
-  '((buffer-display-time 26904 35347 785177 0))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  nil
-  "code"
-  'dired-mode
-  '(font-lock-mode)
-  161
-  '(nil nil)
-  t
-  '("l:/code/.vs/code/")
-  '((buffer-display-time 26904 34112 577275 0))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  nil
-  ".vs"
-  'dired-mode
-  '(font-lock-mode)
-  159
-  '(nil nil)
-  t
-  '("l:/code/.vs/")
-  '((buffer-display-time 26904 34114 440601 0))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  nil
-  "data"
-  'dired-mode
-  '(font-lock-mode)
-  57
-  '(nil nil)
-  t
-  '("l:/data/")
-  '((buffer-display-time 26904 34093 229325 0))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  "d:/ExternalCustomAPIs/DLLLoader/dll_loader.cpp"
-  "dll_loader.cpp"
-  'c++-mode
-  '(font-lock-mode)
-  122
-  '(3179 nil)
-  nil
-  nil
-  '((indent-tabs-mode . t) (buffer-display-time 26902 36831 480421 0) (buffer-file-coding-system . iso-latin-1-dos) (fill-column . 4))
-  '((mark-ring (3071 1749 1744 665 2789 2435 2391 1429 979 353))))
-
-(desktop-create-buffer 208
-  "d:/ExternalCustomAPIs/DLLLoader/dll_loader.h"
-  "dll_loader.h"
-  'c-mode
-  '(font-lock-mode)
-  390
-  '(417 nil)
-  nil
-  nil
-  '((indent-tabs-mode . t) (buffer-display-time 26902 36836 946159 0) (buffer-file-coding-system . iso-latin-1-dos))
-  '((mark-ring (156 143))))
-
-(desktop-create-buffer 208
-  nil
-  "DLLLoader"
-  'dired-mode
-  '(font-lock-mode)
-  176
-  '(nil nil)
-  t
-  '("d:/ExternalCustomAPIs/DLLLoader/")
-  '((buffer-display-time 26902 36836 195949 0))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  "l:/misc/.emacs"
-  ".emacs"
-  'emacs-lisp-mode
-  '(eldoc-mode font-lock-mode)
-  3847
-  '(3243 nil)
-  nil
-  nil
-  '((buffer-display-time 26902 13988 291450 0) (buffer-file-coding-system . undecided-dos))
-  '((mark-ring (3436 3243 3243 3242))))
-
-(desktop-create-buffer 208
-  "k:/code/doc_reader.cpp"
-  "doc_reader.cpp"
-  'c++-mode
-  '(font-lock-mode)
-  1
-  '(nil nil)
-  nil
-  nil
-  '((indent-tabs-mode . t) (buffer-display-time 26902 13990 341987 0) (buffer-file-coding-system . undecided-dos))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  "k:/misc/.emacs"
-  ".emacs"
-  'emacs-lisp-mode
-  '(font-lock-mode eldoc-mode)
-  3847
-  '(nil nil)
-  nil
-  nil
-  '((buffer-display-time 26902 13951 20802 0) (buffer-file-coding-system . undecided-dos))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  nil
-  "misc"
-  'dired-mode
-  '(font-lock-mode)
-  152
-  '(nil nil)
-  t
-  '("k:/misc/")
-  '((buffer-display-time 26902 13950 408574 0))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  "k:/code/build.bat"
-  "build.bat"
-  'bat-mode
-  '(font-lock-mode)
-  365
-  '(nil nil)
-  nil
-  nil
-  '((buffer-display-time 26902 13948 855166 0) (buffer-file-coding-system . undecided-dos))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  "f:/code/win32_apart.h"
-  "win32_apart.h"
-  'c-mode
-  '(font-lock-mode)
-  857
-  '(854 nil)
-  nil
-  nil
-  '((indent-tabs-mode . t) (buffer-display-time 26901 45669 994572 0) (buffer-file-coding-system . undecided-dos))
-  '((mark-ring (387 582 20 1))))
-
-(desktop-create-buffer 208
-  "f:/code/apart_math.h"
-  "apart_math.h"
-  'c-mode
-  '(font-lock-mode)
-  1
-  '(nil nil)
-  nil
-  nil
-  '((indent-tabs-mode . t) (buffer-display-time 26901 2571 371631 0) (buffer-file-coding-system . undecided-dos) (fill-column . 0))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  nil
-  "dll"
-  'dired-mode
-  '(font-lock-mode)
-  191
-  '(nil nil)
-  t
-  '("d:/ExternalCustomAPIs/MemoryPools/dll/")
-  '((buffer-display-time 26901 2513 663014 0))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  "f:/misc/shell.bat"
-  "shell.bat"
-  'bat-mode
-  '(font-lock-mode)
-  1
-  '(308 nil)
-  nil
-  nil
-  '((buffer-display-time 26901 806 578465 0) (buffer-file-coding-system . undecided-dos))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  "d:/ExternalCustomAPIs/MemoryPools/misc/shell.bat"
-  "shell.bat"
-  'bat-mode
-  '(font-lock-mode)
-  305
-  '(357 nil)
-  nil
-  nil
-  '((buffer-display-time 26901 810 229196 0) (buffer-file-coding-system . iso-latin-1-dos))
-  '((mark-ring (266 319 319 1))))
-
-(desktop-create-buffer 208
-  nil
-  "misc"
-  'dired-mode
-  '(font-lock-mode)
-  180
-  '(nil nil)
-  t
-  '("d:/ExternalCustomAPIs/MemoryPools/misc/")
-  '((buffer-display-time 26901 1084 303683 0))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  nil
-  "misc"
-  'dired-mode
-  '(font-lock-mode)
-  376
-  '(nil nil)
-  t
-  '("f:/misc/")
-  '((buffer-display-time 26901 791 584894 0))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  nil
-  "data"
-  'dired-mode
-  '(font-lock-mode)
-  155
-  '(nil nil)
-  t
-  '("f:/data/")
-  '((buffer-display-time 26901 776 439491 0))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  nil
-  "build"
-  'dired-mode
-  '(font-lock-mode)
-  171
-  '(nil nil)
-  t
-  '("f:/build/")
-  '((buffer-display-time 26901 771 860308 0))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  "d:/HandmadeLegacyCode/ExtractedFIles/misc/.emacs"
-  ".emacs"
-  'emacs-lisp-mode
-  '(eldoc-mode font-lock-mode)
-  3188
-  '(3648 nil)
-  nil
-  nil
-  '((buffer-display-time 26900 63881 27335 0) (buffer-file-coding-system . undecided-dos))
-  '((mark-ring (1))))
-
-(desktop-create-buffer 208
-  nil
-  "misc"
-  'dired-mode
-  '(font-lock-mode)
-  189
-  '(nil nil)
-  t
-  '("d:/HandmadeLegacyCode/ExtractedFIles/misc/")
-  '((buffer-display-time 26900 63707 281791 0))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  nil
-  "data"
-  'dired-mode
-  '(font-lock-mode)
-  135
-  '(nil nil)
-  t
-  '("d:/HandmadeLegacyCode/ExtractedFIles/data/")
-  '((buffer-display-time 26900 63704 611995 0))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  nil
-  "ExtractedFIles"
-  'dired-mode
-  '(font-lock-mode)
-  350
-  '(nil nil)
-  t
-  '("d:/HandmadeLegacyCode/ExtractedFIles/")
-  '((buffer-display-time 26900 63706 329961 0))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  nil
-  "HandmadeLegacyCode"
-  'dired-mode
-  '(font-lock-mode)
-  325
-  '(nil nil)
-  t
-  '("d:/HandmadeLegacyCode/")
-  '((buffer-display-time 26900 63707 588770 0))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  "f:/misc/.emacs"
-  ".emacs"
-  'emacs-lisp-mode
-  '(font-lock-mode eldoc-mode)
-  2777
-  '(2777 nil)
-  nil
-  nil
-  '((buffer-display-time 26899 31149 24017 0) (buffer-file-coding-system . undecided-dos))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  "l:/misc/emacs.bat"
-  "emacs.bat"
-  'bat-mode
-  '(font-lock-mode)
-  1
-  '(nil nil)
-  nil
-  nil
-  '((buffer-display-time 26898 56461 959252 0) (buffer-file-coding-system . undecided-dos))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  "l:/misc/shell.bat"
-  "shell.bat"
-  'bat-mode
-  '(font-lock-mode)
-  1
-  '(nil nil)
-  nil
-  nil
-  '((buffer-display-time 26898 56453 395873 0) (buffer-file-coding-system . undecided-dos))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  "f:/misc/linkedin.txt"
-  "linkedin.txt"
-  'text-mode
-  '(font-lock-mode)
-  4177
-  '(4176 nil)
-  nil
-  nil
-  '((buffer-display-time 26898 24183 141257 0) (buffer-file-coding-system . iso-latin-1-dos))
-  '((mark-ring (3443 4177 3443 3444 3444 4177 1101 1 1709 1807 2204 4177 3443 3443 3444 4177))))
-
-(desktop-create-buffer 208
-  "f:/code/entity.h"
-  "entity.h"
-  'c++-mode
-  '(font-lock-mode)
-  1393
-  '(780 nil)
-  nil
-  nil
-  '((indent-tabs-mode . t) (buffer-display-time 26898 4048 78290 0) (buffer-file-coding-system . undecided-dos))
-  '((mark-ring nil)))
-
-(desktop-create-buffer 208
-  "f:/code/apart_intrinsics.h"
-  "apart_intrinsics.h"
-  'c-mode
-  '(font-lock-mode)
-  1
-  '(nil nil)
-  nil
-  nil
-  '((indent-tabs-mode . t) (buffer-display-time 26921 957 7330 0) (buffer-file-coding-system . undecided-dos))
+  '((buffer-display-time 26930 63284 122985 0))
   '((mark-ring nil)))
 

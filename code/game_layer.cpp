@@ -101,9 +101,143 @@ obj* CreateSingleVoxel(memory_pool_dll_code* memoryPoolCode, memory_arena* objLo
 	result->vertexIndices[i] = currIndex;
     }
 
-    
+    result->faceCount = 6;
+    result->renderFace = (bool32*)memoryPoolCode->PushArraySized(objLocationArena, (sizeof(bool32) * result->faceCount));
 
     return(result);
+}
+
+internal bool32
+CheckPositionParallelism(v3 pos, r32 maxX, r32 maxY, r32 maxZ,
+			 r32 minX, r32 minY, r32 minZ)
+{
+    return (((pos.x == maxX) || (pos.x == minX)) &&
+	    ((pos.y == maxY) || (pos.y == minY)) &&
+	    ((pos.z <= maxZ) || (pos.z >= minZ)));
+}
+
+internal bool32
+IsVoxelOnPerimeter(voxel_chunk* voxelChunk, v3 pos)
+{
+    //Is our voxel on the surface?
+    if (((pos.x == voxelChunk->maxCorner.x) || (pos.x == voxelChunk->minCorner.x)) ||
+	((pos.y == voxelChunk->maxCorner.y) || (pos.y == voxelChunk->minCorner.y)) ||
+	((pos.z == voxelChunk->maxCorner.z) || (pos.z == voxelChunk->minCorner.z)))
+    {
+	//Parallel to x axis
+#if 0	
+	if (CheckPositionParallelism(pos,
+				     voxelChunk->maxCorner.y, voxelChunk->maxCorner.z, voxelChunk->maxCorner.x,
+				     voxelChunk->minCorner.y, voxelChunk->minCorner.z, voxelChunk->minCorner.x))
+	{
+	    return(true);
+	} //Parallel to y axis
+	else if (CheckPositionParallelism(pos,
+					  voxelChunk->maxCorner.x, voxelChunk->maxCorner.z, voxelChunk->maxCorner.y,
+					  voxelChunk->minCorner.x, voxelChunk->minCorner.z, voxelChunk->minCorner.y))
+	{
+	    return(true);
+	}//Parallel to z axis
+	else if (CheckPositionParallelism(pos,
+					  voxelChunk->maxCorner.x, voxelChunk->maxCorner.y, voxelChunk->maxCorner.z,
+					  voxelChunk->minCorner.x, voxelChunk->minCorner.y, voxelChunk->minCorner.z))
+	{
+	    return(true);
+	} //Corner case
+	else if (((pos.x == voxelChunk->maxCorner.x) &&
+		  (pos.y == voxelChunk->maxCorner.y) &&
+		  (pos.z == voxelChunk->maxCorner.z)) ||
+		 ((pos.x == voxelChunk->minCorner.x) &&
+		  (pos.y == voxelChunk->minCorner.y) &&
+		  (pos.z == voxelChunk->minCorner.z)))
+	{
+	    return(true);
+	}
+	else return(false);
+#endif
+	if (((pos.y == voxelChunk->maxCorner.y) || (pos.y == voxelChunk->minCorner.y)) &&
+	    ((pos.z == voxelChunk->maxCorner.z) || (pos.z == voxelChunk->minCorner.z)) &&
+	    ((pos.x <= voxelChunk->maxCorner.x) || (pos.x >= voxelChunk->minCorner.x)))
+	{
+	    return(true);
+	}
+	else if (((pos.x == voxelChunk->maxCorner.x) || (pos.x == voxelChunk->minCorner.x)) &&
+		 ((pos.z == voxelChunk->maxCorner.z) || (pos.z == voxelChunk->minCorner.z)) &&
+		 ((pos.y <= voxelChunk->maxCorner.y) || (pos.y >= voxelChunk->minCorner.y)))
+	{
+	    return(true);
+	}
+	else if (((pos.x == voxelChunk->maxCorner.x) || (pos.x == voxelChunk->minCorner.x)) &&
+		 ((pos.y == voxelChunk->maxCorner.y) || (pos.y == voxelChunk->minCorner.y)) &&
+		 ((pos.z <= voxelChunk->maxCorner.z) || (pos.z >= voxelChunk->minCorner.z)))
+	{
+	    return(true);
+	}
+	else if (((pos.x == voxelChunk->maxCorner.x) &&
+		  (pos.y == voxelChunk->maxCorner.y) &&
+		  (pos.z == voxelChunk->maxCorner.z)) ||
+		 ((pos.x == voxelChunk->minCorner.x) &&
+		  (pos.y == voxelChunk->minCorner.y) &&
+		  (pos.z == voxelChunk->minCorner.z)))
+	{
+	    return(true);
+	}
+	else return(false);    
+    }
+    else
+    {
+	return(false);
+    }
+}
+
+internal void
+InitVoxelLocations(voxel_chunk* voxelChunk, memory_pool_dll_code* memoryPoolCode, memory_arena* objLocationArena)
+{
+    voxelChunk->voxelPositions =
+	(v3*)memoryPoolCode->PushArraySized(objLocationArena, (size_t)(sizeof(v3) * voxelChunk->voxelResolution));
+
+    voxelChunk->voxelFaceInfo =
+	(voxel_face_info*)memoryPoolCode->PushArraySized(objLocationArena, (size_t)(sizeof(voxel_face_info) * voxelChunk->voxelResolution));
+
+
+    voxelChunk->renderedVoxelCount = 0;
+    
+    for (int i = 0; i < voxelChunk->voxelResolution; i++)
+    {
+	v3 pos = {};
+	pos.x = (r32)fmod(i, voxelChunk->width);
+	pos.y = (r32)floor(fmod((i / voxelChunk->width), voxelChunk->height));
+	pos.z = (r32)floor(i / (voxelChunk->width * voxelChunk->height));
+
+	pos = pos * (voxelChunk->voxelSize * 2);
+	pos -= voxelChunk->voxelChunkExtent;
+	voxelChunk->voxelPositions[i] = pos;
+
+	bool32 isOnPerimeter = IsVoxelOnPerimeter(voxelChunk, pos);
+	voxelChunk->voxelFaceInfo[i].renderWholeVoxel = isOnPerimeter;
+	if (isOnPerimeter)
+	{
+	    voxelChunk->renderedVoxelCount += 1;
+	}
+	
+	/*
+	  Check:
+	   - Is box on perimeter?
+	    - Yes: Box will be rendered -> determine what faces to render based on location on perimeter
+	    - No: Do not render box at all, 
+	 */
+    }
+
+    voxelChunk->renderedVoxelPositions = (v3*)memoryPoolCode->PushArraySized(objLocationArena, (size_t)(sizeof(v3) * voxelChunk->renderedVoxelCount));
+    
+    for (int i = 0, j = 0; i < voxelChunk->voxelResolution; i++)
+    {
+	if (voxelChunk->voxelFaceInfo[i].renderWholeVoxel)
+	{
+	    voxelChunk->renderedVoxelPositions[j] = voxelChunk->voxelPositions[i];
+	    j++;
+	}
+    }
 }
 
 voxel_chunk CreateVoxelChunk(v3 location, r32 voxelSize, memory_pool_dll_code* memoryPoolCode, memory_arena* objLocationArena)
@@ -114,25 +248,31 @@ voxel_chunk CreateVoxelChunk(v3 location, r32 voxelSize, memory_pool_dll_code* m
     //a normal value for the resolution
     voxel_chunk result;
     result.length = 5;
-    result.width = 2;
-    result.height = 5;
+    result.height = 1;
+    result.width = 5;
 
+    //This assumes that the cube is located @ 0 0 0 in local space
+    result.maxCorner = v3{result.length, result.width, result.height};
+    result.minCorner = -result.maxCorner;
+    
     result.voxelChunkExtent = v3{result.length, result.width, result.height};
     
-
-    
-    
     bounding_box voxelBounds = CreateBoundingBox(location, result.length, result.width, result.height, memoryPoolCode, objLocationArena);
-
 
 
     result.length = (result.length * 2) / voxelSize;
     result.width = (result.width * 2) / voxelSize;
     result.height = (result.height * 2) / voxelSize;
-    result.voxelResolution = result.length * result.width * result.height;    
+    result.voxelResolution = result.length * result.width * result.height;
+
+//    result.visibleVoxels = (bool32*)memoryPoolCode.PushArraySized(objLocationArena, (sizeof(bool32) * result.voxelResolution));
+
+ 
 
     result.voxelSize = voxelSize;
 
+    InitVoxelLocations(&result, memoryPoolCode, objLocationArena);
+    
     return(result);
     
     //Get a calculation for the location in the world, add it by the verts of the instanced cubes

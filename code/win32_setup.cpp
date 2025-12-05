@@ -1,14 +1,14 @@
 // raddbg 0.9.20 project file
 
-recent_file: path: "win32_dx11.cpp"
 recent_file: path: "game_layer.cpp"
+recent_file: path: "D:/externalcustomapis/memorypools/code/memory_pools.cpp"
+recent_file: path: "win32_dx11.cpp"
 recent_file: path: "T:/code/win32_brayn.cpp"
 recent_file: path: "D:/Backups/Dx11Practice/Dx11Practice1111/code/win32_dx11.cpp"
 recent_file: path: "F:/code/win32_apart.cpp"
 recent_file: path: "D:/ExternalCustomAPIs/OBJLoader/code/directx_obj_loader.cpp"
 recent_file: path: "P:/code/inst_decoder.cpp"
 recent_file: path: "D:/ExternalCustomAPIs/OBJLoader/code/obj_loader.cpp"
-recent_file: path: "D:/externalcustomapis/memorypools/code/memory_pools.cpp"
 recent_file: path: "C:/Program Files (x86)/Windows Kits/8.1/include/um/directxmathconvert.inl"
 recent_file: path: "D:/externalcustomapis/filereader/file_reader.cpp"
 recent_file: path: "K:/code/doc_reader.cpp"
@@ -49,4 +49,10 @@ target:
   working_directory: "D:/Backups/Dx11Practice/Dx11Practice1111/data/"
   enabled: 0
   label: "Backup of dx11 practice, first person camera"
+}
+breakpoint:
+{
+  source_location: "game_layer.cpp:187:1"
+  hit_count: 0
+  enabled: 0
 }

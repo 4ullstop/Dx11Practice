@@ -3,14 +3,7 @@
 #include "D:/ExternalCustomAPIs/Types/direct_x_typedefs.h"
 #include "D:/ExternalCustomAPIs/MemoryPools/code/memory_pool_dll_include.h"
 #include "D:/ExternalCustomAPIs/OBJLoader/code/obj_parser_dll_include.h"
-
-
-
-
-struct v3
-{
-    r32 x, y, z;
-};
+#include "L:/code/game_layer_math.h"
 
 struct bounding_box
 {
@@ -21,11 +14,29 @@ struct bounding_box
     u16* indices; //36x
 };
 
+struct voxel_face_info
+{
+    bool32 renderWholeVoxel;
+    bool32 renderedFaces[6];
+    
+};
+
 struct voxel_chunk
 {
     r32 length, width, height, voxelSize;
     r32 voxelResolution;
     v3 voxelChunkExtent;
+
+
+    
+    
+    v3* voxelPositions;
+    voxel_face_info* voxelFaceInfo;
+
+    v3 maxCorner, minCorner;
+
+    i32 renderedVoxelCount;
+    v3* renderedVoxelPositions;
 };
 
 struct game_initialize_data
@@ -33,18 +44,6 @@ struct game_initialize_data
     obj* allObjs;
     voxel_chunk voxels;
 };
-
-/*
-  Rather than storing the instances' location via struct in the cpu, we can use the index
-  of the cube in the array as the value according to the location in voxel space and run our calculations
-  for determining the location of a cube in the world when calculating the position. Could this be done in
-  a specific shader? So we store the id based on the location in the array? Is this something that is already stored?
-
-  Checkout SV_InstanceID?
-  Is it something that is worth calculating every frame?
-   - Probably not?
- */
-
 
 struct instance_data
 {

@@ -1,62 +1,49 @@
 Design Focused:
  - Voxel engine
-  - Voxel R&D
-  - Create ability to load in multiple cubes, probably not with objs, just regular cube buffers should be fine
   - Create chunks (probably look back on the way they are done in handmade hero)
   - Create forward facing geo.
-
+   - Follow jdh guy, he had some stuff about creating an algorithm to determine if a cube was facing forward or not
+ - Redo camera system such that it rotates around a fixed point using some sort of cursor movement
+ - Eliminate the appearance of voxels depending on if they have been clicked
+   - Raycasting system
+   - Recognizing hit cubes and hiding them from being rendered
+- Create scoring system based on how well the sculpture was created according to the picture
+ - Wow what does this even mean I'm talking super reach right here
 
 
 Quick and Easy:
  - Fullscreen mode
+ 
 
 
 Longer, probably not as easy:
-- Make it so there can be more than one object loaded in
-- Add materials to OBJ loader
-- Add Collision System
-   - Requires game layer fill out (dll)
+ - Redo Camera System
+ - Create raycasting system (probably would help if they could be debugged too)
+ - Eliminate appearance of voxels depending on if they have been clicked
+
+
 
 Reaching now:
 - Buff out backend to be used for multiple games
-- Start on design of the game
-   - Sculptor? -prob this bc a little less complicated
-   - Boatlike?
-
-
-But first make it even possible to load more objects into your directX pipeline
-What would be an interesting way to store this?:
- - File
-   - Load in the file with all of the information, (file location, location of object), written by hand at first
-   then write a writer
- - At some point I imagine you'll want to be able to edit things like in most engines
- - So doing some sort of file reading and writing might be necessary
 
 
 
-Voxel Research info:
- - Create a bounding box with dimesions (see Seen code for bounding box creation)
- - VoxelResolution = (BoundingBoxExtent * 2) / VoxelSize;
- Create a compute buffer of this resolution value and send it to the gpu
- Then instance cubes equal to our voxel count
-
-To get the location of a box:
-x = i % width;
-y = (i / width) % height;
-z = i / (width * height);
-
-To get world space:
-(x, y, z) * voxelResolution - BoundingBoxExtent;
-
-Add this world position to the verts of the instanced cubes
-
-You have to create a buffer for every single object you load into the world, except for when you are
-instancing the object in which case you have one which you reference throughout the code
 
 
-Throw the array into a constant buffer, use the SV_InstanceID as the index into the array that holds all of the location information
+
+Create an array the same size as the resolution, but of bools and determining if the cube should be rendered or not at the start
 
 
-Here's what I know:
+Solidity is determined by whether all of the faces on the cube are rendered
+Or that a face is rendered in the first place
+So get the cube next to the current tested cube, 
 
- - Looking through RenderDoc, our buffer is only being set for the first 3 locations, even if you've set them in the code properly
+
+Have an array of bools determining whether a face is rendered or not, can be static bc there will only be a set amount of faces to a cube - that will never change
+We check the neighbor, get the next index in our array of cubes
+Get the face taht would be right next to the current face we are testing, check if it's on the outside
+
+
+First check to see if the cube is located on the perimeter - Not quite sure how to do this yet, something to do with the location - might require to move the location
+calculations out of the windows specific code
+Then while we create the list of locations, determine what faces should be rendered
