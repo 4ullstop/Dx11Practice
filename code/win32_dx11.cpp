@@ -324,19 +324,14 @@ CreateInstanceBuffer(direct_x_loaded_buffers* loadedBuffers, shaders* shaderReso
 
     for (int i = 0; i < voxelChunk->voxelResolution; i++)
     {
-#if 0
+
 	tempPos = DirectX::XMVectorSet(voxelChunk->voxelPositions[i].x,
 				       voxelChunk->voxelPositions[i].y,
 				       voxelChunk->voxelPositions[i].z,
 				       1.0f);
-#else
-	tempPos = DirectX::XMVectorSet(voxelChunk->renderedVoxelPositions[i].x,
-				       voxelChunk->renderedVoxelPositions[i].y,
-				       voxelChunk->renderedVoxelPositions[i].z,
-				       1.0f);
-#endif	
+
 	XMStoreFloat4(&instBuffer[i].instancePosition, tempPos);
-	instBuffer[i].renderWholeCube = voxelChunk->voxelFaceInfo[i].renderWholeVoxel;
+
     }
 
     //Step through this and see what happens
@@ -937,11 +932,6 @@ CreateShaders(shaders* shaderResources)
 	{
 	    "INSTANCEPOS", 0, DXGI_FORMAT_R32G32B32_FLOAT,
 	    1, 0, D3D11_INPUT_PER_INSTANCE_DATA, 1
-	},
-
-	{
-	    "RENDERCUBE", 0, DXGI_FORMAT_R8_UINT,
-	    1, 12, D3D11_INPUT_PER_INSTANCE_DATA, 1
 	},
     };
 

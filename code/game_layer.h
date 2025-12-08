@@ -5,6 +5,12 @@
 #include "D:/ExternalCustomAPIs/OBJLoader/code/obj_parser_dll_include.h"
 #include "L:/code/game_layer_math.h"
 
+enum voxel_type
+{
+    vt_empty = 0,
+    vt_solid = 1,
+};
+
 struct bounding_box
 {
     i32 vertexNum, indicesNum;
@@ -16,6 +22,7 @@ struct bounding_box
 
 struct voxel_face_info
 {
+    voxel_type voxelType;
     bool32 renderWholeVoxel;
     bool32 renderedFaces[6];
     

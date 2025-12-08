@@ -50,9 +50,3 @@ target:
   enabled: 0
   label: "Backup of dx11 practice, first person camera"
 }
-breakpoint:
-{
-  source_location: "game_layer.cpp:187:1"
-  hit_count: 0
-  enabled: 0
-}

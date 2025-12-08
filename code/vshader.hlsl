@@ -5,7 +5,6 @@ struct VS_INPUT
 	uint id : SV_InstanceID;
 
 	float4 iPos : INSTANCEPOS;
-	uint renderCube : RENDERCUBE;
 };
 
 struct VS_OUTPUT

@@ -47,3 +47,6 @@ Get the face taht would be right next to the current face we are testing, check 
 First check to see if the cube is located on the perimeter - Not quite sure how to do this yet, something to do with the location - might require to move the location
 calculations out of the windows specific code
 Then while we create the list of locations, determine what faces should be rendered
+
+Well I can't say I'm super ecstatic about the fact that I just wasted so much time trying to get instancing working only to learn that it's not useful when I'm creating a voxel grid
+of cubes where the faces need to be edited to reduce the amount of verts being drawn
