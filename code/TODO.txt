@@ -28,25 +28,37 @@ Reaching now:
 
 
 
-
-
-
-Create an array the same size as the resolution, but of bools and determining if the cube should be rendered or not at the start
-
-
-Solidity is determined by whether all of the faces on the cube are rendered
-Or that a face is rendered in the first place
-So get the cube next to the current tested cube, 
-
-
-Have an array of bools determining whether a face is rendered or not, can be static bc there will only be a set amount of faces to a cube - that will never change
-We check the neighbor, get the next index in our array of cubes
-Get the face taht would be right next to the current face we are testing, check if it's on the outside
-
-
-First check to see if the cube is located on the perimeter - Not quite sure how to do this yet, something to do with the location - might require to move the location
-calculations out of the windows specific code
-Then while we create the list of locations, determine what faces should be rendered
-
 Well I can't say I'm super ecstatic about the fact that I just wasted so much time trying to get instancing working only to learn that it's not useful when I'm creating a voxel grid
 of cubes where the faces need to be edited to reduce the amount of verts being drawn
+
+
+TODO:
+ - Removing instancing replace with draw calls of edited meshes
+ - Introduce arc ball camera
+ - Edit the mesh by clicking and removing voxels
+
+Is empty not is solid
+
+
+
+
+Take vertex_position_color and place it into the vertex buffers which means you need to create vertex buffers per object not just index buffers
+
+
+Something is not right with the algo creating indices, it's inputing greater than what exists in the amount of indicies for some reason
+
+
+
+How to determine if the cube is on the outside
+ - The current index is larger than the resolution or less than 0
+ - Get the neighbor and check if it's being rendered
+
+
+The issue seemingly is that the indices aren't being initialized properly, this could be a couple of things
+  - Not being initialized correctly to begin with (prob still the case with the locations and such not looking right)
+  - Not being translated into dx11 correctly or as intended 
+  - Doesn't check edge cases like the fact that the voxel at i == 60, i - 1 == 59 (which is a valid voxel and therefore won't render because it exists
+
+
+It's possible that the indices aren't being properly stored because it's looking for indicies 1, 2, 3, 4 when I'm inputting indices 5, 6, 7 etc...
+And so it's expecting more indices to be fed when it isn't getting them

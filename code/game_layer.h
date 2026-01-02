@@ -5,6 +5,7 @@
 #include "D:/ExternalCustomAPIs/OBJLoader/code/obj_parser_dll_include.h"
 #include "L:/code/game_layer_math.h"
 
+
 enum voxel_type
 {
     vt_empty = 0,
@@ -28,28 +29,65 @@ struct voxel_face_info
     
 };
 
+struct voxel
+{
+    v3 pos;
+    v3 gridPos;
+    voxel_face_info* voxelFaceInfo;
+    bool32 isSolid;
+    i32 voxelIndex;
+
+    v3 vertColors;
+    union
+    {
+	struct
+	{
+	    voxel_type voxelType;
+	    bool32 renderedFaces[6];
+	    i32 numOfRenderedFaces;
+	};
+
+	struct
+	{
+	    u16 indices[36];
+	    i32 indexCount;
+	    i32 renderedIndiceCount;
+	    u16 renderedIndices[36];
+	};
+    };
+};
+
 struct voxel_chunk
 {
     r32 length, width, height, voxelSize;
     r32 voxelResolution;
     v3 voxelChunkExtent;
 
+    v3 maxCorner, minCorner;
+    
+    voxel* voxels;
 
+    i32 numOfRenderedVoxels;
+    i32* renderedVoxelIndex;
+
+    r32 verts[24];
+    i32 voxelVertCount;
+
+    v3 vertexColors[8];
     
-    
+//Instanced chunk stuff pending removal    
     v3* voxelPositions;
     voxel_face_info* voxelFaceInfo;
 
-    v3 maxCorner, minCorner;
-
     i32 renderedVoxelCount;
     v3* renderedVoxelPositions;
+//    
 };
 
 struct game_initialize_data
 {
     obj* allObjs;
-    voxel_chunk voxels;
+    voxel_chunk chunk;
 };
 
 struct instance_data

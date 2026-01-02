@@ -1,8 +1,10 @@
 // raddbg 0.9.20 project file
 
 recent_file: path: "game_layer.cpp"
-recent_file: path: "D:/externalcustomapis/memorypools/code/memory_pools.cpp"
 recent_file: path: "win32_dx11.cpp"
+recent_file: path: "D:/Backups/Dx11Practice/Dx11Practice1128/code/win32_dx11.cpp"
+recent_file: path: "D:/Backups/Dx11Practice/Dx11Practice1128/code/game_layer.cpp"
+recent_file: path: "D:/externalcustomapis/memorypools/code/memory_pools.cpp"
 recent_file: path: "T:/code/win32_brayn.cpp"
 recent_file: path: "D:/Backups/Dx11Practice/Dx11Practice1111/code/win32_dx11.cpp"
 recent_file: path: "F:/code/win32_apart.cpp"
@@ -41,12 +43,22 @@ target:
 {
   executable: "T:/build/win32_brayn.exe"
   working_directory: "T:/data/"
-  enabled: 0
 }
 target:
 {
   executable: "D:/Backups/Dx11Practice/Dx11Practice1111/build/win32_dx11.exe"
   working_directory: "D:/Backups/Dx11Practice/Dx11Practice1111/data/"
-  enabled: 0
   label: "Backup of dx11 practice, first person camera"
+}
+target:
+{
+  executable: "D:/Backups/Dx11Practice/Dx11Practice1128/build/win32_dx11.exe"
+  working_directory: "D:/Backups/Dx11Practice/Dx11Practice1128/misc/"
+  enabled: 0
+}
+breakpoint:
+{
+  source_location: "game_layer.cpp:208:1"
+  hit_count: 0
+  enabled: 0
 }
