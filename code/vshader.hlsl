@@ -4,7 +4,6 @@ struct VS_INPUT
 	float3 vColor : COLOR0;
 	uint id : SV_InstanceID;
 
-	float4 iPos : INSTANCEPOS;
 };
 
 struct VS_OUTPUT
@@ -20,9 +19,9 @@ cbuffer ModelViewProjectionConstantBuffer : register(b0)
        matrix Projection; //projection matrix
 };
 
-cbuffer VoxelPositionInstanceBuffer : register(b1)
+cbuffer ObjectCB : register(b1)
 {
-	float4 instancePosition;
+	float4 cbWorld;
 };
 
 VS_OUTPUT main(VS_INPUT input)
@@ -30,11 +29,13 @@ VS_OUTPUT main(VS_INPUT input)
 	VS_OUTPUT output;
 	float4 pos = float4(input.vPos, 1.0f);
 
-	pos += input.iPos;
+	pos += cbWorld;
 
-	pos = mul(pos, mWorld);
+	
+//	pos = mul(pos, mWorld);
 	pos = mul(pos, View);
 	pos = mul(pos, Projection);
+	
 	
 	output.position = pos;
 

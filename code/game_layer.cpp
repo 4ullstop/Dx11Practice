@@ -84,7 +84,7 @@ obj* CreateSingleVoxel(memory_pool_dll_code* memoryPoolCode, memory_arena* objLo
 	5,7,6,        //6, 8, 7,
 
 	0,1,5, //bottom //1, 2, 6,
-	0,5,4,          //1, 6, 4,
+	0,5,4,          //1, 6, 5,
 	
 	2,6,7, //Top //3, 7, 8,
 	2,7,3,       //3, 8, 4,
@@ -98,12 +98,18 @@ obj* CreateSingleVoxel(memory_pool_dll_code* memoryPoolCode, memory_arena* objLo
 
     result->faceLastIndex = 36;
     result->vertexIndices = (u16*)memoryPoolCode->PushArraySized(objLocationArena, (sizeof(u16) * result->faceLastIndex));
+#if 0
     for (int i = 0; i < result->faceLastIndex; i++)
     {
-	u16 currIndex = unassignedIndices[i] + 1;
+	u16 currIndex = unassignedIndices[i] - 1;
 	result->vertexIndices[i] = currIndex;
     }
-
+#else
+    for (i32 i = 0; i < result->faceLastIndex; i++)
+    {
+	result->vertexIndices[i] = unassignedIndices[i];
+    }
+#endif
     result->faceCount = 6;
     result->renderFace = (bool32*)memoryPoolCode->PushArraySized(objLocationArena, (sizeof(bool32) * result->faceCount));
 
@@ -282,7 +288,7 @@ InitVoxels(memory_pool_dll_code* memoryPoolCode, memory_arena* arena, voxel_chun
     chunk->numOfRenderedVoxels = 0;
 
     chunk->renderedVoxelIndex = (i32*)memoryPoolCode->PushArraySized(arena, (size_t)(sizeof(i32) * chunk->numOfRenderedVoxels));
-    
+ 
     for (int i = 0; i < (voxelObjInfo->vertexCount * 3); i++)
     {
 	chunk->verts[i] = voxelObjInfo->vertices[i];

@@ -56,6 +56,10 @@ struct direct_x_loaded_buffers
     i32 instanceCount;
 };
 
+struct voxel_constants
+{
+    DirectX::XMFLOAT4 worldPos;
+};
 
 global_variable memory_pool_dll_code memoryPoolCode;
 #if DIRECTXLOAD
@@ -928,11 +932,6 @@ CreateShaders(shaders* shaderResources)
 	    "COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT,
 	    0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0
 	},
-
-	{
-	    "INSTANCEPOS", 0, DXGI_FORMAT_R32G32B32_FLOAT,
-	    0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0
-	},
     };
 
     //What is the input for the function in our VertexShader??? This...
@@ -989,7 +988,7 @@ struct win32_voxel_chunk
 {
     voxel_chunk* chunk;
     ID3D11Buffer** indexBuffers;
-    ID3D11Buffer** vertexBuffers;
+    ID3D11Buffer* vertexBuffers;
 
     //I imagine this isn't the best way to store this so you'll prob be back here later
     r32** drawnVoxelIndices;
@@ -997,7 +996,9 @@ struct win32_voxel_chunk
     //This is a direct correlation to the vertex and index buffers, avoiding Dx11 implementation in game layer
     DirectX::XMFLOAT4* drawnVoxelPositions; //
 
-    vertex_position_color** vsInput;
+    vertex_position_color* vsInput; //XMFloat3 types
+
+    ID3D11Buffer* voxelCB;
 };
 
 internal void
@@ -1017,76 +1018,80 @@ Win32InitVoxelGrid(win32_voxel_chunk* win32VoxelChunk, memory_arena* arena)
 											     (size_t)(sizeof(DirectX::XMFLOAT4) * numOfRenderedVoxels));
 #endif
 
-    win32VoxelChunk->vsInput = (vertex_position_color**)memoryPoolCode.PushArraySized(arena,
-										    (size_t)(sizeof(vertex_position_color*) * numOfRenderedVoxels));
+
 
     //We only need one vertex buffer, all of our vertex data is the same per box
     //Big fat lie, we need one per object so we can store the positions according to the voxels
     //We also need to store the locations in an XMFloat before assigning them to the vertex buffer
 
-    win32VoxelChunk->vertexBuffers = (ID3D11Buffer**)memoryPoolCode.PushArraySized(arena,
-										   (size_t)(sizeof(ID3D11Buffer*) * numOfRenderedVoxels));
-    
+    r32_3 testColors[] =
+    {
+	{0, 0, 0}, //0 Black
+	{1, 0, 0}, //1 Red
+	{0, 1, 0}, //2 Green
+	{0, 0, 1}, //3 Blue
+	{1, 0, 1}, //4 Magenta
+	{0, 1, 1}, //5 Cyan
+	{1, 1, 0}, //6 Yellow
+	{1, 1, 1}, //7 White
+    };
 
+    
+    win32VoxelChunk->vertexBuffers = (ID3D11Buffer*)memoryPoolCode.PushStruct(arena,
+									      (size_t)(sizeof(ID3D11Buffer*)));
+
+
+    win32VoxelChunk->vsInput = (vertex_position_color*)memoryPoolCode.PushArraySized(arena, (size_t)(sizeof(vertex_position_color) * win32VoxelChunk->chunk->voxelVertCount));
+
+    for (i32 i = 0, j = 0; j < win32VoxelChunk->chunk->voxelVertCount; i += 3, j++)
+    {
+	win32VoxelChunk->vsInput[j].pos.x = win32VoxelChunk->chunk->verts[i];
+	win32VoxelChunk->vsInput[j].pos.y = win32VoxelChunk->chunk->verts[i + 1];
+	win32VoxelChunk->vsInput[j].pos.z = win32VoxelChunk->chunk->verts[i + 2];
+
+	DirectX::XMFLOAT3 vertColor = {testColors[j].x, testColors[j].y, testColors[j].z};
+	
+	win32VoxelChunk->vsInput[j].color = vertColor;
+    }
+    
+    D3D11_BUFFER_DESC vertexDesc;
+    vertexDesc.Usage = D3D11_USAGE_DEFAULT;
+    vertexDesc.ByteWidth = sizeof(vertex_position_color) * win32VoxelChunk->chunk->voxelVertCount;
+    vertexDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+    vertexDesc.CPUAccessFlags = 0;
+    vertexDesc.MiscFlags = 0;
+
+    D3D11_SUBRESOURCE_DATA vertexData;
+    ZeroMemory(&vertexData, sizeof(D3D11_SUBRESOURCE_DATA));
+
+        
+    vertexData.pSysMem = &win32VoxelChunk->vsInput[0];
+    
+    vertexData.SysMemPitch = 0;
+    vertexData.SysMemSlicePitch = 0;
+
+    hr = d3dDevice->CreateBuffer(
+	&vertexDesc,
+	&vertexData,
+	&win32VoxelChunk->vertexBuffers);
+
+    //Create one constant buffer of the world positions
+    D3D11_BUFFER_DESC cbDesc = {};
+    cbDesc.Usage = D3D11_USAGE_DYNAMIC;
+    cbDesc.ByteWidth = sizeof(voxel_constants);
+    cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+
+    
+    hr = d3dDevice->CreateBuffer(&cbDesc, NULL, &win32VoxelChunk->voxelCB);
+    
     //You'll also want to probably store this on a specific arena that can be wiped whenever the chunk becomes dirty
 
     for (i32 i = 0; i < numOfRenderedVoxels; i++)
     {
 	voxel* currVoxel = &win32VoxelChunk->chunk->voxels[win32VoxelChunk->chunk->renderedVoxelIndex[i]];
-	win32VoxelChunk->vsInput[i] = (vertex_position_color*)memoryPoolCode.PushArraySized(arena,
-											    (size_t)(sizeof(vertex_position_color*) * win32VoxelChunk->chunk->voxelVertCount));
-	
-
 
 	v3 voxelPos = currVoxel->pos;
-
-	//Create a constant buffer once,
-
-	//Heres this nasty little loop again
-	for (i32 k = 0, j = 0; j < win32VoxelChunk->chunk->voxelVertCount; k += 3, j++)
-	{
-	    win32VoxelChunk->vsInput[i][j].pos.x = win32VoxelChunk->chunk->verts[k];
-	    win32VoxelChunk->vsInput[i][j].pos.y = win32VoxelChunk->chunk->verts[k + 1];
-	    win32VoxelChunk->vsInput[i][j].pos.z = win32VoxelChunk->chunk->verts[k + 2];
-
-#if 0	    
-	    DirectX::XMFLOAT3 vertColor = {win32VoxelChunk->chunk->vertexColors[j].x, win32VoxelChunk->chunk->vertexColors[j].y, win32VoxelChunk->chunk->vertexColors[j].z};
-
-#else
-	    DirectX::XMFLOAT3 vertColor = {currVoxel->vertColors.x, currVoxel->vertColors.y, currVoxel->vertColors.z};
-#endif	    
-	    win32VoxelChunk->vsInput[i][j].color = vertColor;
-	    DirectX::XMVECTOR iVecPos = DirectX::XMVectorSet(currVoxel->pos.x, currVoxel->pos.y, currVoxel->pos.z, 1.0f);
-	    
-	    DirectX::XMStoreFloat4(&win32VoxelChunk->vsInput[i][j].iPos, iVecPos);
-	}
-
-
-	//Also store color here
-	
-	D3D11_BUFFER_DESC vertexDesc;
-	vertexDesc.Usage = D3D11_USAGE_DEFAULT;
-	//Not sure if below is right, might need to make size of XMFLOAT4
-	size_t vertexSize = sizeof(vertex_position_color) * win32VoxelChunk->chunk->voxelVertCount;
-	vertexDesc.ByteWidth = (UINT)vertexSize;
-	vertexDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	vertexDesc.CPUAccessFlags = 0;
-	vertexDesc.MiscFlags = 0;
-
-	D3D11_SUBRESOURCE_DATA vertexData;
-	ZeroMemory(&vertexData, sizeof(D3D11_SUBRESOURCE_DATA));
-	vertexData.pSysMem = &win32VoxelChunk->vsInput[i][0];
-	vertexData.SysMemPitch = 0;
-	vertexData.SysMemSlicePitch = 0;
-
-	hr = d3dDevice->CreateBuffer(
-	    &vertexDesc,
-	    &vertexData,
-	    &win32VoxelChunk->vertexBuffers[i]);
-	
-	//Get the indices from the index list and put them into the drawVoxelIndices list at [i] to then store in a
-	//constant buffer
-
 	
 	CD3D11_BUFFER_DESC indexDesc(
 	    sizeof(u16) * currVoxel->renderedIndiceCount,
@@ -1111,7 +1116,10 @@ RenderVoxelCubes(shaders* shader, dx_camera* camera, win32_voxel_chunk* win32Vox
 {
     //Start rendering the voxels so we can see what is going on with the cubes being rendered
 
-    r32 teal [] = {0.098f, 0.439f, 0.439f, 1.000f};    
+    r32 teal [] = {0.098f, 0.439f, 0.439f, 1.000f};
+
+    context->UpdateSubresource(shader->constantBuffer, 0, nullptr, &camera->constantBufferData, 0, 0);
+
     context->ClearRenderTargetView(
 	renderTarget,
 	teal);
@@ -1127,6 +1135,17 @@ RenderVoxelCubes(shaders* shader, dx_camera* camera, win32_voxel_chunk* win32Vox
 	&renderTarget,
 	depthStencilView);
 
+    context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    context->IASetInputLayout(shader->inputLayout);
+    context->VSSetConstantBuffers(0, 1, &shader->constantBuffer);
+
+    UINT stride = sizeof(vertex_position_color);
+    UINT offset = 0;
+    context->IASetVertexBuffers(0, 1, &win32VoxelChunk->vertexBuffers, &stride, &offset);    
+
+
+
+
     context->VSSetShader(
 	shader->vertexShader,
 	nullptr,
@@ -1137,30 +1156,42 @@ RenderVoxelCubes(shaders* shader, dx_camera* camera, win32_voxel_chunk* win32Vox
 	nullptr,
 	0);
 
-    context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    context->IASetInputLayout(shader->inputLayout);
 
+   
+    HRESULT hr = {};
 
-    
     for (int i = 0; i < win32VoxelChunk->chunk->numOfRenderedVoxels; i++)
     {
+
+	context->VSSetConstantBuffers(1, 1, &win32VoxelChunk->voxelCB);
+
 	context->IASetIndexBuffer(win32VoxelChunk->indexBuffers[i], DXGI_FORMAT_R16_UINT, 0);
 
-	UINT stride = sizeof(vertex_position_color);
-	UINT offset = 0;
-	context->IASetVertexBuffers(0, 1, &win32VoxelChunk->vertexBuffers[i], &stride, &offset);
+	
+	//We are getting the constant buffer on the GPU and using for the CPU
+	D3D11_MAPPED_SUBRESOURCE mapped;
+	hr = context->Map(win32VoxelChunk->voxelCB, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
+	voxel_constants* data = (voxel_constants*)mapped.pData;
 
-	context->UpdateSubresource(shader->constantBuffer, 0, nullptr, &camera->constantBufferData, 0, 0);
+	voxel* currVoxel = &win32VoxelChunk->chunk->voxels[win32VoxelChunk->chunk->renderedVoxelIndex[i]];
 
-	context->VSSetConstantBuffers(0, 1, &shader->constantBuffer);
+	DirectX::XMVECTOR vecWorld = DirectX::XMVectorSet(currVoxel->pos.x, currVoxel->pos.y, currVoxel->pos.z, 1.0f);
+	DirectX::XMStoreFloat4(&data->worldPos, vecWorld);
 
+
+	context->Unmap(win32VoxelChunk->voxelCB, 0);
+	
 	context->DrawIndexed(
-	    win32VoxelChunk->chunk->voxels[win32VoxelChunk->chunk->renderedVoxelIndex[i]].renderedIndiceCount,
+	    currVoxel->renderedIndiceCount,
 	    0,
 	    0);
-
-
     }
+
+    
+    //This was in the loop for some reason, I don't remember if it was important to have it in the loop or naw
+
+
+
     
 }
 
@@ -1542,9 +1573,9 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 	    r32 lastTime = 0.0f;
 
 
-
-
-
+	    
+//Why tf is this here???
+#if 0
 	    DirectX::XMStoreFloat4x4(
 		&camera.constantBufferData.world,
 		DirectX::XMMatrixTranspose(
@@ -1555,7 +1586,7 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 			)
 		    )
 		);
-
+#endif
 
 
 

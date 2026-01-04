@@ -37,24 +37,17 @@ struct voxel
     bool32 isSolid;
     i32 voxelIndex;
 
+    u16 indices[36]; 
+    
     v3 vertColors;
-    union
-    {
-	struct
-	{
-	    voxel_type voxelType;
-	    bool32 renderedFaces[6];
-	    i32 numOfRenderedFaces;
-	};
 
-	struct
-	{
-	    u16 indices[36];
-	    i32 indexCount;
-	    i32 renderedIndiceCount;
-	    u16 renderedIndices[36];
-	};
-    };
+    voxel_type voxelType;
+    bool32 renderedFaces[6];
+    i32 numOfRenderedFaces;    
+
+    i32 indexCount;
+    i32 renderedIndiceCount;
+    u16 renderedIndices[36];    
 };
 
 struct voxel_chunk
