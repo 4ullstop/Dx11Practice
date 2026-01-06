@@ -87,6 +87,7 @@ global_variable ID3D11DepthStencilView* depthStencilView;
 global_variable ID3D11Texture2D* depthStencil;
 global_variable D3D11_TEXTURE2D_DESC bbDesc;
 
+
 internal void
 ConfigureBackBuffer(void)
 {
@@ -1112,10 +1113,26 @@ Win32InitVoxelGrid(win32_voxel_chunk* win32VoxelChunk, memory_arena* arena)
 }
 
 internal void
+TRTAP(LARGE_INTEGER startTime)
+{
+    LARGE_INTEGER endTime = Win32GetWallClock();
+    
+    r32 secondsRendered = Win32GetSecondsElapsed(startTime, endTime);
+
+    char timerBuffer[256];
+
+    sprintf_s(timerBuffer, sizeof(timerBuffer), "Seconds Rendered %f\n", secondsRendered);
+    OutputDebugString(timerBuffer);
+    
+}
+
+internal void
 RenderVoxelCubes(shaders* shader, dx_camera* camera, win32_voxel_chunk* win32VoxelChunk)
 {
     //Start rendering the voxels so we can see what is going on with the cubes being rendered
+//Check the speeds here and where it could be casuing issues
 
+    LARGE_INTEGER startTime = Win32GetWallClock();
     r32 teal [] = {0.098f, 0.439f, 0.439f, 1.000f};
 
     context->UpdateSubresource(shader->constantBuffer, 0, nullptr, &camera->constantBufferData, 0, 0);
@@ -1155,7 +1172,7 @@ RenderVoxelCubes(shaders* shader, dx_camera* camera, win32_voxel_chunk* win32Vox
 	shader->pixelShader,
 	nullptr,
 	0);
-
+    TRTAP(startTime);
 
    
     HRESULT hr = {};
@@ -1185,9 +1202,9 @@ RenderVoxelCubes(shaders* shader, dx_camera* camera, win32_voxel_chunk* win32Vox
 	    currVoxel->renderedIndiceCount,
 	    0,
 	    0);
+
     }
 
-    
     //This was in the loop for some reason, I don't remember if it was important to have it in the loop or naw
 
 
@@ -1291,6 +1308,10 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 		     int nCmdShow)
 {
     win32_state win32State = {};
+
+    LARGE_INTEGER perfCountFrequencyResult;
+    QueryPerformanceFrequency(&perfCountFrequencyResult);
+    perfCountFrequency = perfCountFrequencyResult.QuadPart;    
 
     Win32GetEXEFilename(&win32State);
 

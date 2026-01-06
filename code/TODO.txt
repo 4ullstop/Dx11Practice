@@ -45,24 +45,9 @@ Is empty not is solid
 Take vertex_position_color and place it into the vertex buffers which means you need to create vertex buffers per object not just index buffers
 
 
-Something is not right with the algo creating indices, it's inputing greater than what exists in the amount of indicies for some reason
+
+So the code works somewhat as intended with the -1 but it's super chunky
+Why would changing which cube is drawn cause extreme drop in frames?
 
 
-
-How to determine if the cube is on the outside
- - The current index is larger than the resolution or less than 0
- - Get the neighbor and check if it's being rendered
-
-
-The issue seemingly is that the indices aren't being initialized properly, this could be a couple of things
-  - Not being initialized correctly to begin with (prob still the case with the locations and such not looking right)
-  - Not being translated into dx11 correctly or as intended 
-  - Doesn't check edge cases like the fact that the voxel at i == 60, i - 1 == 59 (which is a valid voxel and therefore won't render because it exists
-
-
-It's possible that the indices aren't being properly stored because it's looking for indicies 1, 2, 3, 4 when I'm inputting indices 5, 6, 7 etc...
-And so it's expecting more indices to be fed when it isn't getting them
-
-
-You still need to:
- - Go into game_layer and edit so that the vertex is only in the chunk instead of per voxel
+0.000016
