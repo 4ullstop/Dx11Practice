@@ -1093,6 +1093,11 @@ Win32InitVoxelGrid(win32_voxel_chunk* win32VoxelChunk, memory_arena* arena)
 	voxel* currVoxel = &win32VoxelChunk->chunk->voxels[win32VoxelChunk->chunk->renderedVoxelIndex[i]];
 
 	v3 voxelPos = currVoxel->pos;
+
+	if (currVoxel->renderedIndiceCount > 36)
+	{
+	    i32 foo = 0;
+	}
 	
 	CD3D11_BUFFER_DESC indexDesc(
 	    sizeof(u16) * currVoxel->renderedIndiceCount,
@@ -1132,7 +1137,7 @@ RenderVoxelCubes(shaders* shader, dx_camera* camera, win32_voxel_chunk* win32Vox
     //Start rendering the voxels so we can see what is going on with the cubes being rendered
 //Check the speeds here and where it could be casuing issues
 
-    LARGE_INTEGER startTime = Win32GetWallClock();
+
     r32 teal [] = {0.098f, 0.439f, 0.439f, 1.000f};
 
     context->UpdateSubresource(shader->constantBuffer, 0, nullptr, &camera->constantBufferData, 0, 0);
@@ -1172,7 +1177,7 @@ RenderVoxelCubes(shaders* shader, dx_camera* camera, win32_voxel_chunk* win32Vox
 	shader->pixelShader,
 	nullptr,
 	0);
-    TRTAP(startTime);
+
 
    
     HRESULT hr = {};

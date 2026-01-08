@@ -206,6 +206,11 @@ enum face_locations
 internal void
 DetermineDrawnIndices(voxel* currVoxel, i32 face)
 {
+    if (face == 3)
+    {
+	i32 foo = 0;
+    }
+    
     currVoxel->renderedFaces[face] = true;
     currVoxel->numOfRenderedFaces = currVoxel->numOfRenderedFaces + 1;
 
@@ -215,8 +220,14 @@ DetermineDrawnIndices(voxel* currVoxel, i32 face)
     {
 	currVoxel->renderedIndices[currVoxel->renderedIndiceCount] = currVoxel->indices[i];
 
+	if (currVoxel->renderedIndices[currVoxel->renderedIndiceCount] > 36)
+	{
+	    i32 foo = 0;
+	}
+	
 	currVoxel->renderedIndiceCount = currVoxel->renderedIndiceCount + 1;
     }
+
 }
 
 internal void
@@ -237,14 +248,29 @@ DetermineVoxelDrawFaces(voxel_chunk* chunk, voxel* currVoxel, i32 currIndex, mem
     //Curr loc + 20
     //Curr loc + 160
 
+    if (currIndex == 160)
+    {
+	i32 foo = 0;
+    }
+
+    i32 div = (i32)(currIndex / (chunk->width * chunk->height));
+    
+#if 0
     //Since y =u/d, z = l/r and x = f/b, these are in order based on the construction of the faces
     i32 indexLocations[6] =
     {
 	currIndex - 1, currIndex + 1, //x	
-	(i32)(currIndex - chunk->height), (i32)(currIndex + chunk->height), //y 20 or 8?
+	(i32)(currIndex - chunk->width), (i32)(currIndex + chunk->width), //y 20 or 8?
 	(i32)(currIndex - (chunk->width * chunk->height)), (i32)(currIndex + (chunk->width * chunk->height)), //z 160
     };
-
+#else
+    i32 indexLocations[6] =
+    {
+	currIndex - 1, currIndex + 1, //x	
+	(i32)(currIndex - chunk->width - ((chunk->width * chunk->height) * div)), (i32)-(currIndex + chunk->length - ((chunk->width * chunk->height) * (div + 1))),
+	(i32)(currIndex - (chunk->width * chunk->height)), (i32)(currIndex + (chunk->width * chunk->height)), //z 160
+    };    
+#endif
     currVoxel->numOfRenderedFaces = 0;
     currVoxel->renderedIndiceCount = 0;
 
@@ -255,33 +281,33 @@ DetermineVoxelDrawFaces(voxel_chunk* chunk, voxel* currVoxel, i32 currIndex, mem
     for (int i = 0; i < 6; i++)
     {
 	//Okay but how do I check the ends of the box
-	if (((indexLocations[i] <= chunk->voxelResolution) && (indexLocations[i] >= 0)))
+	if (((indexLocations[i] <= chunk->voxelResolution) && (indexLocations[i] > 0)))
 	{
 	    //Don't render face
 
 	    //I don't understand why it's seg faulting here...
 
-#if 1
+
 	    //Update: This works now, for some reason the numOfRenderedVoxels was one above the actual number
 	    //that needed to rendered and was probably causing some seg fault in the GPU stuff,
 	    //not sure why it was one above yet tho, might not need to know who knows yet
-	    if ((i == 0) && (((indexLocations[i] + 1) % 20 == 0)))
+	    if (((i == 0) && (((indexLocations[i] + 1) % 20 == 0))) &&
+		(indexLocations[i] + 1 != (chunk->width * chunk->height)))
 	    {
 		DetermineDrawnIndices(currVoxel, i);
 		continue;
 	    }
-#else
-	    if ((i == 0) && (((indexLocations[i]) % 20 == 0)))
+
+	    if (((i == 1) && (indexLocations[i] % 20 == 0)) &&
+		(indexLocations[i] != (chunk->width * chunk->height)))
 	    {
 		DetermineDrawnIndices(currVoxel, i);
 		continue;
 	    }
-#endif	    
-	    if ((i == 1) && (indexLocations[i] % 20 == 0))
-	    {
-		DetermineDrawnIndices(currVoxel, i);
-		continue;
-	    }
+
+
+
+
 
 
 	    currVoxel->renderedFaces[i] = false;
@@ -334,6 +360,11 @@ InitVoxels(memory_pool_dll_code* memoryPoolCode, memory_arena* arena, voxel_chun
 	//Is voxel on surface? Yes - solid, No - mt
 	
 	//Remove this, instead we'll just check our faces to be rendered and determine off of that
+
+	if (i == 160)
+	{
+	    i32 foo = 0;
+	}
 	for (int j = 0; j < voxelObjInfo->faceLastIndex; j++)
 	{
 	    chunk->voxels[i].indices[j] = voxelObjInfo->vertexIndices[j];
@@ -358,7 +389,8 @@ InitVoxels(memory_pool_dll_code* memoryPoolCode, memory_arena* arena, voxel_chun
       - 
      */
 
-    chunk->numOfRenderedVoxels -= 1;
+    //This needs to be removed such that we are creating the right amount of cubes for the program to run correctly
+    chunk->numOfRenderedVoxels -= 3;
     
     chunk->renderedVoxelIndex = (i32*)memoryPoolCode->PushArraySized(arena, (size_t)(sizeof(i32) * chunk->numOfRenderedVoxels));
 
@@ -407,7 +439,7 @@ voxel_chunk CreateVoxelChunk(v3 location, r32 voxelSize, memory_pool_dll_code* m
  
 
     result.voxelSize = voxelSize;
-
+    result.numOfRenderedVoxels = 0;
 
     
 
