@@ -248,7 +248,7 @@ DetermineVoxelDrawFaces(voxel_chunk* chunk, voxel* currVoxel, i32 currIndex, mem
     //Curr loc + 20
     //Curr loc + 160
 
-    if (currIndex == 160)
+    if (currIndex == 180)
     {
 	i32 foo = 0;
     }
@@ -278,28 +278,35 @@ DetermineVoxelDrawFaces(voxel_chunk* chunk, voxel* currVoxel, i32 currIndex, mem
 
     i32 stride = (i32)(chunk->height * chunk->width);
 
+
+
     for (int i = 0; i < 6; i++)
     {
-	//Okay but how do I check the ends of the box
-	if (((indexLocations[i] <= chunk->voxelResolution) && (indexLocations[i] >= 0)))
+	//Taking care of some special cases
+	bool32 iGreaterThanEqualToZero = indexLocations[i] >= 0;
+	if (i == 3)
 	{
-	    //Don't render face
+	    iGreaterThanEqualToZero = indexLocations[3] > 0;
+	}
 
-	    //I don't understand why it's seg faulting here...
+	if (((indexLocations[i] < chunk->voxelResolution) && (iGreaterThanEqualToZero)))
+	{
 
-
-	    //Update: This works now, for some reason the numOfRenderedVoxels was one above the actual number
-	    //that needed to rendered and was probably causing some seg fault in the GPU stuff,
-	    //not sure why it was one above yet tho, might not need to know who knows yet
+#if 0	    
 	    if (((i == 0) && (((indexLocations[i] + 1) % (i32)chunk->width == 0))) &&
 		 (indexLocations[i] + 1 != (chunk->width * chunk->height)))
 	    {
 		DetermineDrawnIndices(currVoxel, i);
 		continue;
 	    }
-
-	    if (((i == 1) && (indexLocations[i] % (i32)chunk->width == 0)) &&
-		 (indexLocations[i] != (chunk->width * chunk->height)))
+#else
+	    if (((i == 0) && (((indexLocations[i] + 1) % (i32)chunk->width == 0))))
+	    {
+		DetermineDrawnIndices(currVoxel, i);
+		continue;
+	    }
+#endif	    
+	    if (((i == 1) && (indexLocations[i] % (i32)chunk->width == 0)))
 	    {
 		DetermineDrawnIndices(currVoxel, i);
 		continue;

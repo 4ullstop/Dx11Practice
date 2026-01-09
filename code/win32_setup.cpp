@@ -63,15 +63,3 @@ breakpoint:
   hit_count: 0
   enabled: 0
 }
-breakpoint:
-{
-  source_location: "game_layer.cpp:284:1"
-  hit_count: 0
-  enabled: 0
-}
-breakpoint:
-{
-  source_location: "game_layer.cpp:327:1"
-  hit_count: 0
-  enabled: 0
-}
