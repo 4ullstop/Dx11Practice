@@ -281,7 +281,7 @@ DetermineVoxelDrawFaces(voxel_chunk* chunk, voxel* currVoxel, i32 currIndex, mem
     for (int i = 0; i < 6; i++)
     {
 	//Okay but how do I check the ends of the box
-	if (((indexLocations[i] <= chunk->voxelResolution) && (indexLocations[i] > 0)))
+	if (((indexLocations[i] <= chunk->voxelResolution) && (indexLocations[i] >= 0)))
 	{
 	    //Don't render face
 
@@ -291,23 +291,19 @@ DetermineVoxelDrawFaces(voxel_chunk* chunk, voxel* currVoxel, i32 currIndex, mem
 	    //Update: This works now, for some reason the numOfRenderedVoxels was one above the actual number
 	    //that needed to rendered and was probably causing some seg fault in the GPU stuff,
 	    //not sure why it was one above yet tho, might not need to know who knows yet
-	    if (((i == 0) && (((indexLocations[i] + 1) % 20 == 0))) &&
-		(indexLocations[i] + 1 != (chunk->width * chunk->height)))
+	    if (((i == 0) && (((indexLocations[i] + 1) % (i32)chunk->width == 0))) &&
+		 (indexLocations[i] + 1 != (chunk->width * chunk->height)))
 	    {
 		DetermineDrawnIndices(currVoxel, i);
 		continue;
 	    }
 
-	    if (((i == 1) && (indexLocations[i] % 20 == 0)) &&
-		(indexLocations[i] != (chunk->width * chunk->height)))
+	    if (((i == 1) && (indexLocations[i] % (i32)chunk->width == 0)) &&
+		 (indexLocations[i] != (chunk->width * chunk->height)))
 	    {
 		DetermineDrawnIndices(currVoxel, i);
 		continue;
 	    }
-
-
-
-
 
 
 	    currVoxel->renderedFaces[i] = false;
@@ -328,12 +324,16 @@ DetermineVoxelDrawFaces(voxel_chunk* chunk, voxel* currVoxel, i32 currIndex, mem
 	chunk->numOfRenderedVoxels = chunk->numOfRenderedVoxels + 1;
     }
 
+    if (currVoxel->renderedIndiceCount > 36)
+    {
+	i32 foo = 0;
+    }
 }
 
 internal void
 InitVoxels(memory_pool_dll_code* memoryPoolCode, memory_arena* arena, voxel_chunk* chunk, obj* voxelObjInfo)
 {
-    chunk->voxels = (voxel*)memoryPoolCode->PushArraySized(arena, (size_t)(sizeof(v3) * chunk->voxelResolution));
+    chunk->voxels = (voxel*)memoryPoolCode->PushArraySized(arena, (size_t)(sizeof(voxel) * chunk->voxelResolution));
 
     chunk->voxelVertCount = voxelObjInfo->vertexCount;
     
@@ -390,16 +390,22 @@ InitVoxels(memory_pool_dll_code* memoryPoolCode, memory_arena* arena, voxel_chun
      */
 
     //This needs to be removed such that we are creating the right amount of cubes for the program to run correctly
-    chunk->numOfRenderedVoxels -= 3;
+
     
     chunk->renderedVoxelIndex = (i32*)memoryPoolCode->PushArraySized(arena, (size_t)(sizeof(i32) * chunk->numOfRenderedVoxels));
 
     //then store the ones that are going to be rendered here and loop through them, don't do draw faces functions
 
+    //The voxels are initialized correctly (at 160) but when we get to here, they start to go weird
     for (int i = 0, j = 0; i < chunk->voxelResolution; i++)
     {
+	
 	if (chunk->voxels[i].isSolid)
 	{
+	    if (chunk->voxels[i].renderedIndiceCount > 36)
+	    {
+		i32 foo = 0;
+	    }
 	    chunk->renderedVoxelIndex[j] = i;
 	    j++;
 	}

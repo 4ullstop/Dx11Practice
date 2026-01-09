@@ -57,11 +57,12 @@ struct voxel_chunk
     v3 voxelChunkExtent;
 
     v3 maxCorner, minCorner;
-    
+
+    i32* renderedVoxelIndex;        
     voxel* voxels;
 
     i32 numOfRenderedVoxels;
-    i32* renderedVoxelIndex;
+
 
     r32 verts[24];
     i32 voxelVertCount;
@@ -74,6 +75,8 @@ struct voxel_chunk
 
     i32 renderedVoxelCount;
     v3* renderedVoxelPositions;
+
+
 //    
 };
 

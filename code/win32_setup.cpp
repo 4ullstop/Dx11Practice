@@ -1,6 +1,7 @@
 // raddbg 0.9.20 project file
 
 recent_file: path: "game_layer.cpp"
+recent_file: path: "game_layer_math.h"
 recent_file: path: "win32_dx11.cpp"
 recent_file: path: "D:/Backups/Dx11Practice/Dx11Practice1128/code/win32_dx11.cpp"
 recent_file: path: "D:/Backups/Dx11Practice/Dx11Practice1128/code/game_layer.cpp"
@@ -58,13 +59,19 @@ target:
 }
 breakpoint:
 {
-  source_location: "game_layer.cpp:320:1"
+  source_location: "game_layer.cpp:253:1"
   hit_count: 0
   enabled: 0
 }
 breakpoint:
 {
-  source_location: "game_layer.cpp:211:1"
+  source_location: "game_layer.cpp:284:1"
+  hit_count: 0
+  enabled: 0
+}
+breakpoint:
+{
+  source_location: "game_layer.cpp:327:1"
   hit_count: 0
   enabled: 0
 }
