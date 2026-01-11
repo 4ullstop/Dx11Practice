@@ -57,9 +57,3 @@ target:
   working_directory: "D:/Backups/Dx11Practice/Dx11Practice1128/misc/"
   enabled: 0
 }
-breakpoint:
-{
-  source_location: "game_layer.cpp:253:1"
-  hit_count: 0
-  enabled: 0
-}

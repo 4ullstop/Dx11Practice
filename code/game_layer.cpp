@@ -116,71 +116,6 @@ obj* CreateSingleVoxel(memory_pool_dll_code* memoryPoolCode, memory_arena* objLo
     return(result);
 }
 
-internal void
-InitVoxelLocations(voxel_chunk* voxelChunk, memory_pool_dll_code* memoryPoolCode, memory_arena* objLocationArena)
-{
-    voxelChunk->voxelPositions =
-	(v3*)memoryPoolCode->PushArraySized(objLocationArena, (size_t)(sizeof(v3) * voxelChunk->voxelResolution));
-
-    voxelChunk->voxelFaceInfo =
-	(voxel_face_info*)memoryPoolCode->PushArraySized(objLocationArena, (size_t)(sizeof(voxel_face_info) * voxelChunk->voxelResolution));
-
-
-    v3 colors[] = 
-    {
-	{0, 0, 0}, //0 Black
-	{1, 0, 0}, //1 Red
-	{0, 1, 0}, //2 Green
-	{0, 0, 1}, //3 Blue
-	{1, 0, 1}, //4 Magenta
-	{0, 1, 1}, //5 Cyan
-	{1, 1, 0}, //6 Yellow
-	{1, 1, 1}, //7 White
-    };
-
-#if 0
-    
-    for (int i = 0; i < 8; i++)
-    {
-	voxelChunk->vertexColors[i] = colors[i];
-    }
-    //voxelVertCount should be 8?
-#endif    
-    
-    voxelChunk->renderedVoxelCount = 0;
-    voxelChunk->voxelFaceInfo[0].voxelType = voxel_type::vt_solid;
-    for (int i = 0; i < voxelChunk->voxelResolution; i++)
-    {
-	//Current position
-	v3 pos = {};
-	pos.x = (r32)fmod(i, voxelChunk->width);
-	pos.y = (r32)floor(fmod((i / voxelChunk->width), voxelChunk->height));
-	pos.z = (r32)floor(i / (voxelChunk->width * voxelChunk->height));
-
-	pos = pos * (voxelChunk->voxelSize * 2);
-	pos -= voxelChunk->voxelChunkExtent;
-	voxelChunk->voxelPositions[i] = pos;
-
-#if 0	
-	if (i < voxelChunk->voxelResolution)
-	{
-	    v3 nextVoxel;
-	    nextVoxel.x = (r32)fmod((i + 1), voxelChunk->width);
-	    nextVoxel.y = (r32)floor(fmod(((i + 1) / voxelChunk->width), voxelChunk->height));
-	    nextVoxel.z = (r32)floor((i + 1) / (voxelChunk->width * voxelChunk->height));	    
-
-	}
-#endif	
-	//Check the voxel ahead
-    }
-
-    
-    for (int i = 0, j = 0; i < voxelChunk->voxelResolution; i++)
-    {
-	
-    }
-}
-
 internal bool32
 IsVoxelOnSurface(v3 pos, v3 minCorner, v3 maxCorner)
 {
@@ -206,10 +141,7 @@ enum face_locations
 internal void
 DetermineDrawnIndices(voxel* currVoxel, i32 face)
 {
-    if (face == 3)
-    {
-	i32 foo = 0;
-    }
+
     
     currVoxel->renderedFaces[face] = true;
     currVoxel->numOfRenderedFaces = currVoxel->numOfRenderedFaces + 1;
@@ -220,11 +152,6 @@ DetermineDrawnIndices(voxel* currVoxel, i32 face)
     {
 	currVoxel->renderedIndices[currVoxel->renderedIndiceCount] = currVoxel->indices[i];
 
-	if (currVoxel->renderedIndices[currVoxel->renderedIndiceCount] > 36)
-	{
-	    i32 foo = 0;
-	}
-	
 	currVoxel->renderedIndiceCount = currVoxel->renderedIndiceCount + 1;
     }
 
@@ -233,44 +160,16 @@ DetermineDrawnIndices(voxel* currVoxel, i32 face)
 internal void
 DetermineVoxelDrawFaces(voxel_chunk* chunk, voxel* currVoxel, i32 currIndex, memory_pool_dll_code* memoryPoolCode, memory_arena* arena)
 {
-    //Run through neighbors, test for solidity, determine faces drawn
-
-    /*
-      x + 1, y, z
-      x - 1, y, z
-      x, y + 1, z
-      x, y - 1, z
-      x, y, z + 1
-      x, y, z -1
-      
-     */
-    //Curr loc + 1
-    //Curr loc + 20
-    //Curr loc + 160
-
-    if (currIndex == 180)
-    {
-	i32 foo = 0;
-    }
-
     i32 div = (i32)(currIndex / (chunk->width * chunk->height));
     
-#if 0
-    //Since y =u/d, z = l/r and x = f/b, these are in order based on the construction of the faces
+
     i32 indexLocations[6] =
     {
 	currIndex - 1, currIndex + 1, //x	
-	(i32)(currIndex - chunk->width), (i32)(currIndex + chunk->width), //y 20 or 8?
-	(i32)(currIndex - (chunk->width * chunk->height)), (i32)(currIndex + (chunk->width * chunk->height)), //z 160
-    };
-#else
-    i32 indexLocations[6] =
-    {
-	currIndex - 1, currIndex + 1, //x	
-	(i32)(currIndex - chunk->width - ((chunk->width * chunk->height) * div)), (i32)-(currIndex + chunk->length - ((chunk->width * chunk->height) * (div + 1))),
+	(i32)(currIndex - chunk->width - ((chunk->width * chunk->height) * div)), (i32)-(currIndex + chunk->width - ((chunk->width * chunk->height) * (div + 1))),
 	(i32)(currIndex - (chunk->width * chunk->height)), (i32)(currIndex + (chunk->width * chunk->height)), //z 160
     };    
-#endif
+
     currVoxel->numOfRenderedFaces = 0;
     currVoxel->renderedIndiceCount = 0;
 
@@ -292,32 +191,20 @@ DetermineVoxelDrawFaces(voxel_chunk* chunk, voxel* currVoxel, i32 currIndex, mem
 	if (((indexLocations[i] < chunk->voxelResolution) && (iGreaterThanEqualToZero)))
 	{
 
-#if 0	    
-	    if (((i == 0) && (((indexLocations[i] + 1) % (i32)chunk->width == 0))) &&
-		 (indexLocations[i] + 1 != (chunk->width * chunk->height)))
-	    {
-		DetermineDrawnIndices(currVoxel, i);
-		continue;
-	    }
-#else
 	    if (((i == 0) && (((indexLocations[i] + 1) % (i32)chunk->width == 0))))
 	    {
 		DetermineDrawnIndices(currVoxel, i);
 		continue;
 	    }
-#endif	    
+
 	    if (((i == 1) && (indexLocations[i] % (i32)chunk->width == 0)))
 	    {
 		DetermineDrawnIndices(currVoxel, i);
 		continue;
 	    }
 
-
 	    currVoxel->renderedFaces[i] = false;
 
-	    //Check our neighbor's location
-	    //So we need to also check the ends of the voxels to ensure that they aren't reaching down into another
-	    //row and counting it as a rendered voxel
 	}
 	else
 	{
@@ -331,10 +218,6 @@ DetermineVoxelDrawFaces(voxel_chunk* chunk, voxel* currVoxel, i32 currIndex, mem
 	chunk->numOfRenderedVoxels = chunk->numOfRenderedVoxels + 1;
     }
 
-    if (currVoxel->renderedIndiceCount > 36)
-    {
-	i32 foo = 0;
-    }
 }
 
 internal void
@@ -364,14 +247,7 @@ InitVoxels(memory_pool_dll_code* memoryPoolCode, memory_arena* arena, voxel_chun
 	pos -= chunk->voxelChunkExtent;
 
 	chunk->voxels[i].pos = pos;
-	//Is voxel on surface? Yes - solid, No - mt
-	
-	//Remove this, instead we'll just check our faces to be rendered and determine off of that
 
-	if (i == 160)
-	{
-	    i32 foo = 0;
-	}
 	for (int j = 0; j < voxelObjInfo->faceLastIndex; j++)
 	{
 	    chunk->voxels[i].indices[j] = voxelObjInfo->vertexIndices[j];
@@ -389,36 +265,17 @@ InitVoxels(memory_pool_dll_code* memoryPoolCode, memory_arena* arena, voxel_chun
 	chunk->voxels[i].voxelIndex = i;
 
     }
-    //Now for the determination of which voxels to render and what faces will be rendered
-
-    /*
-      - Take a voxel, check each face of the voxel to it's neighboring cube to see if it is solid or exists
-      - 
-     */
-
-    //This needs to be removed such that we are creating the right amount of cubes for the program to run correctly
-
     
     chunk->renderedVoxelIndex = (i32*)memoryPoolCode->PushArraySized(arena, (size_t)(sizeof(i32) * chunk->numOfRenderedVoxels));
 
-    //then store the ones that are going to be rendered here and loop through them, don't do draw faces functions
-
-    //The voxels are initialized correctly (at 160) but when we get to here, they start to go weird
     for (int i = 0, j = 0; i < chunk->voxelResolution; i++)
     {
-	
 	if (chunk->voxels[i].isSolid)
 	{
-	    if (chunk->voxels[i].renderedIndiceCount > 36)
-	    {
-		i32 foo = 0;
-	    }
 	    chunk->renderedVoxelIndex[j] = i;
 	    j++;
 	}
-	//Check to see if j is increasing correctly?
     }
-
     
 }
 
@@ -447,22 +304,15 @@ voxel_chunk CreateVoxelChunk(v3 location, r32 voxelSize, memory_pool_dll_code* m
     result.height = (result.height * 2) / voxelSize;
     result.voxelResolution = result.length * result.width * result.height;
 
-//    result.visibleVoxels = (bool32*)memoryPoolCode.PushArraySized(objLocationArena, (sizeof(bool32) * result.voxelResolution));
-
- 
 
     result.voxelSize = voxelSize;
     result.numOfRenderedVoxels = 0;
 
     
 
-//Instanced pending removal, call InitVoxels() instead    
-//    InitVoxelLocations(&result, memoryPoolCode, objLocationArena);
-//
     InitVoxels(memoryPoolCode, objLocationArena, &result, voxelObjInfo);
     return(result);
     
-    //Get a calculation for the location in the world, add it by the verts of the instanced cubes
 }
 
 extern "C" GAME_INITIALIZE(GameInitialize)

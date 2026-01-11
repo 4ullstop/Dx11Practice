@@ -1005,25 +1005,12 @@ struct win32_voxel_chunk
 internal void
 Win32InitVoxelGrid(win32_voxel_chunk* win32VoxelChunk, memory_arena* arena)
 {
-
-    //we only want to create indexbuffers and vertex buffers for the cubes that are being rendered to do that we have to go through the chunk and use the determination as to whether it will be rendered or not 
     HRESULT hr = {};
     
     i32 numOfRenderedVoxels = win32VoxelChunk->chunk->numOfRenderedVoxels;
     win32VoxelChunk->indexBuffers = (ID3D11Buffer**)memoryPoolCode.PushArraySized(arena,
 										  (size_t)(sizeof(ID3D11Buffer*) * numOfRenderedVoxels));
 
-
-#if 0    
-    win32VoxelChunk->drawnVoxelPositions = (DirectX::XMFLOAT4*)memoryPoolCode.PushArraySized(arena,
-											     (size_t)(sizeof(DirectX::XMFLOAT4) * numOfRenderedVoxels));
-#endif
-
-
-
-    //We only need one vertex buffer, all of our vertex data is the same per box
-    //Big fat lie, we need one per object so we can store the positions according to the voxels
-    //We also need to store the locations in an XMFloat before assigning them to the vertex buffer
 
     r32_3 testColors[] =
     {
@@ -1209,12 +1196,6 @@ RenderVoxelCubes(shaders* shader, dx_camera* camera, win32_voxel_chunk* win32Vox
 	    0);
 
     }
-
-    //This was in the loop for some reason, I don't remember if it was important to have it in the loop or naw
-
-
-
-    
 }
 
 internal void
@@ -1562,10 +1543,6 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 	    initializedData = game.GameInitialize(&memoryPoolCode, &programState->setupArena, &memory, &numOfGameObjects, &parseObjCode);
 
 	    win32VoxelChunk.chunk = &initializedData.chunk;
-//	    LoadAllOBJs(allGameObjects, numOfGameObjects, &loadedBuffers, &programState->setupArena);
-
-
-//	    LoadInstancedOBJ(initializedData.allObjs, &programState->setupArena, &loadedBuffers, &initializedData.voxels, &shaders);
 	    
 	    u32 loadCounter = 120;
 
