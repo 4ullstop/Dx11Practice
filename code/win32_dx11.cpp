@@ -30,7 +30,21 @@
 #include <xinput.h>
 #include <d3dcompiler.h>
 
+#include "game_intrinsics.h"
 
+#define PI 3.14159265
+
+#define screenW 1920
+#define screenH = 1080
+
+struct mouse_movements
+{
+    v2 arcBallStart;
+    v2 arcBallCurrent;
+
+    bool32 recMousePos;
+    r32 x, y;    
+};
 
 struct shader_info
 {
@@ -61,6 +75,8 @@ struct voxel_constants
     DirectX::XMFLOAT4 worldPos;
 };
 
+
+
 global_variable memory_pool_dll_code memoryPoolCode;
 #if DIRECTXLOAD
 global_variable direct_x_load_obj_code directXOBJCode;
@@ -74,6 +90,7 @@ global_variable u32 frameCount;
 global_variable i64 perfCountFrequency;
 global_variable constant_buffer_struct constantBufferData;
 
+global_variable bool32 freeCam;
 
 
 #include "game_layer.h"
@@ -583,48 +600,82 @@ GetAspectRatio(void)
 }
 
 internal void
-CreateViewAndPerspective(dx_camera* camera)
+InitCameraDefaultValues(dx_camera* camera)
 {
-    DirectX::XMVECTOR eye = DirectX::XMVectorSet(0.0f, 0.7f, 1.5f, 0.f);
-    DirectX::XMVECTOR at = DirectX::XMVectorSet(0.0f, -0.1f, 0.0f, 0.f);
-    DirectX::XMVECTOR up = DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 0.f);
-
-    r32 aspectRatioX = GetAspectRatio();
-    r32 aspectRatioY = aspectRatioX < (16.0f / 9.0f) ? aspectRatioX / (16.0f / 9.0f) : 1.0f;
-
-
-    camera->up = up;
-    camera->worldUp = up;
+    camera->startEye = DirectX::XMVectorSet(0.0f, 0.7f, 1.5f, 0.f);
+    camera->startAt = DirectX::XMVectorSet(0.0f, -0.1f, 0.0f, 0.f);
+    camera->startUp = DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 0.f);
+    
+    camera->up = camera->startUp;
+    camera->worldUp = camera->startUp;
     camera->yaw = -90.0f;
     camera->pitch = 0.0f;
     camera->front = {0.0f, 0.0f, -1.0f, 0.0f};
     camera->movementSpeed = 5.0f;
     camera->turnSpeed = 0.2f;
     camera->position = {10.0f, 10.0f, 10.0f};
-    
-    DirectX::XMStoreFloat4x4(
-	&camera->constantBufferData.view,
-	DirectX::XMMatrixTranspose(
-	    DirectX::XMMatrixLookAtRH(
-		eye,
-		at,
-		up)
-	    )
-	);
-    
+    camera->arcBallRadius = 5.0f;
+    camera->currRotation = DirectX::XMMatrixIdentity();
+}
 
+struct aspect_ratio
+{
+    r32 aspectX, aspectY;
+};
+
+internal aspect_ratio
+GetGameAspectRatio(void)
+{
+    aspect_ratio result = {};
+    result.aspectX = GetAspectRatio();
+    result.aspectY = result.aspectX < (16.0f / 9.0f) ? result.aspectX / (16.0f / 9.0f) : 1.0f;
+    return(result);
+}
+
+internal void
+CreateViewAndPerspectiveArc(dx_camera* camera)
+{
+    InitCameraDefaultValues(camera);
+    
+    aspect_ratio aspect = GetGameAspectRatio();
+    
+    
     DirectX::XMStoreFloat4x4(
 	&camera->constantBufferData.projection,
 	DirectX::XMMatrixTranspose(
 	    DirectX::XMMatrixPerspectiveFovRH(
-		2.0f * (r32)(atan(tan(DirectX::XMConvertToRadians(70) * 0.5f)) / aspectRatioY),
-		aspectRatioX,
+		2.0f * (r32)(atan(tan(DirectX::XMConvertToRadians(70) * 0.5f)) / aspect.aspectY),
+		aspect.aspectX,
+		0.01f,
+		100.0f)
+	    )
+	);    
+}
+
+internal void
+CreateViewAndPerspective(dx_camera* camera)
+{
+    InitCameraDefaultValues(camera);
+    aspect_ratio aspect = GetGameAspectRatio();
+
+
+    DirectX::XMMATRIX startingViewMatrix = DirectX::XMMatrixTranspose(DirectX::XMMatrixLookAtRH(camera->startEye,
+												camera->startAt,
+												camera->startUp));
+
+    DirectX::XMStoreFloat4x4(&camera->constantBufferData.view, startingViewMatrix);
+
+  
+    DirectX::XMStoreFloat4x4(
+	&camera->constantBufferData.projection,
+	DirectX::XMMatrixTranspose(
+	    DirectX::XMMatrixPerspectiveFovRH(
+		2.0f * (r32)(atan(tan(DirectX::XMConvertToRadians(70) * 0.5f)) / aspect.aspectY),
+		aspect.aspectX,
 		0.01f,
 		100.0f)
 	    )
 	);
-
-
 }
 
 internal void
@@ -634,9 +685,127 @@ CreateWindowSizeDependentResources(dx_camera* camera)
 }
 
 internal void
-UpdateCamera(dx_camera* camera)
+ArcBallYawPitch(dx_camera* camera, v2 old, v2 curr)
+{
+    if (old == curr) return;
+    DirectX::XMVECTOR startPoint = DirectX::XMVectorSet(1.0f, old.x, old.y, 1.0f);
+    DirectX::XMVECTOR newPoint = DirectX::XMVectorSet(1.0f, curr.x, curr.y, 1.0f);
+
+    DirectX::XMVECTOR rotAxis = DirectX::XMVector3Cross(startPoint, newPoint);
+
+    rotAxis = DirectX::XMVectorSet(DirectX::XMVectorGetX(rotAxis),
+				   DirectX::XMVectorGetY(rotAxis),
+				   DirectX::XMVectorGetZ(rotAxis),
+				   0.0f);
+    
+    rotAxis = DirectX::XMVector3Transform(rotAxis, camera->currRotation);
+    rotAxis = DirectX::XMVector3Normalize(rotAxis);
+
+    DirectX::XMVECTOR rotLen = DirectX::XMVector3Length(rotAxis);
+    DirectX::XMVECTOR startLen = DirectX::XMVector3Length(startPoint);
+    DirectX::XMVECTOR newLen = DirectX::XMVector3Length(newPoint);
+    
+    r32 sin = DirectX::XMVectorGetX(rotLen) / DirectX::XMVectorGetX(startLen) * DirectX::XMVectorGetX(newLen);
+
+    DirectX::XMMATRIX rotMat = DirectX::XMMatrixRotationAxis(rotAxis, (r32)(asin(sin) * -0.03));
+
+
+    camera->currRotation = DirectX::XMMatrixMultiply(rotMat, camera->currRotation);
+    camera->front = DirectX::XMVector3Transform(camera->front, rotMat);
+    camera->up = DirectX::XMVector3Transform(camera->up, rotMat);
+}
+
+internal void
+ArcBallRoll(dx_camera* camera, v2 old, v2 curr)
+{
+    if (old == curr) return;
+    
+    DirectX::XMVECTOR startVec = DirectX::XMVectorSet(old.x, old.y, 0.0f, 0.0f);
+    DirectX::XMVECTOR newVec = DirectX::XMVectorSet(curr.x, curr.y, 0.0f, 0.0f);
+
+    DirectX::XMVECTOR cross = DirectX::XMVector3Cross(startVec, newVec);
+    DirectX::XMVECTOR dot = DirectX::XMVector3Dot(DirectX::XMVector3Normalize(startVec),
+						  DirectX::XMVector3Normalize(newVec));
+    r32 rad = DirectX::XMVectorGetX(dot);
+
+    if (rad > 1.0f)
+    {
+	rad = (r32)(PI * SignOf((i32)DirectX::XMVectorGetY(cross)));
+    }
+    else
+    {
+	rad = (r32)(acos(rad) * SignOf((i32)DirectX::XMVectorGetY(cross)));
+    }
+
+    DirectX::XMMATRIX rotMat = DirectX::XMMatrixRotationAxis(camera->front, -rad);
+    //Idk what null means but I'll figure it out in a sec
+
+
+    camera->currRotation = DirectX::XMMatrixMultiply(rotMat, camera->currRotation);
+    camera->up = DirectX::XMVector3Transform(camera->up, rotMat);
+
+    
+}
+
+internal void
+ProcessMouseArcBallInputs(mouse_movements* mouse, game_input* input)
+{
+    if (input->mouseButtons[0].started)
+    {
+	//Get mouse x and y
+	mouse->arcBallStart = v2{(r32)input->mouseXBounded, (r32)input->mouseYBounded};
+	mouse->recMousePos = true;
+	OutputDebugString("STARTED\n");
+    }
+
+    if (input->mouseButtons[0].endedDown)
+    {
+	mouse->arcBallCurrent = v2{(r32)input->mouseXBounded, (r32)input->mouseYBounded};
+
+	char textBuffer[256];
+	sprintf_s(textBuffer, sizeof(textBuffer), "Start X: %f, Start Y: %f *** Curr X: %f, Curr Y: %f\n",
+		  mouse->arcBallStart.x, mouse->arcBallStart.y,
+		  mouse->arcBallCurrent.x, mouse->arcBallCurrent.y);
+	
+	OutputDebugString(textBuffer);	
+    }
+
+    //This is technically how it would work just dk if released is working the way it should yet
+    if (input->mouseButtons[0].released)
+    {
+	mouse->arcBallStart = mouse->arcBallCurrent;
+	mouse->recMousePos = false;
+	OutputDebugString("RELEASED\n");
+    }
+}
+
+internal void
+UpdateCameraArc(dx_camera* camera, mouse_movements* mouse, game_input* input)
+{
+    //Get curr and starting positions from the mouse 
+    ProcessMouseArcBallInputs(mouse, input);
+
+    
+    ArcBallYawPitch(camera, mouse->arcBallStart, mouse->arcBallCurrent);
+    ArcBallRoll(camera, mouse->arcBallStart, mouse->arcBallCurrent);
+    
+    DirectX::XMStoreFloat4x4(
+	&camera->constantBufferData.view,
+	DirectX::XMMatrixTranspose(
+	    DirectX::XMMatrixLookAtRH(
+		camera->position,
+		DirectX::XMVectorAdd(camera->front, camera->position),
+		camera->up)
+	    )
+	);
+}
+
+internal void
+UpdateCameraFP(dx_camera* camera)
 {
     //Calculate the forward vector of our camera (this is the equation)
+    //Weird bug where now the camera continues to rotate in the direction you move it in even if you aren't
+    //moving the mouse
     camera->front =
 	{
 	    (r32)(cos(camera->pitch) * sin(camera->yaw)),
@@ -664,7 +833,7 @@ UpdateCamera(dx_camera* camera)
 }
 
 internal void
-ProcessMouseControl(dx_camera* camera, r32 xChange, r32 yChange)
+ProcessMouseControlFP(dx_camera* camera, r32 xChange, r32 yChange)
 {
     camera->yaw += xChange;
     camera->pitch += yChange;
@@ -677,30 +846,6 @@ ProcessMouseControl(dx_camera* camera, r32 xChange, r32 yChange)
     {
 	camera->pitch = -89.0f;
     }
-
-#if 0    
-    char textBuffer[256];
-    
-#if 0
-    sprintf_s(textBuffer, sizeof(textBuffer),
-	      "X: %f, Y: %f, Z: %f\n",
-	      DirectX::XMVectorGetX(camera->front),
-	      DirectX::XMVectorGetY(camera->front),
-	      DirectX::XMVectorGetZ(camera->front));
-    OutputDebugString(textBuffer);
-    
-    OutputDebugString(textBuffer);
-#else
-    
-    sprintf_s(textBuffer, sizeof(textBuffer),
-	      "X: %f, Y: %f, Z: %f\n",
-	      DirectX::XMVectorGetX(camera->position),
-	      DirectX::XMVectorGetY(camera->position),
-	      DirectX::XMVectorGetZ(camera->position));
-    OutputDebugString(textBuffer);
-
-#endif    
-#endif    
 }
 
 internal void
@@ -708,6 +853,16 @@ ProcessPlayerMovement(game_controller_input* controller, dx_camera* camera, r32 
 {
     //Now comes the hard part...
 
+    if (controller->testKey.started)
+    {
+	freeCam = !freeCam;
+	OutputDebugString("Swapped to FreeCam\n");
+	if (!freeCam)
+	{
+	    ShowCursor(true);
+	}
+    }
+    
     r32 velocity = camera->movementSpeed * deltaTime;
     if (controller->moveForward.endedDown)
     {
@@ -748,25 +903,35 @@ Win32ProcessKeyboardMessage(game_button_state* newState, game_button_state* oldS
     }
     newState->wasDown = isDown;
 
+    if (oldState->released)
+    {
+	oldState->released = false;
+    }
+    
     if (oldState->endedDown)
     {
 	newState->started = false;
+	
+    }
+
+    if (!newState->endedDown && oldState->endedDown)
+    {
+	newState->released = true;
     }
 }
 
-struct mouse_movements
-{
-    r32 x, y;
-};
-
 internal void
-Win32ProcessPendingMessages(game_controller_input* keyboardController, game_controller_input* oldKeyboardController, dx_camera* camera, mouse_movements* mouse)
+Win32ProcessPendingMessages(game_controller_input* keyboardController, game_controller_input* oldKeyboardController, dx_camera* camera, mouse_movements* mouse, game_input* newInput, game_input* oldInput)
 {
     MSG msg;
     while(PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
     {
 	switch(msg.message)
 	{
+	case WM_ACTIVATE:
+	{
+	    OutputDebugString("App activated\n");
+	};
 	case WM_QUIT:
 	{
 	    running = false;
@@ -775,28 +940,19 @@ Win32ProcessPendingMessages(game_controller_input* keyboardController, game_cont
 	{
 	    CreateWindowSizeDependentResources(camera);
 	} break;
-	case WM_INPUT:
+	case WM_MOUSEACTIVATE:
 	{
-	    UINT dwSize = 0;
-	    
-	    
-	    GetRawInputData((HRAWINPUT)msg.lParam, RID_INPUT, NULL, &dwSize, sizeof(RAWINPUTHEADER));
-	    LPBYTE lpb = (LPBYTE)memoryPoolCode.PushStruct(&programState->perFrameArena, (sizeof(BYTE)) * dwSize);
-	    GetRawInputData((HRAWINPUT)msg.lParam, RID_INPUT, lpb, &dwSize, sizeof(RAWINPUTHEADER));
-
-	    RAWINPUT* raw = (RAWINPUT*)lpb;
-	    if (raw->header.dwType == RIM_TYPEMOUSE)
-	    {
-		mouse->x = (r32)raw->data.mouse.lLastX;
-		mouse->y = (r32)raw->data.mouse.lLastY;
-	    }
-	    
+	    OutputDebugString("I am clicking on the screen rn\n");
 	} break;
+	case WM_INPUT:
 	case WM_SYSKEYDOWN:
 	case WM_SYSKEYUP:
 	case WM_KEYUP:
 	case WM_KEYDOWN:
 	{
+	    UINT dwSize = 0;
+	    
+	    
 	    u32 VKCode = (u32)msg.wParam;
 	    bool32 wasDown = ((msg.lParam & (1 << 30)) != 0);
 	    bool32 isDown = ((msg.lParam & (1 << 31)) == 0);
@@ -833,15 +989,26 @@ Win32ProcessPendingMessages(game_controller_input* keyboardController, game_cont
 		    Win32ProcessKeyboardMessage(&keyboardController->moveUp,
 						&oldKeyboardController->moveUp, isDown);
 		}
+		else if (VKCode == 'F')
+		{
+		    Win32ProcessKeyboardMessage(&keyboardController->testKey,
+						&oldKeyboardController->testKey, isDown);
+
+		}
 		else if (VKCode == VK_ESCAPE)
 		{
 		    running = false; 
 		}
+		else if (VKCode == VK_LBUTTON)
+		{
+		    OutputDebugString("LButton in process hit override\n");
+		}
+#if 0
 		else if (VKCode == 'F')
 		{
 		    ToggleFullscreen(msg.hwnd);
 		}
-
+#endif
 		
 		
 #if 0
@@ -859,6 +1026,46 @@ Win32ProcessPendingMessages(game_controller_input* keyboardController, game_cont
 		}
 #endif		
 	    }
+
+
+	    GetRawInputData((HRAWINPUT)msg.lParam, RID_INPUT, NULL, &dwSize, sizeof(RAWINPUTHEADER));
+	    LPBYTE lpb = (LPBYTE)memoryPoolCode.PushStruct(&programState->perFrameArena, (sizeof(BYTE)) * dwSize);
+	    GetRawInputData((HRAWINPUT)msg.lParam, RID_INPUT, lpb, &dwSize, sizeof(RAWINPUTHEADER));
+
+	    RAWINPUT* raw = (RAWINPUT*)lpb;
+	    if (raw->header.dwType == RIM_TYPEMOUSE)
+	    {
+		mouse->x = (r32)raw->data.mouse.lLastX;
+		mouse->y = (r32)raw->data.mouse.lLastY;
+
+		bool32 isMouseDown = false;
+
+		game_button_state* nLmb = &newInput->mouseButtons[0];
+
+		game_button_state* oLmb = &oldInput->mouseButtons[0];
+
+
+		
+		if (raw->data.mouse.usButtonFlags == RI_MOUSE_LEFT_BUTTON_DOWN)
+		{
+		    isMouseDown = true;
+		    OutputDebugString("Mouse down\n");
+		    nLmb->started = true;
+		    oLmb->started = true;
+		    nLmb->endedDown = true;
+		    oLmb->endedDown = true;		    
+		}
+
+		if (raw->data.mouse.usButtonFlags == RI_MOUSE_LEFT_BUTTON_UP)
+		{
+		    isMouseDown = false;
+		    OutputDebugString("Mouse up\n");
+		    nLmb->released = true;
+		    oLmb->released = true;
+		}
+
+	    }
+
 	} break;
 	default:
 	{
@@ -874,7 +1081,24 @@ LRESULT CALLBACK Win32MainWindowProc(HWND hwnd,
 				     WPARAM wParam,
 				     LPARAM lParam)
 {
-    return DefWindowProc(hwnd, uMsg, wParam, lParam);
+    LRESULT result = 0;
+    switch(uMsg)
+    {
+    case WM_ACTIVATEAPP:
+    {
+	OutputDebugString("App activated\n");
+    } break;
+    case WM_LBUTTONDOWN:
+    {
+	OutputDebugString("Mouse button in WindowProc Pressed\n");
+    } break;
+    default:
+    {
+	result = DefWindowProc(hwnd, uMsg, wParam, lParam);	
+    } break;
+    }
+    
+    return(result);
 }
 
 struct shader_code
@@ -1440,8 +1664,8 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 	i32 x = CW_USEDEFAULT;
 	i32 y = CW_USEDEFAULT;
 
-	i32 nDefaultWidth = 640;
-	i32 nDefaultHeight = 480;
+	i32 nDefaultWidth = 1920;
+	i32 nDefaultHeight = 1080;
 
 	RECT rect = {};
 
@@ -1494,6 +1718,7 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 	    desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
 	    desc.Width = windowWidth;
 	    desc.Height = windowHeight;
+	    desc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
 
 
@@ -1527,8 +1752,10 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 
 	    
 	    dx_camera camera = {};	    
+
 	    CreateViewAndPerspective(&camera);
 
+	    
 
 	    //GameCode loading
 	    char* sourceDLLName = "game_layer.dll";
@@ -1560,43 +1787,30 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 	    Win32InitVoxelGrid(&win32VoxelChunk, &programState->setupArena);
 
 	    ShowCursor(false);
-	    
+
 	    RAWINPUTDEVICE rid[1];
 	    rid[0].usUsagePage = 0x01;
 	    rid[0].usUsage = 0x02;
 	    rid[0].dwFlags = RIDEV_NOLEGACY;
-	    rid[0].hwndTarget = 0;
+	    rid[0].hwndTarget = windowHandle;
 
 	    if (RegisterRawInputDevices(rid, 1, sizeof(rid[0])) == FALSE)
 	    {
 		lastError = GetLastError();
 	    }
-	    
+
+	    freeCam = true;
 	    
 	    r32 lastTime = 0.0f;
-
-
-	    
-//Why tf is this here???
-#if 0
-	    DirectX::XMStoreFloat4x4(
-		&camera.constantBufferData.world,
-		DirectX::XMMatrixTranspose(
-		    DirectX::XMMatrixRotationY(
-			DirectX::XMConvertToRadians(
-			    (r32)frameCount++
-			    )
-			)
-		    )
-		);
-#endif
-
-
 
 	    LARGE_INTEGER lastCounter = Win32GetWallClock();
 	    u64 lastCycleCount = __rdtsc();
 	    LARGE_INTEGER flipWallClock = Win32GetWallClock();
+
 	    
+
+	    mouse_movements arcMouse = {};
+
 	    while(running)
 	    {
 
@@ -1607,7 +1821,14 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 		    game = Win32LoadGameCode(sourceGameCodeDLLFullPath, tempGameCodeDLLFullPath, gameCodeLockFullPath);
 		    loadCounter = 0;
 		}
-		
+
+		POINT mouseP;
+		GetCursorPos(&mouseP);
+		ScreenToClient(windowHandle, &mouseP);
+		newInput->mouseXBounded = mouseP.x;
+		newInput->mouseYBounded = mouseP.y;
+		newInput->mouseZBounded = 0;
+
 #if 0
 		LARGE_INTEGER wallClockTime = Win32GetWallClock();
 
@@ -1631,72 +1852,60 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 		    newKeyboardController->buttons[buttonIndex].endedDown =
 			oldKeyboardController->buttons[buttonIndex].endedDown;
 		};
+
+#if 0		
+		for (i32 mouseIndex = 0; mouseIndex < ArrayCount(newInput->mouseButtons); ++mouseIndex)
+		{
+		    newInput->mouseButtons[mouseIndex].endedDown = oldInput->mouseButtons[mouseIndex].endedDown;
+		    newInput->mouseButtons[mouseIndex].started = oldInput->mouseButtons[mouseIndex].started;
+		    newInput->mouseButtons[mouseIndex].released = oldInput->mouseButtons[mouseIndex].released;
+		}
+#endif
 		
 		mouse_movements mouse = {};
 		
-		Win32ProcessPendingMessages(newKeyboardController, oldKeyboardController, &camera, &mouse);
 
+
+
+
+		game_button_state* nLmb = &newInput->mouseButtons[0];
+		game_button_state* oLmb = &oldInput->mouseButtons[0];
+
+		if (oLmb->released || nLmb->released)
+		{
+		    nLmb->endedDown = false;
+		    oLmb->endedDown = false;
+		    oLmb->released = false;
+		    nLmb->released = false;
+		}
+
+		if (oLmb->started || nLmb->started)
+		{
+		    oLmb->started = false;
+		    nLmb->started = false;
+		}		
+
+		Win32ProcessPendingMessages(newKeyboardController, oldKeyboardController, &camera, &mouse, newInput, oldInput);
 
 		r32 xChange = deltaTime * (0.3f * mouse.x);
-		r32 yChange = deltaTime * (0.3f * mouse.y);
-		
+		r32 yChange = deltaTime * (0.3f * mouse.y);		
+		//Run our new camera system for arc ball here after movement information
 
-
-
-		ProcessMouseControl(&camera, -xChange, -yChange);
-		ProcessPlayerMovement(newKeyboardController, &camera, deltaTime);		
-		UpdateCamera(&camera);		
-
-
-
-#if 0		
-		char textBuffer[256];
-		sprintf_s(textBuffer, sizeof(textBuffer),
-			  "xChange: %f, yChange: %f\n", xChange, yChange);
-		OutputDebugString(textBuffer);
-#endif		
-
-
-
-		
-//		Render(shaders.constantBuffer, &shaders, &loadedBuffers, &camera);
-		RenderVoxelCubes(&shaders, &camera, &win32VoxelChunk);
-		swapChain->Present(1, 0);
-
-		//Spinner to slow down to a locked fps for testing purposes, also bc it's running too fast when
-		//there isn't much for the computer to do atm
-
-#if 0	
-		LARGE_INTEGER workCounter = Win32GetWallClock();
-		r32 workSecondsElapsed = Win32GetSecondsElapsed(lastCounter, workCounter);
-		r32 secondsElapsedForFrame = workSecondsElapsed;
-		if (secondsElapsedForFrame < targetSecondsPerFrame)
+		if (freeCam)
 		{
-		    DWORD sleepMs = 0;
-		    while (secondsElapsedForFrame < targetSecondsPerFrame)
-		    {
-			if (sleepIsGranular)
-			{
-			    sleepMs = (DWORD) (1000.0f * (targetSecondsPerFrame - secondsElapsedForFrame));
-			    if (sleepMs > 0)
-			    {
-				Sleep(sleepMs - 1);
-			    }
-			}
-			secondsElapsedForFrame = Win32GetSecondsElapsed(lastCounter, Win32GetWallClock());
-
-		    }
-		    r32 testSecondsElapsedForFrame = Win32GetSecondsElapsed(lastCounter, Win32GetWallClock());
-		    if (testSecondsElapsedForFrame < targetSecondsPerFrame)
-		    {
-			//LOG THAT WE MISSSED SLEEP 
-		    }
+		    ProcessMouseControlFP(&camera, -xChange, -yChange);
+		    ProcessPlayerMovement(newKeyboardController, &camera, deltaTime);		    
+		    UpdateCameraFP(&camera);
 		}
 		else
 		{
-		    //If secondsElapsedForFrame is higher than the target, then we missed a frame
+		    UpdateCameraArc(&camera, &arcMouse, newInput);
 		}
-#endif
+
+
+		RenderVoxelCubes(&shaders, &camera, &win32VoxelChunk);
+		swapChain->Present(1, 0);
+
 
 		game_input* temp = newInput;
 		newInput = oldInput;
@@ -1707,12 +1916,5 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 	    } //Loop Bracket
 	}
     }
-
-    //ID3D11Device is just the set of functions which you call infrequently at the beginning of the program
-    //to acquire and configure the set of resources needed to start drawing pixels
-
-    //ID3D11DeviceContext contains the methods we will call every frame, loading in buffers and views and other
-    //resources
-
     return(0);
 }

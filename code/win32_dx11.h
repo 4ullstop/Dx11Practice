@@ -13,6 +13,13 @@ struct dx_camera
     DirectX::XMVECTOR up;
     DirectX::XMVECTOR front;
     r32 yaw, pitch, movementSpeed, turnSpeed;
+
+    DirectX::XMVECTOR startEye;
+    DirectX::XMVECTOR startAt;
+    DirectX::XMVECTOR startUp;
+
+    r32 arcBallRadius;
+    DirectX::XMMATRIX currRotation;
 };
 
 #define WIN32_STATE_FILE_NAME_COUNT MAX_PATH
@@ -27,7 +34,7 @@ struct win32_game_code
     HMODULE gameCodeDLL;
     FILETIME dllLastWriteTime;
 
-
+    
     game_update* GameUpdate;
     game_initialize* GameInitialize;
 

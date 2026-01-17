@@ -98,7 +98,8 @@ struct game_button_state
     bool32 wasDown;
     bool32 started;
     bool32 held;
-
+    bool32 released;
+    
     i32 heldTime;
 };
 
@@ -112,7 +113,7 @@ struct game_controller_input
 
     union
     {
-	game_button_state buttons[7];
+	game_button_state buttons[8];
 	struct
 	{
 	    game_button_state moveForward;
@@ -121,6 +122,8 @@ struct game_controller_input
 	    game_button_state moveLeft;
 	    game_button_state moveUp;
 	    game_button_state moveDown;
+	    
+	    game_button_state testKey;
 
 	    game_button_state terminator;
 	};
@@ -130,8 +133,16 @@ struct game_controller_input
 struct game_input
 {
     game_button_state mouseButtons[5];
-    i32 mouseX, mouseY, mouseZ;
+    i32 mouseXUnbounded, mouseYUnbounded, mouseZUnbounded;
 
+    i32 mouseXBounded, mouseYBounded, mouseZBounded;
+
+    bool32 mouseButtonIsDown, mouseButtonReleased;
+    
+    v2 arcBallStart;
+    v2 arcBallCurrent;
+
+    
     r32 dTime;
     game_controller_input controllers[5];
 };

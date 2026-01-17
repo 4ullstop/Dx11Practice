@@ -1,8 +1,8 @@
 // raddbg 0.9.20 project file
 
+recent_file: path: "win32_dx11.cpp"
 recent_file: path: "game_layer.cpp"
 recent_file: path: "game_layer_math.h"
-recent_file: path: "win32_dx11.cpp"
 recent_file: path: "D:/Backups/Dx11Practice/Dx11Practice1128/code/win32_dx11.cpp"
 recent_file: path: "D:/Backups/Dx11Practice/Dx11Practice1128/code/game_layer.cpp"
 recent_file: path: "D:/externalcustomapis/memorypools/code/memory_pools.cpp"
@@ -55,5 +55,23 @@ target:
 {
   executable: "D:/Backups/Dx11Practice/Dx11Practice1128/build/win32_dx11.exe"
   working_directory: "D:/Backups/Dx11Practice/Dx11Practice1128/misc/"
+  enabled: 0
+}
+breakpoint:
+{
+  source_location: "win32_dx11.cpp:1640:1"
+  hit_count: 0
+  enabled: 0
+}
+breakpoint:
+{
+  source_location: "win32_dx11.cpp:690:1"
+  hit_count: 0
+  enabled: 0
+}
+breakpoint:
+{
+  source_location: "win32_dx11.cpp:1751:1"
+  hit_count: 0
   enabled: 0
 }

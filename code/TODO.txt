@@ -10,9 +10,8 @@ Design Focused:
 - Create scoring system based on how well the sculpture was created according to the picture
  - Wow what does this even mean I'm talking super reach right here
 
-
 Quick and Easy:
- - Fullscreen mode
+ - Fullscreen mode (this was a lie, not quick or easy)
  
 
 
@@ -28,53 +27,7 @@ Reaching now:
 
 
 
-Well I can't say I'm super ecstatic about the fact that I just wasted so much time trying to get instancing working only to learn that it's not useful when I'm creating a voxel grid
-of cubes where the faces need to be edited to reduce the amount of verts being drawn
-
-
 TODO:
- - Removing instancing replace with draw calls of edited meshes
  - Introduce arc ball camera
  - Edit the mesh by clicking and removing voxels
-
-Is empty not is solid
-
-
-
-
-Take vertex_position_color and place it into the vertex buffers which means you need to create vertex buffers per object not just index buffers
-
-
-
-So the code works somewhat as intended with the -1 but it's super chunky
-Why would changing which cube is drawn cause extreme drop in frames?
-
-
-0.000016
-
-There is an issue, not sure what
-It seems to be creating garbage values for some of the rendered voxelsd
-
-
-We can boil it down such that we know that the issue causes two problems:
- - Causes the index to be out of range for the number of rendered of voxels when submitted to the GPU
- - Has something to do with the rendered voxel indices 
-
-0,2,1, //right //1, 3, 2,
-1,2,3,         //2, 3, 4,
-
-4,5,6, //left //5, 6, 7,
-5,7,6,        //6, 8, 7,
-
-0,1,5, //bottom //1, 2, 6,
-0,5,4,          //1, 6, 5,
-
-2,6,7, //Top //3, 7, 8,
-2,7,3,       //3, 8, 4,
-
-0,4,6, //Front //1, 5, 7,
-0,6,2,         //1, 7, 3,
-
-1,3,7, //Back //2, 5, 8,
-1,7,5,	      //2, 8, 6
 
