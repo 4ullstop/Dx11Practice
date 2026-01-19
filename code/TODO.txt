@@ -31,3 +31,7 @@ TODO:
  - Introduce arc ball camera
  - Edit the mesh by clicking and removing voxels
 
+
+It's likely you need to transpose the current matrix to reflect the camera's current position
+
+Current problem, I have no clue how to even debug this

@@ -57,21 +57,3 @@ target:
   working_directory: "D:/Backups/Dx11Practice/Dx11Practice1128/misc/"
   enabled: 0
 }
-breakpoint:
-{
-  source_location: "win32_dx11.cpp:1640:1"
-  hit_count: 0
-  enabled: 0
-}
-breakpoint:
-{
-  source_location: "win32_dx11.cpp:690:1"
-  hit_count: 0
-  enabled: 0
-}
-breakpoint:
-{
-  source_location: "win32_dx11.cpp:1751:1"
-  hit_count: 0
-  enabled: 0
-}

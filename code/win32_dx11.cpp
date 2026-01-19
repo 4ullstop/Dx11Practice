@@ -34,8 +34,8 @@
 
 #define PI 3.14159265
 
-#define screenW 1920
-#define screenH = 1080
+#define screenW 640
+#define screenH 480
 
 struct mouse_movements
 {
@@ -614,7 +614,7 @@ InitCameraDefaultValues(dx_camera* camera)
     camera->movementSpeed = 5.0f;
     camera->turnSpeed = 0.2f;
     camera->position = {10.0f, 10.0f, 10.0f};
-    camera->arcBallRadius = 5.0f;
+    camera->arcBallRadius = -10.0f;
     camera->currRotation = DirectX::XMMatrixIdentity();
 }
 
@@ -685,6 +685,19 @@ CreateWindowSizeDependentResources(dx_camera* camera)
 }
 
 internal void
+InitArcBall(dx_camera* camera)
+{
+#if 0
+    camera->currRotation = DirectX::XMMatrixTranslation(DirectX::XMVectorGetX(camera->position),
+							DirectX::XMVectorGetY(camera->position),
+							DirectX::XMVectorGetZ(camera->position));
+#endif
+    
+    camera->front = DirectX::XMVectorSet(camera->arcBallRadius, 0.0f, 0.0f, 0.0f);
+    camera->up = DirectX::XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
+}
+
+internal void
 ArcBallYawPitch(dx_camera* camera, v2 old, v2 curr)
 {
     if (old == curr) return;
@@ -693,10 +706,12 @@ ArcBallYawPitch(dx_camera* camera, v2 old, v2 curr)
 
     DirectX::XMVECTOR rotAxis = DirectX::XMVector3Cross(startPoint, newPoint);
 
+
     rotAxis = DirectX::XMVectorSet(DirectX::XMVectorGetX(rotAxis),
 				   DirectX::XMVectorGetY(rotAxis),
 				   DirectX::XMVectorGetZ(rotAxis),
 				   0.0f);
+
     
     rotAxis = DirectX::XMVector3Transform(rotAxis, camera->currRotation);
     rotAxis = DirectX::XMVector3Normalize(rotAxis);
@@ -720,8 +735,8 @@ ArcBallRoll(dx_camera* camera, v2 old, v2 curr)
 {
     if (old == curr) return;
     
-    DirectX::XMVECTOR startVec = DirectX::XMVectorSet(old.x, old.y, 0.0f, 0.0f);
-    DirectX::XMVECTOR newVec = DirectX::XMVectorSet(curr.x, curr.y, 0.0f, 0.0f);
+    DirectX::XMVECTOR startVec = DirectX::XMVectorSet(old.x, old.y, 0.0f, 1.0f);
+    DirectX::XMVECTOR newVec = DirectX::XMVectorSet(curr.x, curr.y, 0.0f, 1.0f);
 
     DirectX::XMVECTOR cross = DirectX::XMVector3Cross(startVec, newVec);
     DirectX::XMVECTOR dot = DirectX::XMVector3Dot(DirectX::XMVector3Normalize(startVec),
@@ -1664,8 +1679,8 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 	i32 x = CW_USEDEFAULT;
 	i32 y = CW_USEDEFAULT;
 
-	i32 nDefaultWidth = 1920;
-	i32 nDefaultHeight = 1080;
+	i32 nDefaultWidth = screenW;
+	i32 nDefaultHeight = screenH;
 
 	RECT rect = {};
 
@@ -1811,6 +1826,8 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 
 	    mouse_movements arcMouse = {};
 
+	    bool32 arcCamInitialized = false;
+	    
 	    while(running)
 	    {
 
@@ -1853,21 +1870,12 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 			oldKeyboardController->buttons[buttonIndex].endedDown;
 		};
 
-#if 0		
-		for (i32 mouseIndex = 0; mouseIndex < ArrayCount(newInput->mouseButtons); ++mouseIndex)
-		{
-		    newInput->mouseButtons[mouseIndex].endedDown = oldInput->mouseButtons[mouseIndex].endedDown;
-		    newInput->mouseButtons[mouseIndex].started = oldInput->mouseButtons[mouseIndex].started;
-		    newInput->mouseButtons[mouseIndex].released = oldInput->mouseButtons[mouseIndex].released;
-		}
-#endif
 		
 		mouse_movements mouse = {};
-		
 
 
-
-
+		//At some point please move this in the process pending messages, rn I don't wanna go back to
+		//debugging it so I'm leaving it for future me.... Thanks future me!
 		game_button_state* nLmb = &newInput->mouseButtons[0];
 		game_button_state* oLmb = &oldInput->mouseButtons[0];
 
@@ -1899,6 +1907,12 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 		}
 		else
 		{
+		    //Run a check to see if there has been a basic setup for the switch
+		    if (!arcCamInitialized)
+		    {
+			InitArcBall(&camera);
+			arcCamInitialized = true;
+		    }
 		    UpdateCameraArc(&camera, &arcMouse, newInput);
 		}
 
