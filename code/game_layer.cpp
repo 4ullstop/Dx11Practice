@@ -246,7 +246,7 @@ InitVoxels(memory_pool_dll_code* memoryPoolCode, memory_arena* arena, voxel_chun
 	pos = pos * (chunk->voxelSize * 2);
 	pos -= chunk->voxelChunkExtent;
 
-	chunk->voxels[i].pos = pos;
+	chunk->voxels[i].pos = (pos + chunk->chunkWorldLocation);
 
 	for (int j = 0; j < voxelObjInfo->faceLastIndex; j++)
 	{
@@ -290,6 +290,10 @@ voxel_chunk CreateVoxelChunk(v3 location, r32 voxelSize, memory_pool_dll_code* m
     result.height = 2;
     result.width = 5;
 
+    result.chunkWorldLocation = location;
+    result.chunkWorldRotation = v3{0.0f, 0.0f, 0.0f};
+    result.chunkWorldScale = v3{1.0f, 1.0f, 1.0f};
+    
     //This assumes that the cube is located @ 0 0 0 in local space
     result.maxCorner = v3{result.length, result.width, result.height};
     result.minCorner = -result.maxCorner;
@@ -331,7 +335,7 @@ extern "C" GAME_INITIALIZE(GameInitialize)
 #else
     r32 voxelSize = 0.5f;
     result.allObjs = CreateSingleVoxel(memoryPoolCode, objLocationArena, voxelSize);
-    v3 location = v3{0.0f, 0.0f, 0.0f};
+    v3 location = v3{-10.0f, -10.0f, -20.0f};
     result.chunk = CreateVoxelChunk(location, voxelSize, memoryPoolCode, objLocationArena, result.allObjs);
 #endif    
     return(result);

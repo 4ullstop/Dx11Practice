@@ -52,6 +52,9 @@ struct voxel
 
 struct voxel_chunk
 {
+    v3 chunkWorldLocation, chunkWorldRotation, chunkWorldScale;
+	
+
     r32 length, width, height, voxelSize;
     r32 voxelResolution;
     v3 voxelChunkExtent;

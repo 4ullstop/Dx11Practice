@@ -35,3 +35,14 @@ TODO:
 It's likely you need to transpose the current matrix to reflect the camera's current position
 
 Current problem, I have no clue how to even debug this
+
+
+My working theory:
+ - My object is currently only in world space and does not have a local space definition,
+   - This is making it not able to move properly or be translated properly around my world such that the camera can see it
+
+If scale, rotation or translation is 0, make it an identity matrix
+
+If this isn't the answer well then it's back to the drawing board
+
+

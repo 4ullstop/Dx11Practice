@@ -21,7 +21,12 @@ cbuffer ModelViewProjectionConstantBuffer : register(b0)
 
 cbuffer ObjectCB : register(b1)
 {
-	float4 cbWorld;
+	float4 voxelVertLoc;
+};
+
+cbuffer ChunkCB : register(b2)
+{
+	matrix world;
 };
 
 VS_OUTPUT main(VS_INPUT input)
@@ -29,9 +34,11 @@ VS_OUTPUT main(VS_INPUT input)
 	VS_OUTPUT output;
 	float4 pos = float4(input.vPos, 1.0f);
 
-	pos += cbWorld;
+	pos += voxelVertLoc;
 
-	
+
+//	pos = mul(pos, world);
+
 //	pos = mul(pos, mWorld);
 	pos = mul(pos, View);
 	pos = mul(pos, Projection);

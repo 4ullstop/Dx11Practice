@@ -19,7 +19,8 @@ struct dx_camera
     DirectX::XMVECTOR startUp;
 
     r32 arcBallRadius;
-    DirectX::XMMATRIX currRotation;
+    DirectX::XMMATRIX rotation;
+    DirectX::XMVECTOR pivot;
 };
 
 #define WIN32_STATE_FILE_NAME_COUNT MAX_PATH

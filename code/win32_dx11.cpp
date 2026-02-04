@@ -75,6 +75,11 @@ struct voxel_constants
     DirectX::XMFLOAT4 worldPos;
 };
 
+struct voxel_chunk_world_constant
+{
+    DirectX::XMFLOAT4X4 world;
+};
+
 
 
 global_variable memory_pool_dll_code memoryPoolCode;
@@ -615,7 +620,8 @@ InitCameraDefaultValues(dx_camera* camera)
     camera->turnSpeed = 0.2f;
     camera->position = {10.0f, 10.0f, 10.0f};
     camera->arcBallRadius = -10.0f;
-    camera->currRotation = DirectX::XMMatrixIdentity();
+    camera->rotation = DirectX::XMMatrixIdentity();
+    camera->pivot = DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
 }
 
 struct aspect_ratio
@@ -684,82 +690,47 @@ CreateWindowSizeDependentResources(dx_camera* camera)
     CreateViewAndPerspective(camera);
 }
 
+struct win32_voxel_chunk
+{
+    voxel_chunk* chunk;
+    ID3D11Buffer** indexBuffers;
+    ID3D11Buffer* vertexBuffers;
+
+    //I imagine this isn't the best way to store this so you'll prob be back here later
+    r32** drawnVoxelIndices;
+
+    //This is a direct correlation to the vertex and index buffers, avoiding Dx11 implementation in game layer
+    DirectX::XMFLOAT4* drawnVoxelPositions; //
+
+    vertex_position_color* vsInput; //XMFloat3 types
+
+    ID3D11Buffer* voxelCB;
+    ID3D11Buffer* voxelChunkWorldCB;
+};
+
 internal void
-InitArcBall(dx_camera* camera)
+InitArcBall(dx_camera* camera, win32_voxel_chunk* win32VoxelChunk)
 {
 #if 0
-    camera->currRotation = DirectX::XMMatrixTranslation(DirectX::XMVectorGetX(camera->position),
+    camera->rotation = DirectX::XMMatrixTranslation(DirectX::XMVectorGetX(camera->position),
 							DirectX::XMVectorGetY(camera->position),
 							DirectX::XMVectorGetZ(camera->position));
 #endif
     
     camera->front = DirectX::XMVectorSet(camera->arcBallRadius, 0.0f, 0.0f, 0.0f);
     camera->up = DirectX::XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
-}
 
-internal void
-ArcBallYawPitch(dx_camera* camera, v2 old, v2 curr)
-{
-    if (old == curr) return;
-    DirectX::XMVECTOR startPoint = DirectX::XMVectorSet(1.0f, old.x, old.y, 1.0f);
-    DirectX::XMVECTOR newPoint = DirectX::XMVectorSet(1.0f, curr.x, curr.y, 1.0f);
-
-    DirectX::XMVECTOR rotAxis = DirectX::XMVector3Cross(startPoint, newPoint);
-
-
-    rotAxis = DirectX::XMVectorSet(DirectX::XMVectorGetX(rotAxis),
-				   DirectX::XMVectorGetY(rotAxis),
-				   DirectX::XMVectorGetZ(rotAxis),
-				   0.0f);
+    DirectX::XMVECTOR startingOffset = DirectX::XMVectorSet(20.0f, 20.0f, 20.0f, 0.0f);
+    
+    camera->position = DirectX::XMVectorAdd(camera->pivot, startingOffset);
 
     
-    rotAxis = DirectX::XMVector3Transform(rotAxis, camera->currRotation);
-    rotAxis = DirectX::XMVector3Normalize(rotAxis);
-
-    DirectX::XMVECTOR rotLen = DirectX::XMVector3Length(rotAxis);
-    DirectX::XMVECTOR startLen = DirectX::XMVector3Length(startPoint);
-    DirectX::XMVECTOR newLen = DirectX::XMVector3Length(newPoint);
-    
-    r32 sin = DirectX::XMVectorGetX(rotLen) / DirectX::XMVectorGetX(startLen) * DirectX::XMVectorGetX(newLen);
-
-    DirectX::XMMATRIX rotMat = DirectX::XMMatrixRotationAxis(rotAxis, (r32)(asin(sin) * -0.03));
+    camera->pivot = DirectX::XMVectorSet(win32VoxelChunk->chunk->chunkWorldLocation.x,
+					 win32VoxelChunk->chunk->chunkWorldLocation.y,
+					 win32VoxelChunk->chunk->chunkWorldLocation.z,
+					 0.0f);
 
 
-    camera->currRotation = DirectX::XMMatrixMultiply(rotMat, camera->currRotation);
-    camera->front = DirectX::XMVector3Transform(camera->front, rotMat);
-    camera->up = DirectX::XMVector3Transform(camera->up, rotMat);
-}
-
-internal void
-ArcBallRoll(dx_camera* camera, v2 old, v2 curr)
-{
-    if (old == curr) return;
-    
-    DirectX::XMVECTOR startVec = DirectX::XMVectorSet(old.x, old.y, 0.0f, 1.0f);
-    DirectX::XMVECTOR newVec = DirectX::XMVectorSet(curr.x, curr.y, 0.0f, 1.0f);
-
-    DirectX::XMVECTOR cross = DirectX::XMVector3Cross(startVec, newVec);
-    DirectX::XMVECTOR dot = DirectX::XMVector3Dot(DirectX::XMVector3Normalize(startVec),
-						  DirectX::XMVector3Normalize(newVec));
-    r32 rad = DirectX::XMVectorGetX(dot);
-
-    if (rad > 1.0f)
-    {
-	rad = (r32)(PI * SignOf((i32)DirectX::XMVectorGetY(cross)));
-    }
-    else
-    {
-	rad = (r32)(acos(rad) * SignOf((i32)DirectX::XMVectorGetY(cross)));
-    }
-
-    DirectX::XMMATRIX rotMat = DirectX::XMMatrixRotationAxis(camera->front, -rad);
-    //Idk what null means but I'll figure it out in a sec
-
-
-    camera->currRotation = DirectX::XMMatrixMultiply(rotMat, camera->currRotation);
-    camera->up = DirectX::XMVector3Transform(camera->up, rotMat);
-
-    
 }
 
 internal void
@@ -794,16 +765,105 @@ ProcessMouseArcBallInputs(mouse_movements* mouse, game_input* input)
     }
 }
 
+
+
+internal DirectX::XMVECTOR
+GetArcBallVector(v2 loc)
+{
+    // 1. Convert pixel coordinates to range [-1, 1]
+    float x = (1.0f * loc.x / screenW) * 2.0f - 1.0f;
+    float y = -((1.0f * loc.y / screenH) * 2.0f - 1.0f); // Invert Y for screen space
+
+    DirectX::XMVECTOR p = DirectX::XMVectorSet(x, y, 0.0f, 0.0f);
+
+    // 2. Calculate squared length of the XY components
+    float opSq = x * x + y * y;
+
+    if (opSq <= 1.0f)
+    {
+        // 3. We are inside the sphere, calculate Z using Pythagoras: x^2 + y^2 + z^2 = 1
+        float z = (r32)sqrt(1.0f - opSq);
+        p = DirectX::XMVectorSetZ(p, z);
+    }
+    else
+    {
+        // 4. We are outside the sphere, snap to the nearest point on the edge
+        p = DirectX::XMVector3Normalize(p);
+    }
+
+    return p;
+}
+
+
 internal void
-UpdateCameraArc(dx_camera* camera, mouse_movements* mouse, game_input* input)
+UpdateCameraArc(dx_camera* camera, mouse_movements* mouse, game_input* input, win32_voxel_chunk* win32VoxelChunk)
 {
     //Get curr and starting positions from the mouse 
     ProcessMouseArcBallInputs(mouse, input);
 
+
+    if (mouse->arcBallStart.x != mouse->arcBallCurrent.x || mouse->arcBallStart.y != mouse->arcBallCurrent.y)
+    {
+
+
+
+	DirectX::XMVECTOR va = GetArcBallVector(mouse->arcBallStart);
+	DirectX::XMVECTOR vb = GetArcBallVector(mouse->arcBallCurrent);
+
+	DirectX::XMVECTOR vecDot = DirectX::XMVector3Dot(va, vb);
+	r32 angle = (r32)acos(min(1.0f, DirectX::XMVectorGetX(vecDot)));
+	
+	DirectX::XMVECTOR axisInCameraCoord = DirectX::XMVector3Cross(va, vb);
+//	DirectX::XMMATRIX currRotInverse = DirectX::XMMatrixInverse(camera->rotation);
+
+
+	DirectX::XMMATRIX viewMat = DirectX::XMLoadFloat4x4(&camera->constantBufferData.view);
+	
+	DirectX::XMMATRIX viewInv = DirectX::XMMatrixInverse(0,
+							     viewMat);
+
+
+	
+	DirectX::XMVECTOR axisWorld = DirectX::XMVector3TransformNormal(axisInCameraCoord, viewInv);
+	axisWorld = DirectX::XMVector3Normalize(axisWorld);
+
+	
+	//apply the rotation
+
+	DirectX::XMMATRIX rotatedMat = DirectX::XMMatrixRotationAxis(axisWorld, -angle);
+
+	DirectX::XMVECTOR offset = DirectX::XMVectorSubtract(camera->position, camera->pivot);
+
+	offset = DirectX::XMVector3TransformNormal(offset, rotatedMat);
+	camera->position = DirectX::XMVectorAdd(camera->pivot, offset);
+
+	
+	camera->rotation = DirectX::XMMatrixMultiply(camera->rotation, rotatedMat);
+
+
+
+
+
+
+
+	DirectX::XMMATRIX world = DirectX::XMMatrixMultiply(
+	    camera->rotation,
+	    DirectX::XMMatrixTranslation(DirectX::XMVectorGetX(camera->position),
+					 DirectX::XMVectorGetY(camera->position),
+					 DirectX::XMVectorGetZ(camera->position)));
+
+
+
+	DirectX::XMStoreFloat4x4(
+	    &camera->constantBufferData.view,
+	    DirectX::XMMatrixInverse(nullptr, world));
+
+
+	mouse->arcBallStart = mouse->arcBallCurrent;
+    }
+ 
     
-    ArcBallYawPitch(camera, mouse->arcBallStart, mouse->arcBallCurrent);
-    ArcBallRoll(camera, mouse->arcBallStart, mouse->arcBallCurrent);
-    
+#if 0    
     DirectX::XMStoreFloat4x4(
 	&camera->constantBufferData.view,
 	DirectX::XMMatrixTranspose(
@@ -813,6 +873,8 @@ UpdateCameraArc(dx_camera* camera, mouse_movements* mouse, game_input* input)
 		camera->up)
 	    )
 	);
+ 
+#endif   
 }
 
 internal void
@@ -1224,22 +1286,6 @@ CreateDeviceDependentResources(shaders* shaders, direct_x_loaded_buffers* loaded
 }
 
 
-struct win32_voxel_chunk
-{
-    voxel_chunk* chunk;
-    ID3D11Buffer** indexBuffers;
-    ID3D11Buffer* vertexBuffers;
-
-    //I imagine this isn't the best way to store this so you'll prob be back here later
-    r32** drawnVoxelIndices;
-
-    //This is a direct correlation to the vertex and index buffers, avoiding Dx11 implementation in game layer
-    DirectX::XMFLOAT4* drawnVoxelPositions; //
-
-    vertex_position_color* vsInput; //XMFloat3 types
-
-    ID3D11Buffer* voxelCB;
-};
 
 internal void
 Win32InitVoxelGrid(win32_voxel_chunk* win32VoxelChunk, memory_arena* arena)
@@ -1309,8 +1355,35 @@ Win32InitVoxelGrid(win32_voxel_chunk* win32VoxelChunk, memory_arena* arena)
     cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
     cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 
-    
+
+
     hr = d3dDevice->CreateBuffer(&cbDesc, NULL, &win32VoxelChunk->voxelCB);
+
+
+    D3D11_BUFFER_DESC worldCbDesc = {};
+    worldCbDesc.Usage = D3D11_USAGE_DEFAULT;
+    worldCbDesc.ByteWidth = sizeof(voxel_chunk_world_constant);
+    worldCbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+    worldCbDesc.CPUAccessFlags = 0;
+
+    DirectX::XMMATRIX rotMat = DirectX::XMMatrixIdentity();
+    DirectX::XMMATRIX scaleMat = DirectX::XMMatrixIdentity();
+    DirectX::XMMATRIX transMat = DirectX::XMMatrixTranslation(win32VoxelChunk->chunk->chunkWorldLocation.x,
+							      win32VoxelChunk->chunk->chunkWorldLocation.y,
+							      win32VoxelChunk->chunk->chunkWorldLocation.z);
+
+    //srt
+
+    DirectX::XMMATRIX scaleRotMat = DirectX::XMMatrixMultiply(scaleMat, rotMat);
+    DirectX::XMMATRIX world = DirectX::XMMatrixMultiply(scaleRotMat, transMat);
+
+    D3D11_SUBRESOURCE_DATA voxelWorldCBData;
+    ZeroMemory(&voxelWorldCBData, sizeof(D3D11_SUBRESOURCE_DATA));
+    voxelWorldCBData.pSysMem = &world;
+    voxelWorldCBData.SysMemPitch = 0;
+    voxelWorldCBData.SysMemSlicePitch = 0;    
+    
+    hr = d3dDevice->CreateBuffer(&worldCbDesc, &voxelWorldCBData, &win32VoxelChunk->voxelChunkWorldCB);
     
     //You'll also want to probably store this on a specific arena that can be wiped whenever the chunk becomes dirty
 
@@ -1386,6 +1459,7 @@ RenderVoxelCubes(shaders* shader, dx_camera* camera, win32_voxel_chunk* win32Vox
     context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     context->IASetInputLayout(shader->inputLayout);
     context->VSSetConstantBuffers(0, 1, &shader->constantBuffer);
+    context->VSSetConstantBuffers(2, 1, &win32VoxelChunk->voxelChunkWorldCB);
 
     UINT stride = sizeof(vertex_position_color);
     UINT offset = 0;
@@ -1408,6 +1482,8 @@ RenderVoxelCubes(shaders* shader, dx_camera* camera, win32_voxel_chunk* win32Vox
    
     HRESULT hr = {};
 
+    DirectX::XMVECTOR voxelOffset = DirectX::XMVectorSet(-10.0f, -10.0f, -10.0f, 0.0f);
+    
     for (int i = 0; i < win32VoxelChunk->chunk->numOfRenderedVoxels; i++)
     {
 
@@ -1423,10 +1499,25 @@ RenderVoxelCubes(shaders* shader, dx_camera* camera, win32_voxel_chunk* win32Vox
 
 	voxel* currVoxel = &win32VoxelChunk->chunk->voxels[win32VoxelChunk->chunk->renderedVoxelIndex[i]];
 
+
 	DirectX::XMVECTOR vecWorld = DirectX::XMVectorSet(currVoxel->pos.x, currVoxel->pos.y, currVoxel->pos.z, 1.0f);
+
 	DirectX::XMStoreFloat4(&data->worldPos, vecWorld);
+	
+#if 0
+	DirectX::XMMATRIX rotMat = DirectX::XMMatrixIdentity();
+	DirectX::XMMATRIX scaleMat = DirectX::XMMatrixIdentity();
+	DirectX::XMMATRIX transMat = DirectX::XMMatrixTranslation(currVoxel->pos.x,
+								  currVoxel->pos.y,
+								  currVoxel->pos.z);
+	    
+	//srt
 
+	DirectX::XMMATRIX scaleRotMat = DirectX::XMMatrixMultiply(scaleMat, rotMat);
+	DirectX::XMMATRIX world = DirectX::XMMatrixMultiply(scaleRotMat, transMat);	
 
+	DirectX::XMStoreFloat4x4(&data->worldPos, world);
+#endif
 	context->Unmap(win32VoxelChunk->voxelCB, 0);
 	
 	context->DrawIndexed(
@@ -1910,10 +2001,10 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 		    //Run a check to see if there has been a basic setup for the switch
 		    if (!arcCamInitialized)
 		    {
-			InitArcBall(&camera);
+			InitArcBall(&camera, &win32VoxelChunk);
 			arcCamInitialized = true;
 		    }
-		    UpdateCameraArc(&camera, &arcMouse, newInput);
+		    UpdateCameraArc(&camera, &arcMouse, newInput, &win32VoxelChunk);
 		}
 
 
