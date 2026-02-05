@@ -722,7 +722,7 @@ InitArcBall(dx_camera* camera, win32_voxel_chunk* win32VoxelChunk)
 
     DirectX::XMVECTOR startingOffset = DirectX::XMVectorSet(20.0f, 20.0f, 20.0f, 0.0f);
     
-    camera->position = DirectX::XMVectorAdd(camera->pivot, startingOffset);
+
 
     
     camera->pivot = DirectX::XMVectorSet(win32VoxelChunk->chunk->chunkWorldLocation.x,
@@ -730,6 +730,7 @@ InitArcBall(dx_camera* camera, win32_voxel_chunk* win32VoxelChunk)
 					 win32VoxelChunk->chunk->chunkWorldLocation.z,
 					 0.0f);
 
+    camera->position = DirectX::XMVectorAdd(camera->pivot, startingOffset);
 
 }
 

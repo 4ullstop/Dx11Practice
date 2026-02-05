@@ -335,7 +335,7 @@ extern "C" GAME_INITIALIZE(GameInitialize)
 #else
     r32 voxelSize = 0.5f;
     result.allObjs = CreateSingleVoxel(memoryPoolCode, objLocationArena, voxelSize);
-    v3 location = v3{-10.0f, -10.0f, -20.0f};
+    v3 location = v3{-10.0f, -10.0f, -10.0f};
     result.chunk = CreateVoxelChunk(location, voxelSize, memoryPoolCode, objLocationArena, result.allObjs);
 #endif    
     return(result);
