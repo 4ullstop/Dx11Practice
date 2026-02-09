@@ -639,26 +639,6 @@ GetGameAspectRatio(void)
 }
 
 internal void
-CreateViewAndPerspectiveArc(dx_camera* camera)
-{
-    InitCameraDefaultValues(camera);
-    
-    aspect_ratio aspect = GetGameAspectRatio();
-    
-    
-    DirectX::XMStoreFloat4x4(
-	&camera->constantBufferData.projection,
-	DirectX::XMMatrixTranspose(
-	    DirectX::XMMatrixPerspectiveFovRH(
-		2.0f * (r32)(atan(tan(DirectX::XMConvertToRadians(70) * 0.5f)) / aspect.aspectY),
-		aspect.aspectX,
-		0.01f,
-		100.0f)
-	    )
-	);    
-}
-
-internal void
 CreateViewAndPerspective(dx_camera* camera)
 {
     InitCameraDefaultValues(camera);
@@ -679,7 +659,7 @@ CreateViewAndPerspective(dx_camera* camera)
 		2.0f * (r32)(atan(tan(DirectX::XMConvertToRadians(70) * 0.5f)) / aspect.aspectY),
 		aspect.aspectX,
 		0.01f,
-		100.0f)
+		1000.0f)
 	    )
 	);
 }
@@ -730,20 +710,42 @@ InitArcBall(dx_camera* camera, win32_voxel_chunk* win32VoxelChunk)
 					 win32VoxelChunk->chunk->chunkWorldLocation.z,
 					 0.0f);
 #else
-    camera->pivot = DirectX::XMVectorSet(0, 0, 0, 0);
+    camera->pivot = DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 0);
 
 #endif
     
     camera->position = DirectX::XMVectorAdd(camera->pivot, startingOffset);
 
-    camera->orientation = DirectX::XMQuaternionIdentity();
+    camera->currRotation = DirectX::XMQuaternionIdentity();
+    camera->lastRotation = DirectX::XMQuaternionIdentity();
+
+
 
     camera->distance = 10.0f;
+
 }
 
 internal void
-ProcessMouseArcBallInputs(mouse_movements* mouse, game_input* input)
+MouseReleased(dx_camera* camera)
 {
+    camera->lastRotation = DirectX::XMQuaternionMultiply(camera->currRotation, camera->lastRotation);
+
+    camera->currRotation = DirectX::XMQuaternionIdentity();
+}
+
+internal void
+ProcessMouseArcBallInputs(mouse_movements* mouse, game_input* input, dx_camera* camera)
+{
+    //This is technically how it would work just dk if released is working the way it should yet
+    if (input->mouseButtons[0].released)
+    {
+	mouse->arcBallStart = mouse->arcBallCurrent;
+	mouse->recMousePos = false;
+	OutputDebugString("RELEASED\n");
+	MouseReleased(camera);
+	input->mouseButtons[0].endedDown = false;
+    }
+
     if (input->mouseButtons[0].started)
     {
 	//Get mouse x and y
@@ -756,21 +758,20 @@ ProcessMouseArcBallInputs(mouse_movements* mouse, game_input* input)
     {
 	mouse->arcBallCurrent = v2{(r32)input->mouseXBounded, (r32)input->mouseYBounded};
 
+
+#if 0	
 	char textBuffer[256];
 	sprintf_s(textBuffer, sizeof(textBuffer), "Start X: %f, Start Y: %f *** Curr X: %f, Curr Y: %f\n",
 		  mouse->arcBallStart.x, mouse->arcBallStart.y,
 		  mouse->arcBallCurrent.x, mouse->arcBallCurrent.y);
 	
-	OutputDebugString(textBuffer);	
+	OutputDebugString(textBuffer);
+#endif
+
+	
     }
 
-    //This is technically how it would work just dk if released is working the way it should yet
-    if (input->mouseButtons[0].released)
-    {
-	mouse->arcBallStart = mouse->arcBallCurrent;
-	mouse->recMousePos = false;
-	OutputDebugString("RELEASED\n");
-    }
+
 }
 
 
@@ -779,6 +780,7 @@ internal DirectX::XMVECTOR
 GetArcBallVector(v2 loc)
 {
     // 1. Convert pixel coordinates to range [-1, 1]
+
     float x = (1.0f * loc.x / screenW) * 2.0f - 1.0f;
     float y = -((1.0f * loc.y / screenH) * 2.0f - 1.0f); // Invert Y for screen space
 
@@ -796,18 +798,25 @@ GetArcBallVector(v2 loc)
     else
     {
         // 4. We are outside the sphere, snap to the nearest point on the edge
-        p = DirectX::XMVector3Normalize(p);
+//        p = DirectX::XMVector3Normalize(p);
+	DirectX::XMVectorSetZ(p, 0.0f);
     }
 
     return p;
 }
 
+internal DirectX::XMVECTOR
+GetCurrentRotation(dx_camera* camera)
+{
+    DirectX::XMVECTOR result = DirectX::XMQuaternionMultiply(camera->currRotation, camera->lastRotation);
+    return(result);
+}
 
 internal void
 UpdateCameraArc(dx_camera* camera, mouse_movements* mouse, game_input* input, win32_voxel_chunk* win32VoxelChunk)
 {
     //Get curr and starting positions from the mouse 
-    ProcessMouseArcBallInputs(mouse, input);
+    ProcessMouseArcBallInputs(mouse, input, camera);
 
 
     if (mouse->arcBallStart.x != mouse->arcBallCurrent.x || mouse->arcBallStart.y != mouse->arcBallCurrent.y)
@@ -817,57 +826,48 @@ UpdateCameraArc(dx_camera* camera, mouse_movements* mouse, game_input* input, wi
 	DirectX::XMVECTOR vb = GetArcBallVector(mouse->arcBallCurrent);
 
 	DirectX::XMVECTOR axisCamera = DirectX::XMVector3Cross(va, vb);
+
+	axisCamera = DirectX::XMVector3Normalize(axisCamera);
 	
 	DirectX::XMVECTOR dotVec = DirectX::XMVector3Dot(va, vb);
 	r32 dot = DirectX::XMVectorGetX(dotVec);
-	r32 angle = acosf(fminf(1.0f, dot));
+	r32 startLen = DirectX::XMVectorGetX(DirectX::XMVector3Length(va));
+	r32 currLen = DirectX::XMVectorGetX(DirectX::XMVector3Length(vb));
+
+	r32 quo = dot / (startLen * currLen);
+	
+
+	r32 angle = acosf(fminf(1.0f, quo));
+
+
+	DirectX::XMVECTOR deltaRot = DirectX::XMQuaternionRotationNormal(axisCamera, angle);
 
 
 
-	if (angle > 0.0001f)
-	{
-	    DirectX::XMMATRIX rotMat = DirectX::XMMatrixRotationQuaternion(camera->orientation);
-	    DirectX::XMMATRIX rotInv = DirectX::XMMatrixTranspose(rotMat);
-	    DirectX::XMVECTOR axisWorld = DirectX::XMVector3TransformNormal(axisCamera, rotInv);
-	    axisWorld = DirectX::XMVector3Normalize(axisWorld);
 
-	    DirectX::XMVECTOR deltaQuat = DirectX::XMQuaternionRotationAxis(axisWorld, angle);
-	    camera->orientation = DirectX::XMQuaternionMultiply(deltaQuat, camera->orientation);
-	    camera->orientation = DirectX::XMQuaternionNormalize(camera->orientation);
-	}
-
-	mouse->arcBallStart = mouse->arcBallCurrent;
+	camera->currRotation = deltaRot;
     }
 
-    DirectX::XMMATRIX rotationMatrix = DirectX::XMMatrixRotationQuaternion(camera->orientation);
-    DirectX::XMVECTOR localOffset = DirectX::XMVectorSet(0.0f, 0.0f, camera->distance, 0.0f);
+    DirectX::XMVECTOR currentRotation = GetCurrentRotation(camera);
+
+    currentRotation = DirectX::XMQuaternionNormalize(currentRotation);
+    
+    DirectX::XMMATRIX rotationMatrix = DirectX::XMMatrixRotationQuaternion(currentRotation);
+
+    DirectX::XMVECTOR localOffset = DirectX::XMVectorSet(camera->distance, camera->distance, camera->distance, 0.0f);
 
     DirectX::XMVECTOR worldOffset = DirectX::XMVector3TransformNormal(localOffset, rotationMatrix);
     camera->position = DirectX::XMVectorAdd(camera->pivot, worldOffset);
-    
-    
-    DirectX::XMVECTOR worldUp = rotationMatrix.r[1];
 
+
+    DirectX::XMVECTOR worldUp = rotationMatrix.r[1];
     DirectX::XMMATRIX view = DirectX::XMMatrixLookAtRH(
 	camera->position,
 	camera->pivot,
 	worldUp);
 
-    DirectX::XMStoreFloat4x4(&camera->constantBufferData.view, view);
+    DirectX::XMStoreFloat4x4(&camera->constantBufferData.view, DirectX::XMMatrixTranspose(view));
  
-    
-#if 0    
-    DirectX::XMStoreFloat4x4(
-	&camera->constantBufferData.view,
-	DirectX::XMMatrixTranspose(
-	    DirectX::XMMatrixLookAtRH(
-		camera->position,
-		DirectX::XMVectorAdd(camera->front, camera->position),
-		camera->up)
-	    )
-	);
- 
-#endif   
 }
 
 internal void
@@ -899,7 +899,8 @@ UpdateCameraFP(dx_camera* camera)
 		DirectX::XMVectorAdd(camera->front, camera->position),
 		camera->up)
 	    )
-	);    
+	);
+
 }
 
 internal void
@@ -934,31 +935,33 @@ ProcessPlayerMovement(game_controller_input* controller, dx_camera* camera, r32 
     }
     
     r32 velocity = camera->movementSpeed * deltaTime;
-    if (controller->moveForward.endedDown)
+    if (freeCam)
     {
-	camera->position = DirectX::XMVectorAdd(camera->position, DirectX::XMVectorScale(camera->front, velocity));
-    }
-    if (controller->moveBackward.endedDown)
-    {
-	camera->position = DirectX::XMVectorSubtract(camera->position, DirectX::XMVectorScale(camera->front, velocity));
-    }
-    if (controller->moveRight.endedDown)
-    {
-	camera->position = DirectX::XMVectorAdd(camera->position, DirectX::XMVectorScale(camera->right, velocity));
-    }
-    if (controller->moveLeft.endedDown)
-    {
-	camera->position = DirectX::XMVectorSubtract(camera->position, DirectX::XMVectorScale(camera->right, velocity));	
-    }
-    if (controller->moveUp.endedDown)
-    {
-	camera->position = DirectX::XMVectorAdd(camera->position, DirectX::XMVectorScale(camera->worldUp, velocity));
-    }
-    if (controller->moveDown.endedDown)
-    {
-	camera->position = DirectX::XMVectorSubtract(camera->position, DirectX::XMVectorScale(camera->worldUp, velocity));
-    }
-    
+	if (controller->moveForward.endedDown)
+	{
+	    camera->position = DirectX::XMVectorAdd(camera->position, DirectX::XMVectorScale(camera->front, velocity));
+	}
+	if (controller->moveBackward.endedDown)
+	{
+	    camera->position = DirectX::XMVectorSubtract(camera->position, DirectX::XMVectorScale(camera->front, velocity));
+	}
+	if (controller->moveRight.endedDown)
+	{
+	    camera->position = DirectX::XMVectorAdd(camera->position, DirectX::XMVectorScale(camera->right, velocity));
+	}
+	if (controller->moveLeft.endedDown)
+	{
+	    camera->position = DirectX::XMVectorSubtract(camera->position, DirectX::XMVectorScale(camera->right, velocity));	
+	}
+	if (controller->moveUp.endedDown)
+	{
+	    camera->position = DirectX::XMVectorAdd(camera->position, DirectX::XMVectorScale(camera->worldUp, velocity));
+	}
+	if (controller->moveDown.endedDown)
+	{
+	    camera->position = DirectX::XMVectorSubtract(camera->position, DirectX::XMVectorScale(camera->worldUp, velocity));
+	}
+    }    
 }
 
 internal void

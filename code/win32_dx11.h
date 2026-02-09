@@ -22,7 +22,8 @@ struct dx_camera
     DirectX::XMMATRIX rotation;
     DirectX::XMVECTOR pivot;
 
-    DirectX::XMVECTOR orientation;
+    DirectX::XMVECTOR currRotation;
+    DirectX::XMVECTOR lastRotation;
     r32 distance;
 };
 
