@@ -724,14 +724,21 @@ InitArcBall(dx_camera* camera, win32_voxel_chunk* win32VoxelChunk)
     
 
 
-    
+#if 0    
     camera->pivot = DirectX::XMVectorSet(win32VoxelChunk->chunk->chunkWorldLocation.x,
 					 win32VoxelChunk->chunk->chunkWorldLocation.y,
 					 win32VoxelChunk->chunk->chunkWorldLocation.z,
 					 0.0f);
+#else
+    camera->pivot = DirectX::XMVectorSet(0, 0, 0, 0);
 
+#endif
+    
     camera->position = DirectX::XMVectorAdd(camera->pivot, startingOffset);
 
+    camera->orientation = DirectX::XMQuaternionIdentity();
+
+    camera->distance = 10.0f;
 }
 
 internal void
@@ -806,62 +813,47 @@ UpdateCameraArc(dx_camera* camera, mouse_movements* mouse, game_input* input, wi
     if (mouse->arcBallStart.x != mouse->arcBallCurrent.x || mouse->arcBallStart.y != mouse->arcBallCurrent.y)
     {
 
-
-
 	DirectX::XMVECTOR va = GetArcBallVector(mouse->arcBallStart);
 	DirectX::XMVECTOR vb = GetArcBallVector(mouse->arcBallCurrent);
 
-	DirectX::XMVECTOR vecDot = DirectX::XMVector3Dot(va, vb);
-	r32 angle = (r32)acos(min(1.0f, DirectX::XMVectorGetX(vecDot)));
+	DirectX::XMVECTOR axisCamera = DirectX::XMVector3Cross(va, vb);
 	
-	DirectX::XMVECTOR axisInCameraCoord = DirectX::XMVector3Cross(va, vb);
-//	DirectX::XMMATRIX currRotInverse = DirectX::XMMatrixInverse(camera->rotation);
-
-
-	DirectX::XMMATRIX viewMat = DirectX::XMLoadFloat4x4(&camera->constantBufferData.view);
-	
-	DirectX::XMMATRIX viewInv = DirectX::XMMatrixInverse(0,
-							     viewMat);
-
-
-	
-	DirectX::XMVECTOR axisWorld = DirectX::XMVector3TransformNormal(axisInCameraCoord, viewInv);
-	axisWorld = DirectX::XMVector3Normalize(axisWorld);
-
-	
-	//apply the rotation
-
-	DirectX::XMMATRIX rotatedMat = DirectX::XMMatrixRotationAxis(axisWorld, -angle);
-
-	DirectX::XMVECTOR offset = DirectX::XMVectorSubtract(camera->position, camera->pivot);
-
-	offset = DirectX::XMVector3TransformNormal(offset, rotatedMat);
-	camera->position = DirectX::XMVectorAdd(camera->pivot, offset);
-
-	
-	camera->rotation = DirectX::XMMatrixMultiply(camera->rotation, rotatedMat);
+	DirectX::XMVECTOR dotVec = DirectX::XMVector3Dot(va, vb);
+	r32 dot = DirectX::XMVectorGetX(dotVec);
+	r32 angle = acosf(fminf(1.0f, dot));
 
 
 
+	if (angle > 0.0001f)
+	{
+	    DirectX::XMMATRIX rotMat = DirectX::XMMatrixRotationQuaternion(camera->orientation);
+	    DirectX::XMMATRIX rotInv = DirectX::XMMatrixTranspose(rotMat);
+	    DirectX::XMVECTOR axisWorld = DirectX::XMVector3TransformNormal(axisCamera, rotInv);
+	    axisWorld = DirectX::XMVector3Normalize(axisWorld);
 
-
-
-
-	DirectX::XMMATRIX world = DirectX::XMMatrixMultiply(
-	    camera->rotation,
-	    DirectX::XMMatrixTranslation(DirectX::XMVectorGetX(camera->position),
-					 DirectX::XMVectorGetY(camera->position),
-					 DirectX::XMVectorGetZ(camera->position)));
-
-
-
-	DirectX::XMStoreFloat4x4(
-	    &camera->constantBufferData.view,
-	    DirectX::XMMatrixInverse(nullptr, world));
-
+	    DirectX::XMVECTOR deltaQuat = DirectX::XMQuaternionRotationAxis(axisWorld, angle);
+	    camera->orientation = DirectX::XMQuaternionMultiply(deltaQuat, camera->orientation);
+	    camera->orientation = DirectX::XMQuaternionNormalize(camera->orientation);
+	}
 
 	mouse->arcBallStart = mouse->arcBallCurrent;
     }
+
+    DirectX::XMMATRIX rotationMatrix = DirectX::XMMatrixRotationQuaternion(camera->orientation);
+    DirectX::XMVECTOR localOffset = DirectX::XMVectorSet(0.0f, 0.0f, camera->distance, 0.0f);
+
+    DirectX::XMVECTOR worldOffset = DirectX::XMVector3TransformNormal(localOffset, rotationMatrix);
+    camera->position = DirectX::XMVectorAdd(camera->pivot, worldOffset);
+    
+    
+    DirectX::XMVECTOR worldUp = rotationMatrix.r[1];
+
+    DirectX::XMMATRIX view = DirectX::XMMatrixLookAtRH(
+	camera->position,
+	camera->pivot,
+	worldUp);
+
+    DirectX::XMStoreFloat4x4(&camera->constantBufferData.view, view);
  
     
 #if 0    
