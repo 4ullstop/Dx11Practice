@@ -283,13 +283,13 @@ voxel_chunk CreateVoxelChunk(v3 location, r32 voxelSize, memory_pool_dll_code* m
 {
     //l * w * h = bounding box extents
 
-    //Step through here to see if our voxelResolution value is a value that will evenly round out to
-    //a normal value for the resolution
     voxel_chunk result;
     result.length = 5;
     result.height = 2;
     result.width = 5;
 
+    result.centoid = v3{result.width/2, result.height/2, result.width/2};
+    
     result.chunkWorldLocation = location;
     result.chunkWorldRotation = v3{0.0f, 0.0f, 0.0f};
     result.chunkWorldScale = v3{1.0f, 1.0f, 1.0f};
@@ -315,6 +315,14 @@ voxel_chunk CreateVoxelChunk(v3 location, r32 voxelSize, memory_pool_dll_code* m
     
 
     InitVoxels(memoryPoolCode, objLocationArena, &result, voxelObjInfo);
+
+    //Determine Centoid of the whole chunk here
+    v3 corner1 = result.voxels[0].pos;
+    v3 corner2 = result.voxels[(i32)(result.voxelResolution - 1)].pos;
+
+//    result.centoid = (corner1 + corner2) / 2;
+
+    
     return(result);
     
 }

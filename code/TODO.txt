@@ -34,6 +34,14 @@ TODO:
 
 Current issues with arc ball:
  - Not focused on the cube
- - Some wonkiness with the movement, prob part gimble lock and some other things
+ - Some issues with inverted movement
 
 
+Get an actual reading of DeltaTime, not just the current constant you have in place of it
+You'll probably also want to rotate the camera with deltatime
+
+You'll probably want to add some keys for resetting the focus on the cube
+Maybe add camera lag?
+
+
+Make the unit sphere we are dragging on smaller?

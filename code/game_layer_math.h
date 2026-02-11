@@ -71,6 +71,17 @@ operator-(v3 a, v3 b)
     return(result);
 }
 
+inline v3
+operator/(v3 a, r32 b)
+{
+    v3 result = {};
+    result.x = a.x / b;
+    result.y = a.y / b;
+    result.z = a.z / b;
+
+    return(result);
+}
+
 inline v3 &v3::
 operator*=(r32 a)
 {
@@ -92,6 +103,14 @@ operator-=(v3 a)
     return(*this);
 }
 
+internal r32
+DotV3(v3 a, v3 b)
+{
+    r32 result;
+
+    result = ((a.x)*(b.x) + (a.y)*(b.y) + (a.z)*(b.z));
+    return(result);
+}
 
 /*
 ********v2********
@@ -197,6 +216,16 @@ operator==(v2 a, v2 b)
     bool32 result = (a.x == b.x) && (a.y == b.y);
     return(result);
 }
+
+internal r32
+DotV2(v2 a, v2 b)
+{
+    r32 result;
+
+    result = (a.x)*(b.x) + (a.y)*(b.y);
+    return(result);
+}
+
 
 #define GAME_LAYER_MATH_H
 #endif

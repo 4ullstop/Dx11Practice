@@ -79,7 +79,7 @@ struct voxel_chunk
     i32 renderedVoxelCount;
     v3* renderedVoxelPositions;
 
-
+    v3 centoid;
 //    
 };
 
