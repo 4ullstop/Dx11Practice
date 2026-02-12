@@ -55,5 +55,4 @@ target:
 {
   executable: "D:/Backups/Dx11Practice/Dx11Practice1128/build/win32_dx11.exe"
   working_directory: "D:/Backups/Dx11Practice/Dx11Practice1128/misc/"
-  enabled: 0
 }

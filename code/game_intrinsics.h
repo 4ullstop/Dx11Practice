@@ -80,6 +80,12 @@ ATan2(r32 y, r32 x)
     return(result);
 }
 
+inline r32
+LerpR32(r32 a, r32 b, r32 t)
+{
+    r32 result = a + (b - a) * t;
+    return(result);
+}
 
 struct bit_scan_result
 {

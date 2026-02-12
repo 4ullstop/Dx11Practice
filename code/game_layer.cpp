@@ -288,7 +288,7 @@ voxel_chunk CreateVoxelChunk(v3 location, r32 voxelSize, memory_pool_dll_code* m
     result.height = 2;
     result.width = 5;
 
-    result.centoid = v3{result.width/2, result.height/2, result.width/2};
+    result.centoid = v3{result.width/2, result.width/2, result.height/2};
     
     result.chunkWorldLocation = location;
     result.chunkWorldRotation = v3{0.0f, 0.0f, 0.0f};

@@ -45,3 +45,6 @@ Maybe add camera lag?
 
 
 Make the unit sphere we are dragging on smaller?
+
+
+I'm not stuck inside of the cube but we still have the issue of rotating feels inverted and more importantly the cube is not centered in the screen

@@ -39,6 +39,16 @@ operator*(v3 b, r32 a)
 }
 
 inline v3
+operator/(v3 a, v3 b)
+{
+    v3 result;
+    result.x = a.x / b.x;
+    result.y = a.y / b.y;
+    result.z = a.z / b.z;
+    return(result);
+}
+
+inline v3
 operator-(v3 a)
 {
     v3 result;
@@ -153,6 +163,15 @@ operator*(v2 b, r32 a)
     result.y = a * b.y;
 
 
+    return(result);
+}
+
+inline v2
+operator/(v2 a, v2 b)
+{
+    v2 result;
+    result.x = a.x / b.x;
+    result.y = a.y / b.y;
     return(result);
 }
 
