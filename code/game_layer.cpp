@@ -329,27 +329,51 @@ voxel_chunk CreateVoxelChunk(v3 location, r32 voxelSize, memory_pool_dll_code* m
 
 extern "C" GAME_INITIALIZE(GameInitialize)
 {
-    //Call our OBJ loader function here from the dll such that it is anonymouse and fills out
-    //the necessary data for (in this case) dx11 to read
-
-    //LoadOBJ();
-    //ParseOBJ;
-    //Write your file locations here
-
     game_initialize_data result = {};
-#if 0    
-    char* fileLocation = "D:/ExternalCustomAPIs/OBJLoader/misc/cubetester_normals.obj";
-    obj* result = parseOBJCode->ParseOBJData(fileLocation, objLocationArena, mainProgramMemory);
-#else
+
     r32 voxelSize = 0.5f;
     result.allObjs = CreateSingleVoxel(memoryPoolCode, objLocationArena, voxelSize);
     v3 location = v3{0.0f, 0.0f, 0.0f};
     result.chunk = CreateVoxelChunk(location, voxelSize, memoryPoolCode, objLocationArena, result.allObjs);
-#endif    
+
+    result.gameState = (game_state*)memoryPoolCode->PushStruct(objLocationArena, sizeof(game_state));
+    
+    result.gameState->debugVectorMemory =
+	(listed_memory*)memoryPoolCode->PushStruct(debugVectorArena, sizeof(listed_memory));
+    memoryPoolCode->InitListedMemory(result.gameState->debugVectorMemory,
+				     debugVectorArena, sizeof(game_debug_vector));
+    result.gameState->debugVectorLength = 10.0f;
     return(result);
 }
 
 extern "C" GAME_UPDATE(GameUpdate)
 {
-    //Loading in objects?
+    //Mouse update and create debug vectors on mouse click
+
+    if (input->mouseButtons[e_mouse_buttons::left_mouse].started)
+    {
+	//I do believe this is not working right, your math isn't correct, ScreenToCoordNDC also only seems to be
+	//returning 1.0 to -1.0
+
+	v2 screenToNDC = ScreenToCoordNDC(GetMouseScreenCoords(input));
+	v3 start = v3{screenToNDC.x, screenToNDC.y, 0.0f};
+	v3 end = start + (gameState->gameCamera.pos * gameState->debugVectorLength);
+	v3 color = v3{1.0f, 0.0f, 0.0f};
+	
+	//I don't think I need to allocate here, I just need to input the data into our data struct
+	//in our list which was already allocated just as a void*
+
+
+	game_debug_vector newVec = {};
+	newVec.start = start;
+	newVec.end = end;
+	newVec.color = color;
+	memoryPoolCode->AddListedItem(gameState->debugVectorMemory,
+				      (void*)&newVec,
+				      sizeof(game_debug_vector),
+				      &gameState->debugVectorNodes
+				      );
+	gameState->numOfDrawnVectors = gameState->numOfDrawnVectors + 1;
+    }
+    
 }

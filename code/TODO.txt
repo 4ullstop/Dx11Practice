@@ -16,7 +16,6 @@ Quick and Easy:
 
 
 Longer, probably not as easy:
- - Redo Camera System
  - Create raycasting system (probably would help if they could be debugged too)
  - Eliminate appearance of voxels depending on if they have been clicked
 
@@ -28,13 +27,7 @@ Reaching now:
 
 
 TODO:
- - Introduce arc ball camera
  - Edit the mesh by clicking and removing voxels
-
-
-Current issues with arc ball:
- - Not focused on the cube
- - Some issues with inverted movement
 
 
 Get an actual reading of DeltaTime, not just the current constant you have in place of it
@@ -44,7 +37,27 @@ You'll probably want to add some keys for resetting the focus on the cube
 Maybe add camera lag?
 
 
-Make the unit sphere we are dragging on smaller?
+So maybe you have to create the system such that you render all of the objects that aren't in the "triangle list type" and then
+render all of the objects are in the "triangle list type"
+
+Start from the top, make more index array buffers, vertex array buffers and don't stop til it's ovaaaaaaaa
 
 
-I'm not stuck inside of the cube but we still have the issue of rotating feels inverted and more importantly the cube is not centered in the screen
+
+struct drawing_vectors
+{
+    ID3D11Buffer* indexBuffers;
+    ID3D11Buffer* vertexBuffers;
+
+    ID3D11Buffer* vectorCB;
+};
+
+Button pressed -> create new buffer -> add new buffer to drawing list -> render vector in render function
+
+Just need to do your mouse inputs to add vectors to the list and then continue to make vectors and such blah bla bl
+
+It might actually be better if you just place this in the platform specific code, this way you only really need to allocate once
+
+You would only really need to allocate once anyways, you're using the number of things in the list which can not be platform specific
+
+So Do I do it over again? Ig so...

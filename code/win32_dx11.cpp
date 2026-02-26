@@ -34,55 +34,6 @@
 
 #define PI 3.14159265
 
-#define screenW 640
-#define screenH 480
-
-struct mouse_movements
-{
-    v2 arcBallStart;
-    v2 arcBallCurrent;
-
-    v2 arcBallPrevNDC;
-
-    bool32 recMousePos;
-    r32 x, y;    
-};
-
-struct shader_info
-{
-    i32 temp;
-};
-
-struct program_state
-{
-    memory_arena setupArena;
-    memory_arena perFrameArena;
-
-    u8* arenaBase;
-    
-    shader_info* shaderInfo;
-};
-
-struct direct_x_loaded_buffers
-{
-    ID3D11Buffer* vertexBuffer;
-    ID3D11Buffer* indexBuffer;
-    ID3D11Buffer* vertInstanceBuffer;
-    i32 indexCount;
-    i32 instanceCount;
-};
-
-struct voxel_constants
-{
-    DirectX::XMFLOAT4 worldPos;
-};
-
-struct voxel_chunk_world_constant
-{
-    DirectX::XMFLOAT4X4 world;
-};
-
-
 
 global_variable memory_pool_dll_code memoryPoolCode;
 #if DIRECTXLOAD
@@ -102,6 +53,7 @@ global_variable bool32 freeCam;
 
 #include "game_layer.h"
 
+
 global_variable ID3D11DeviceContext* context;
 global_variable ID3D11Device* d3dDevice;
 global_variable WINDOWPLACEMENT windowPosition = {sizeof(windowPosition)};
@@ -111,6 +63,24 @@ global_variable ID3D11DepthStencilView* depthStencilView;
 global_variable ID3D11Texture2D* depthStencil;
 global_variable D3D11_TEXTURE2D_DESC bbDesc;
 
+
+internal DirectX::XMVECTOR
+FromV3ToXMVECTOR(v3 vec)
+{
+    DirectX::XMVECTOR result = DirectX::XMVectorSet(vec.x, vec.y, vec.z, 0.0f);
+    return(result);
+}
+
+internal v3
+FromXMVECTORToV3(DirectX::XMVECTOR vec)
+{
+    v3 result = {};
+    result.x = DirectX::XMVectorGetX(vec);
+    result.y = DirectX::XMVectorGetY(vec);
+    result.z = DirectX::XMVectorGetZ(vec);
+
+    return(result);
+}
 
 internal void
 ConfigureBackBuffer(void)
@@ -264,13 +234,6 @@ Win32LoadGameCode(char* sourceDLLName, char* tempDLLName, char* lockFilename)
     return(result);
 }
         
-struct r32_3
-{
-    r32 x;
-    r32 y;
-    r32 z;    
-};
-
 internal void
 Win32GetEXEFilename(win32_state* state)
 {
@@ -319,21 +282,6 @@ Win32BuildExePathFilename(win32_state* state, char* filename, i32 destCount, cha
 	       StringLength(filename), filename,
 	       destCount, dest);
 }
-struct shaders
-{
-    ID3D11VertexShader* vertexShader;
-    ID3D11InputLayout* inputLayout;
-    ID3D11PixelShader* pixelShader;
-    ID3D11Buffer* constantBuffer;
-    ID3D11Buffer* instanceBuffer;
-};
-
-struct dx_instance_data
-{
-    DirectX::XMFLOAT3 pos;
-};
-
-
 
 internal void
 CreateInstanceBuffer(direct_x_loaded_buffers* loadedBuffers, shaders* shaderResources, voxel_chunk* voxelChunk, memory_arena* arena)
@@ -381,14 +329,6 @@ CreateInstanceBuffer(direct_x_loaded_buffers* loadedBuffers, shaders* shaderReso
 
 
 }
-
-struct obj_conversion
-{
-    vertex_position_color* objVerts;
-    u16* indices;
-    u32 objVertsSize;
-    u32 indexCount;
-};
 
 internal obj_conversion
 ConvertGameOBJToDXOBJ(obj* currObj, memory_arena* arena)
@@ -618,15 +558,7 @@ InitCameraDefaultValues(dx_camera* camera)
     camera->movementSpeed = 5.0f;
     camera->turnSpeed = 0.2f;
     camera->position = {10.0f, 10.0f, 10.0f};
-    camera->arcBallRadius = -10.0f;
-    camera->rotation = DirectX::XMMatrixIdentity();
-    camera->pivot = DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
 }
-
-struct aspect_ratio
-{
-    r32 aspectX, aspectY;
-};
 
 internal aspect_ratio
 GetGameAspectRatio(void)
@@ -670,26 +602,6 @@ CreateWindowSizeDependentResources(dx_camera* camera)
     CreateViewAndPerspective(camera);
 }
 
-struct win32_voxel_chunk
-{
-    voxel_chunk* chunk;
-    ID3D11Buffer** indexBuffers;
-    ID3D11Buffer* vertexBuffers;
-
-    //I imagine this isn't the best way to store this so you'll prob be back here later
-    r32** drawnVoxelIndices;
-
-    //This is a direct correlation to the vertex and index buffers, avoiding Dx11 implementation in game layer
-    DirectX::XMFLOAT4* drawnVoxelPositions; //
-
-    vertex_position_color* vsInput; //XMFloat3 types
-
-    ID3D11Buffer* voxelCB;
-    ID3D11Buffer* voxelChunkWorldCB;
-};
-
-#define CAMERA_V3 1
-
 internal void
 UpdateInternalTransformations(dx_camera* camera)
 {
@@ -706,16 +618,6 @@ UpdateInternalTransformations(dx_camera* camera)
 
     DirectX::XMStoreFloat4x4(&camera->constantBufferData.view, DirectX::XMMatrixTranspose(view));
     camera->viewInverted = cameraWorld;    
-}
-
-internal v2
-ScreenToCoordNDC(v2 loc)
-{
-    v2 windowSize = v2{screenW, screenH};
-    v2 one = v2{1.0f, 1.0f};
-    
-    v2 result = loc * 2.0f / windowSize - one;
-    return(result);
 }
 
 internal DirectX::XMVECTOR
@@ -831,7 +733,7 @@ UpdateArcBallTransformation(dx_camera* camera)
 internal void
 InitArcBall(dx_camera* camera, win32_voxel_chunk* win32VoxelChunk)
 {
-#if CAMERA_V3
+
     camera->eye = DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
     camera->viewCenter = {win32VoxelChunk->chunk->centoid.x, -win32VoxelChunk->chunk->centoid.z,
 	win32VoxelChunk->chunk->centoid.y, 0.0f};
@@ -847,10 +749,7 @@ InitArcBall(dx_camera* camera, win32_voxel_chunk* win32VoxelChunk)
 										      camera->up)));
     DirectX::XMVECTOR yAxis = DirectX::XMVector3Normalize(DirectX::XMVector3Cross(xAxis, zAxis));
     xAxis = DirectX::XMVector3Normalize(DirectX::XMVector3Cross(zAxis, yAxis));
-
     camera->targetPos = camera->viewCenter;
-
-
     camera->targetZoom = 15.f;
     //(FromRotMat, transposed), normalize
 
@@ -867,95 +766,7 @@ InitArcBall(dx_camera* camera, win32_voxel_chunk* win32VoxelChunk)
     
 
     UpdateInternalTransformations(camera);
-							  
-#else    
-    camera->front = DirectX::XMVectorSet(camera->arcBallRadius, 0.0f, 0.0f, 0.0f);
-    camera->up = DirectX::XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
-
-    DirectX::XMVECTOR startingOffset = DirectX::XMVectorSet(20.0f, 20.0f, 20.0f, 0.0f);
     
-
-
-
-
-    camera->pivot = DirectX::XMVectorSet(win32VoxelChunk->chunk->centoid.x,
-					 win32VoxelChunk->chunk->centoid.y - 1.0f,
-					 win32VoxelChunk->chunk->centoid.z,
-					 0.0f);
-
-    
-    camera->position = startingOffset;
-
-    camera->currRotation = DirectX::XMQuaternionIdentity();
-    camera->lastRotation = DirectX::XMQuaternionIdentity();
-
-
-    camera->distance = 10.0f;
-#endif
-    
-}
-
-internal void
-MouseReleased(dx_camera* camera)
-{
-#if CAMERA_V3
-    
-#else    
-    camera->lastRotation = DirectX::XMQuaternionMultiply(camera->currRotation, camera->lastRotation);
-
-    camera->currRotation = DirectX::XMQuaternionIdentity();
-#endif    
-}
-
-internal DirectX::XMVECTOR
-GetArcBallVector(v2 loc)
-{
-    // 1. Convert pixel coordinates to range [-1, 1]
-    DirectX::XMVECTOR p = {};
-
-    loc.x = loc.x + 100.0f;
-    loc.y = loc.y + 100.0f;    
-    
-
-    float x = (1.0f * loc.x / screenW) * 2.0f - 1.0f;
-    float y = -((1.0f * loc.y / screenH) * 2.0f - 1.0f); // Invert Y for screen space
-
-    p = DirectX::XMVectorSet(-x, -y, 0.0f, 0.0f);
-
-    // 2. Calculate squared length of the XY components
-    float opSq = x * x + y * y;
-
-    if (opSq <= 1.0f)
-    {
-        // 3. We are inside the sphere, calculate Z using Pythagoras: x^2 + y^2 + z^2 = 1
-        float z = (r32)sqrt(1.0f - opSq);
-        p = DirectX::XMVectorSetZ(p, z);
-    }
-    else
-    {
-        // 4. We are outside the sphere, snap to the nearest point on the edge
-	p = DirectX::XMVector3Normalize(p);
-//	DirectX::XMVectorSetZ(p, 0.0f);
-    }
-
-    return p; 
-}
-
-internal void
-CalculateArcBall(mouse_movements* mouse, dx_camera* camera)
-{
-    DirectX::XMVECTOR va = GetArcBallVector(mouse->arcBallStart);
-    DirectX::XMVECTOR vb = GetArcBallVector(mouse->arcBallCurrent);
-    DirectX::XMVECTOR axisCamera = DirectX::XMVector3Cross(va, vb);
-    axisCamera = DirectX::XMVector3Normalize(axisCamera);
-    DirectX::XMVECTOR dotVec = DirectX::XMVector3Dot(va, vb);
-    r32 dot = DirectX::XMVectorGetX(dotVec);
-    r32 startLen = DirectX::XMVectorGetX(DirectX::XMVector3Length(va));
-    r32 currLen = DirectX::XMVectorGetX(DirectX::XMVector3Length(vb));
-    r32 quo = dot / (startLen * currLen);
-    r32 angle = acosf(fminf(1.0f, quo));
-    DirectX::XMVECTOR deltaRot = DirectX::XMQuaternionRotationNormal(axisCamera, angle);
-    camera->currRotation = deltaRot;
 }
 
 internal void
@@ -967,7 +778,6 @@ ProcessMouseArcBallInputs(mouse_movements* mouse, game_input* input, dx_camera* 
 	mouse->recMousePos = false;
 	OutputDebugString("RELEASED\n");
 	//My release event
-	MouseReleased(camera);
 	input->mouseButtons[0].endedDown = false;
     }
 
@@ -984,12 +794,8 @@ ProcessMouseArcBallInputs(mouse_movements* mouse, game_input* input, dx_camera* 
     {
 	mouse->arcBallCurrent = v2{(r32)input->mouseXBounded, (r32)input->mouseYBounded};
 
-#if CAMERA_V3
 	RotateArcBallCam(camera, mouse);
 	UpdateArcBallTransformation(camera);
-#else
-	CalculateArcBall(mouse, camera);
-#endif
 	
 #if 0	
 	char textBuffer[256];
@@ -1006,41 +812,15 @@ ProcessMouseArcBallInputs(mouse_movements* mouse, game_input* input, dx_camera* 
 
 }
 
-internal DirectX::XMVECTOR
-GetCurrentRotation(dx_camera* camera)
-{
-    DirectX::XMVECTOR result = DirectX::XMQuaternionMultiply(camera->currRotation, camera->lastRotation);
-    return(result);
-}
-
 internal void
-UpdateCameraArc(dx_camera* camera, mouse_movements* mouse, game_input* input, win32_voxel_chunk* win32VoxelChunk)
+UpdateCameraArc(dx_camera* camera, mouse_movements* mouse, game_input* input)
 {
     //Get curr and starting positions from the mouse 
     ProcessMouseArcBallInputs(mouse, input, camera);
-#if CAMERA_V3
-    
-#else    
-    DirectX::XMVECTOR currentRotation = GetCurrentRotation(camera);
-    currentRotation = DirectX::XMQuaternionNormalize(currentRotation);
-    DirectX::XMMATRIX rotationMatrix = DirectX::XMMatrixRotationQuaternion(currentRotation);
-    DirectX::XMVECTOR localOffset = DirectX::XMVectorSet(camera->distance, camera->distance, camera->distance, 0.0f);
-    DirectX::XMVECTOR worldOffset = DirectX::XMVector3TransformNormal(localOffset, rotationMatrix);
-    camera->position = DirectX::XMVectorAdd(camera->pivot, worldOffset);
-
-    DirectX::XMVECTOR worldUp = rotationMatrix.r[1];
-    DirectX::XMMATRIX view = DirectX::XMMatrixLookAtRH(
-	camera->position,
-	camera->pivot,
-	worldUp);
-
-    DirectX::XMStoreFloat4x4(&camera->constantBufferData.view, DirectX::XMMatrixTranspose(view));
-
-#endif    
 }
 
 internal void
-UpdateCameraFP(dx_camera* camera)
+UpdateCameraFP(dx_camera* camera, game_state* gameState)
 {
     //Calculate the forward vector of our camera (this is the equation)
     camera->front =
@@ -1067,6 +847,7 @@ UpdateCameraFP(dx_camera* camera)
 		camera->up)
 	    )
 	);
+    gameState->gameCamera.pos = FromXMVECTORToV3(camera->position);
 
 }
 
@@ -1155,6 +936,49 @@ Win32ProcessKeyboardMessage(game_button_state* newState, game_button_state* oldS
     if (!newState->endedDown && oldState->endedDown)
     {
 	newState->released = true;
+    }
+}
+
+internal void
+Win32SetMouseStates(game_input* newInput, game_input* oldInput)
+{
+    for (int i = 0; i < 5; i++)
+    {
+	game_button_state* nMouse = &newInput->mouseButtons[i];
+	game_button_state* oMouse = &oldInput->mouseButtons[i];
+
+	if (nMouse->released || oMouse->released)
+	{
+	    oMouse->endedDown = false;
+	    nMouse->endedDown = false;
+	    oMouse->released = false;
+	    nMouse->released = false;
+	}
+
+	if (nMouse->started || oMouse->started)
+	{
+	    oMouse->started = false;
+	    nMouse->started = false;
+	}
+    }
+}
+
+internal void
+Win32ProcessMouseMessage(game_button_state* nMouse, game_button_state* oMouse, bool32 down)
+{
+    if (down)
+    {
+	OutputDebugString("Mouse button down\n");
+	nMouse->started = true;
+	oMouse->started = true;
+	nMouse->endedDown = true;
+	oMouse->endedDown = true;
+    }
+    else
+    {
+	OutputDebugString("Mouse button up\n");
+	nMouse->released = true;
+	oMouse->released = true;
     }
 }
 
@@ -1256,27 +1080,44 @@ Win32ProcessPendingMessages(game_controller_input* keyboardController, game_cont
 
 		bool32 isMouseDown = false;
 
-		game_button_state* nMmb = &newInput->mouseButtons[0];
-		game_button_state* oMmb = &oldInput->mouseButtons[0];
-
-
-		
+		//I imagine this could be better butttttt...
 		if (raw->data.mouse.usButtonFlags == RI_MOUSE_MIDDLE_BUTTON_DOWN)
 		{
-		    isMouseDown = true;
-		    OutputDebugString("Mouse down\n");
-		    nMmb->started = true;
-		    oMmb->started = true;
-		    nMmb->endedDown = true;
-		    oMmb->endedDown = true;		    
+		    Win32ProcessMouseMessage(&newInput->mouseButtons[e_mouse_buttons::middle_mouse],
+					     &oldInput->mouseButtons[e_mouse_buttons::middle_mouse],
+					     true);
+		}
+		else if (raw->data.mouse.usButtonFlags == RI_MOUSE_MIDDLE_BUTTON_UP)
+		{
+		    Win32ProcessMouseMessage(&newInput->mouseButtons[e_mouse_buttons::middle_mouse],
+					     &oldInput->mouseButtons[e_mouse_buttons::middle_mouse],
+								     false);
 		}
 
-		if (raw->data.mouse.usButtonFlags == RI_MOUSE_MIDDLE_BUTTON_UP)
+		if (raw->data.mouse.usButtonFlags == RI_MOUSE_LEFT_BUTTON_DOWN)
 		{
-		    isMouseDown = false;
-		    OutputDebugString("Mouse up\n");
-		    nMmb->released = true;
-		    oMmb->released = true;
+		    Win32ProcessMouseMessage(&newInput->mouseButtons[e_mouse_buttons::left_mouse],
+					     &oldInput->mouseButtons[e_mouse_buttons::left_mouse],
+					     true);
+		}
+		else if (raw->data.mouse.usButtonFlags == RI_MOUSE_LEFT_BUTTON_UP)
+		{
+		    Win32ProcessMouseMessage(&newInput->mouseButtons[e_mouse_buttons::left_mouse],
+					     &oldInput->mouseButtons[e_mouse_buttons::left_mouse],
+					     false);
+		}
+
+		if (raw->data.mouse.usButtonFlags == RI_MOUSE_RIGHT_BUTTON_DOWN)
+		{
+		    Win32ProcessMouseMessage(&newInput->mouseButtons[e_mouse_buttons::right_mouse],
+					     &oldInput->mouseButtons[e_mouse_buttons::right_mouse],
+					     true);
+		}
+		else if (raw->data.mouse.usButtonFlags == RI_MOUSE_RIGHT_BUTTON_UP)
+		{
+		    Win32ProcessMouseMessage(&newInput->mouseButtons[e_mouse_buttons::right_mouse],
+					     &oldInput->mouseButtons[e_mouse_buttons::right_mouse],
+					     false);
 		}
 
 	    }
@@ -1316,12 +1157,6 @@ LRESULT CALLBACK Win32MainWindowProc(HWND hwnd,
     return(result);
 }
 
-struct shader_code
-{
-    ID3DBlob* vertexShaderCode;
-    ID3DBlob* pixelShaderCode;    
-};
-
 internal shader_code
 CompileShaders(void)
 {
@@ -1335,9 +1170,14 @@ CompileShaders(void)
 internal void 
 CreateShaders(shaders* shaderResources)
 {
+    /*
+      Now theoretically speaking, you could create a new arena for all of the shader bytes, then empty it for each
+      shader you create, but that's just a theory
+     */
+
     HRESULT hr = {};
     
-    FILE* vShader, *pShader; //vertex (v) pixel (p)
+    FILE* vShader, *pShader, *debugVShader; //vertex (v) pixel (p)
     BYTE* bytes = 0;
 
     size_t destSize = 4096;
@@ -1354,7 +1194,7 @@ CreateShaders(shaders* shaderResources)
     hr = d3dDevice->CreateVertexShader(fileResult.contents,
 				  fileResult.contentsSize,
 				  nullptr,
-				  &shaderResources->vertexShader);
+				  &shaderResources->voxelVertexShader);
 
 
 
@@ -1381,9 +1221,22 @@ CreateShaders(shaders* shaderResources)
 	ArrayCount(iaDesc),
 	bytes,
 	fileResult.contentsSize,
-	&shaderResources->inputLayout
+	&shaderResources->voxelInputLayout
 	);
 
+    debug_read_file_result debugFileResult = DEBUGPlatformReadEntireFile(&blankThread, "../build/DebugVertexShader.cso");
+
+    bytes = (BYTE*)debugFileResult.contents;
+    hr = d3dDevice->CreateVertexShader(debugFileResult.contents,
+				       debugFileResult.contentsSize,
+				       nullptr,
+				       &shaderResources->debugVertexShader);
+
+    hr = d3dDevice->CreateInputLayout(iaDesc,
+				      ArrayCount(iaDesc),
+				      bytes,
+				      debugFileResult.contentsSize,
+				      &shaderResources->debugInputLayout);
     
 
     debug_read_file_result pixelShaderResult = DEBUGPlatformReadEntireFile(&blankThread, "../build/CubePixelShader.cso");
@@ -1402,7 +1255,7 @@ CreateShaders(shaders* shaderResources)
     hr = d3dDevice->CreateBuffer(
 	&cbDesc,
 	nullptr,
-	&shaderResources->constantBuffer);
+	&shaderResources->voxelConstantBuffer);
 }
 
 //NOTE: this function should be called asynchronously, Take the time to have it execute
@@ -1423,10 +1276,105 @@ CreateDeviceDependentResources(shaders* shaders, direct_x_loaded_buffers* loaded
 
 }
 
+internal void
+Win32InitAllDebugVectors(win32_debug_vectors* debugVectors, memory_arena* arena, memory_arena* debugVectorsArena, win32_state* win32State)
+{
+    //Create a single index buffer for all of our debug vectors
+    //Might not have to create a separate CB for the vectors, could just utilize b1
+    HRESULT hr = {};
 
+
+    debugVectors->numOfDebugIndices = 2;
+    debugVectors->debugVectorIndices[0] = 0;
+    debugVectors->debugVectorIndices[1] = 1;
+    
+    CD3D11_BUFFER_DESC indexDesc(
+	sizeof(u16) * debugVectors->numOfDebugIndices,
+	D3D11_BIND_INDEX_BUFFER,
+	D3D11_USAGE_DEFAULT);
+
+    D3D11_SUBRESOURCE_DATA indexData;
+    ZeroMemory(&indexData, sizeof(D3D11_SUBRESOURCE_DATA));
+    indexData.pSysMem = debugVectors->debugVectorIndices;
+    indexData.SysMemPitch = 0;
+    indexData.SysMemSlicePitch = 0;
+
+    hr = d3dDevice->CreateBuffer(
+	&indexDesc,
+	&indexData,
+	&debugVectors->indexBuffer);
+
+    //Create our vertex buffer for the vectors
+
+    debugVectors->vsInput = (vertex_position_color*)memoryPoolCode.PushArraySized(arena, (size_t)(sizeof(vertex_position_color) * debugVectors->numOfDebugIndices));
+
+    debugVectors->vsInput[0].pos = {};
+    debugVectors->vsInput[1].pos = {};
+    
+    D3D11_BUFFER_DESC vertexDesc;
+    vertexDesc.Usage = D3D11_USAGE_DYNAMIC;
+//    vertexDesc.ByteWidth = sizeof(vertex_position_color) * debugVectors->numOfDebugIndices;
+    vertexDesc.ByteWidth = sizeof(vertex_position_color) * 2000;
+    vertexDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+    vertexDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    vertexDesc.MiscFlags = 0;
+
+    D3D11_SUBRESOURCE_DATA vertexData;
+    ZeroMemory(&vertexData, sizeof(D3D11_SUBRESOURCE_DATA));
+    vertexData.pSysMem = &debugVectors->vsInput[0];
+    vertexData.SysMemPitch = 0;
+    vertexData.SysMemSlicePitch = 0;
+
+    hr = d3dDevice->CreateBuffer(
+	&vertexDesc,
+	&vertexData,
+	&debugVectors->vertexBuffer);
+}
+
+
+#if 0
+internal void
+CreateNewDebugVector(win32_debug_vectors* debugVectors, memory_arena* arena, game_input* input, dx_camera* camera)
+{
+    //You still have to create the init for vectors in the platform code, currently its in your game code which
+    //we were deciding might be a little problematic
+    
+    v2 screenToNDC = ScreenToCoordNDC(GetMouseScreenCoords(input));
+    v3 start = v3{screenToNDC.x, screenToNDC.y, 0.0f};
+    v3 end = start + (FromXMVECTORToV3(camera->eye) * debugVectors->debugVectorLength);
+    v3 color = v3{0.0f, 1.0f, 0.0f};
+
+    win32_debug_vector newVec = {};
+    newVec.start = FromV3ToXMVECTOR(start);
+    newVec.end = FromV3ToXMVECTOR(end);
+    newVec.color = FromV3ToXMVECTOR(color);
+
+    memoryPoolCode.AddListedItem(debugVectors->debugVectorsMemory,
+				 (void*)&newVec,
+				 sizeof(newVec),
+				 &debugVectors->debugVectorNodes);
+
+    debugVectors->numOfDrawnVectors = debugVectors->numOfDrawnVectors + 1;
+}
+#endif
 
 internal void
-Win32InitVoxelGrid(win32_voxel_chunk* win32VoxelChunk, memory_arena* arena)
+CreateNewDebugVector(win32_debug_vectors* debugVectors, game_state* gameState, memory_arena* debugTempArena)
+{
+    //Make an array of the lines in the scene, clear it whenever it's larger, continue to draw
+    //no matter what
+    if (debugVectors->currDrawnVectors < gameState->numOfDrawnVectors)
+    {
+
+
+	//Or we could edit a constant buffer
+
+    }
+
+}
+
+internal void
+Win32InitVoxelGrid(win32_voxel_chunk* win32VoxelChunk, memory_arena* arena, win32_state* win32State)
 {
     HRESULT hr = {};
     
@@ -1487,15 +1435,15 @@ Win32InitVoxelGrid(win32_voxel_chunk* win32VoxelChunk, memory_arena* arena)
 	&win32VoxelChunk->vertexBuffers);
 
     //Create one constant buffer of the world positions
+    //NOTE MOVE THIS OUT INTO A SEPARATE INITIALIZATION FUNCTION FOR OTHER CB's
+    //YOU DON'T WANT TO KEEP THIS IN A FUNCTION THAT IS SUPPOSED TO INIT THE VOXEL GRID ONLY
     D3D11_BUFFER_DESC cbDesc = {};
     cbDesc.Usage = D3D11_USAGE_DYNAMIC;
-    cbDesc.ByteWidth = sizeof(voxel_constants);
+    cbDesc.ByteWidth = sizeof(object_constants);
     cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
     cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 
-
-
-    hr = d3dDevice->CreateBuffer(&cbDesc, NULL, &win32VoxelChunk->voxelCB);
+    hr = d3dDevice->CreateBuffer(&cbDesc, NULL, &win32State->worldObjectConstants);
 
 
     D3D11_BUFFER_DESC worldCbDesc = {};
@@ -1569,7 +1517,70 @@ TRTAP(LARGE_INTEGER startTime)
 }
 
 internal void
-RenderVoxelCubes(shaders* shader, dx_camera* camera, win32_voxel_chunk* win32VoxelChunk)
+RenderDebug(shaders* shader, win32_debug_vectors* debugVectors, game_state* gameState, dx_camera* camera)
+{
+    context->UpdateSubresource(shader->voxelConstantBuffer, 0, nullptr, &camera->constantBufferData, 0, 0);
+    
+    context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+    context->IASetInputLayout(shader->debugInputLayout);
+    context->VSSetConstantBuffers(0, 1, &shader->voxelConstantBuffer);
+
+    
+    UINT stride = sizeof(vertex_position_color);
+    UINT offset = 0;
+
+    context->IASetVertexBuffers(0, 1, &debugVectors->vertexBuffer, &stride, &offset);
+
+    context->VSSetShader(shader->debugVertexShader, nullptr, 0);
+
+    
+    HRESULT hr = {};
+
+
+
+    listed_memory_node* currNode = gameState->debugVectorNodes;
+    vertex_position_color* dest = debugVectors->vsInput;
+
+    
+    i32 count = 0;
+    while (currNode && (count < gameState->numOfDrawnVectors))
+    {
+	game_debug_vector* currDebugVector = (game_debug_vector*)currNode->data;
+
+	DirectX::XMVECTOR start = FromV3ToXMVECTOR(currDebugVector->start);
+	DirectX::XMVECTOR end = FromV3ToXMVECTOR(currDebugVector->end);
+	DirectX::XMVECTOR color = FromV3ToXMVECTOR(currDebugVector->color);
+
+	DirectX::XMStoreFloat3(&dest[0].pos, start);
+	DirectX::XMStoreFloat3(&dest[0].color, color);
+
+	DirectX::XMStoreFloat3(&dest[1].pos, end);
+	DirectX::XMStoreFloat3(&dest[1].color, color);
+
+	dest += 2;
+		
+	count++;
+    }
+
+    if (count > 0)
+    {
+	D3D11_MAPPED_SUBRESOURCE mapped;
+	hr = context->Map(debugVectors->vertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
+	if (SUCCEEDED(hr))
+	{
+	    size_t bytesToCopy = sizeof(vertex_position_color) * (count * 2);
+	    MemCpy(mapped.pData, debugVectors->vsInput, bytesToCopy);
+
+	    context->Unmap(debugVectors->vertexBuffer, 0);
+	}
+	context->Draw(count * 2, 0);
+    }
+
+    
+}
+
+internal void
+RenderVoxelCubes(shaders* shader, dx_camera* camera, win32_voxel_chunk* win32VoxelChunk, win32_state* win32State)
 {
     //Start rendering the voxels so we can see what is going on with the cubes being rendered
 //Check the speeds here and where it could be casuing issues
@@ -1577,7 +1588,7 @@ RenderVoxelCubes(shaders* shader, dx_camera* camera, win32_voxel_chunk* win32Vox
 
     r32 teal [] = {0.098f, 0.439f, 0.439f, 1.000f};
 
-    context->UpdateSubresource(shader->constantBuffer, 0, nullptr, &camera->constantBufferData, 0, 0);
+    context->UpdateSubresource(shader->voxelConstantBuffer, 0, nullptr, &camera->constantBufferData, 0, 0);
 
     context->ClearRenderTargetView(
 	renderTarget,
@@ -1595,8 +1606,8 @@ RenderVoxelCubes(shaders* shader, dx_camera* camera, win32_voxel_chunk* win32Vox
 	depthStencilView);
 
     context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    context->IASetInputLayout(shader->inputLayout);
-    context->VSSetConstantBuffers(0, 1, &shader->constantBuffer);
+    context->IASetInputLayout(shader->voxelInputLayout);
+    context->VSSetConstantBuffers(0, 1, &shader->voxelConstantBuffer);
     context->VSSetConstantBuffers(2, 1, &win32VoxelChunk->voxelChunkWorldCB);
 
     UINT stride = sizeof(vertex_position_color);
@@ -1607,7 +1618,7 @@ RenderVoxelCubes(shaders* shader, dx_camera* camera, win32_voxel_chunk* win32Vox
 
 
     context->VSSetShader(
-	shader->vertexShader,
+	shader->voxelVertexShader,
 	nullptr,
 	0);
 
@@ -1625,15 +1636,15 @@ RenderVoxelCubes(shaders* shader, dx_camera* camera, win32_voxel_chunk* win32Vox
     for (int i = 0; i < win32VoxelChunk->chunk->numOfRenderedVoxels; i++)
     {
 
-	context->VSSetConstantBuffers(1, 1, &win32VoxelChunk->voxelCB);
+	context->VSSetConstantBuffers(1, 1, &win32State->worldObjectConstants);
 
 	context->IASetIndexBuffer(win32VoxelChunk->indexBuffers[i], DXGI_FORMAT_R16_UINT, 0);
 
 	
 	//We are getting the constant buffer on the GPU and using for the CPU
 	D3D11_MAPPED_SUBRESOURCE mapped;
-	hr = context->Map(win32VoxelChunk->voxelCB, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
-	voxel_constants* data = (voxel_constants*)mapped.pData;
+	hr = context->Map(win32State->worldObjectConstants, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
+	object_constants* data = (object_constants*)mapped.pData;
 
 	voxel* currVoxel = &win32VoxelChunk->chunk->voxels[win32VoxelChunk->chunk->renderedVoxelIndex[i]];
 
@@ -1642,21 +1653,7 @@ RenderVoxelCubes(shaders* shader, dx_camera* camera, win32_voxel_chunk* win32Vox
 
 	DirectX::XMStoreFloat4(&data->worldPos, vecWorld);
 	
-#if 0
-	DirectX::XMMATRIX rotMat = DirectX::XMMatrixIdentity();
-	DirectX::XMMATRIX scaleMat = DirectX::XMMatrixIdentity();
-	DirectX::XMMATRIX transMat = DirectX::XMMatrixTranslation(currVoxel->pos.x,
-								  currVoxel->pos.y,
-								  currVoxel->pos.z);
-	    
-	//srt
-
-	DirectX::XMMATRIX scaleRotMat = DirectX::XMMatrixMultiply(scaleMat, rotMat);
-	DirectX::XMMATRIX world = DirectX::XMMatrixMultiply(scaleRotMat, transMat);	
-
-	DirectX::XMStoreFloat4x4(&data->worldPos, world);
-#endif
-	context->Unmap(win32VoxelChunk->voxelCB, 0);
+	context->Unmap(win32State->worldObjectConstants, 0);
 	
 	context->DrawIndexed(
 	    currVoxel->renderedIndiceCount,
@@ -1664,96 +1661,23 @@ RenderVoxelCubes(shaders* shader, dx_camera* camera, win32_voxel_chunk* win32Vox
 	    0);
 
     }
-}
 
-internal void
-Render(ID3D11Buffer* constantBuffer, shaders* shader, direct_x_loaded_buffers* loadedBuffers, dx_camera* camera)
-{
+    //Draw lined objects (line_strip_topology)
 
-    context->UpdateSubresource(
-	shader->constantBuffer,
-	0,
-	nullptr,
-	&camera->constantBufferData,
-	0,
-	0);    
-
-    //Clear the render target and z buffer
-    r32 teal [] = {0.098f, 0.439f, 0.439f, 1.000f};
-    context->ClearRenderTargetView(
-	renderTarget,
-	teal);
-
-    context->ClearDepthStencilView(
-	depthStencilView,
-	D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
-	1.0f,
-	0);
-
-    //Set the render target
-    context->OMSetRenderTargets(
-	1,
-	&renderTarget,
-	depthStencilView);
-
-    //Set the IA stage by setting the input topology and layout
-
-    UINT strides[2] = {sizeof(vertex_position_color), sizeof(inst_buffer_struct)};
-    UINT offsets[2] = {0, 0};
-
-    ID3D11Buffer* vertInstBuffers[2] = {loadedBuffers->vertexBuffer, shader->instanceBuffer};
-    
-    context->IASetVertexBuffers(
-	0,
-	2,
-	vertInstBuffers,
-	strides,
-	offsets);    
-
-
-    context->IASetIndexBuffer(
-	loadedBuffers->indexBuffer,
-	DXGI_FORMAT_R16_UINT,
-	0);
-
+    //Complete our conversions from game to platform code
+    //Draw out the number of lines required 
     context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-    context->IASetInputLayout(shader->inputLayout);
-
-    //Set up vertex shader stage 
-    context->VSSetShader(
-	shader->vertexShader,
-	nullptr,
-	0);
-
-
-    context->VSSetConstantBuffers(
-	0,
-	1,
-	&shader->constantBuffer);    
-
-
-    //Setup the pixel shader stage
-    context->PSSetShader(
-	shader->pixelShader,
-	nullptr,
-	0);
-
-    //Calling draw tells d3d to start sending commands to the graphics device
-
-
-    //Draw each cube from the voxel grids
-    //Each cube needs a buffer
-
+#if 0     
+    //I'm thinking about the fact that I might need another constant buffer for these
+    //Should I write an entirely new shader?k
+    for (i32 i = 0; i < gameState->numOfDrawnVectors; i++)
+    {
+	
+    }
+#endif
     
     
-    context->DrawIndexedInstanced(
-	loadedBuffers->indexCount,
-	loadedBuffers->instanceCount,
-	0,
-	0,
-	0);
-
 }
 
 int CALLBACK WinMain(HINSTANCE hInstance,
@@ -1781,6 +1705,9 @@ int CALLBACK WinMain(HINSTANCE hInstance,
       Load our memory pool library
 */
 
+    //Well if you ever decide that you need to debug past versions of the memory code, this is probably
+    //what was loading in the updated version of the library instead of the old version I was trying to
+    //test against...
     HMODULE memoryPoolLibrary = LoadLibrary("D:/ExternalCustomAPIs/MemoryPools/dll/memory_pools.dll");
 
     if (memoryPoolLibrary)
@@ -1788,9 +1715,14 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 	memoryPoolCode.PushStruct = (memory_pool_push_struct*)GetProcAddress(memoryPoolLibrary, "PushStruct");
 	memoryPoolCode.PushArray = (memory_pool_push_array*)GetProcAddress(memoryPoolLibrary, "PushArray");
 	memoryPoolCode.PoolAlloc = (memory_pool_alloc*)GetProcAddress(memoryPoolLibrary, "PoolAlloc");
-	memoryPoolCode.InitializeArena = (memory_pool_initialize_arena*)GetProcAddress(memoryPoolLibrary, "InitializeArena");
+	memoryPoolCode.InitArena = (memory_pool_initialize_arena*)GetProcAddress(memoryPoolLibrary, "InitializeArena");
+	memoryPoolCode.InitArena2 = (memory_pool_initialize_arena2*)GetProcAddress(memoryPoolLibrary, "InitializeArena2");
 	memoryPoolCode.ClearArena = (memory_pool_clear_arena*)GetProcAddress(memoryPoolLibrary, "ClearArena");
 	memoryPoolCode.PushArraySized = (memory_pool_push_array_sized*)GetProcAddress(memoryPoolLibrary, "PushArraySized");
+	memoryPoolCode.InitListedMemory = (memory_pool_init_listed_memory*)GetProcAddress(memoryPoolLibrary, "InitializeListedMemory");
+	memoryPoolCode.AddListedItem = (memory_pool_add_listed_item*)GetProcAddress(memoryPoolLibrary, "AddListedItem");
+	memoryPoolCode.RemoveListedItem = (memory_pool_remove_listed_item*)GetProcAddress(memoryPoolLibrary, "RemoveListedItem");
+	
     }
     if (memoryPoolCode.PushStruct && memoryPoolCode.PushArray && memoryPoolCode.PoolAlloc)
     {
@@ -1825,13 +1757,39 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 
     //arena, size, base
 
-    memoryPoolCode.InitializeArena(&programState->setupArena, memory.permanentStorageSize - sizeof(program_state),
+#if 0    
+    memoryPoolCode.InitArena2(&programState->setupArena, memory.permanentStorageSize - sizeof(program_state),
 				   (u8*)memory.permanentStorage + sizeof(program_state));
 
-    memoryPoolCode.InitializeArena(&programState->perFrameArena, memory.transientStorageSize - sizeof(program_state),
+    memoryPoolCode.InitArena2(&programState->perFrameArena, memory.transientStorageSize - sizeof(program_state),
 				   (u8*)memory.transientStorage + sizeof(program_state));
 
-    programState->shaderInfo = (shader_info*)memoryPoolCode.PushStruct(&programState->setupArena, sizeof(programState->shaderInfo));
+#else
+    size_t setupArenaAllocSize = Megabytes(700);
+    size_t perFrameArenaAllocSize = Megabytes(50);
+
+#if 0    
+    memory.permanentArenaBase = (u8*)memory.permanentStorage + setupArenaAllocSize - sizeof(program_state);
+    //Now set it up for transient storage bc you are actually using it lmaoooooo
+    memory.transientArenaBase = (u8*)memory.transientStorage + perFrameArenaAllocSize - sizeof(program_state);
+#else
+    memory.permanentArenaBase = (u8*)memory.permanentStorage + sizeof(program_state);
+    memory.transientArenaBase = (u8*)memory.transientStorage + sizeof(program_state);
+    
+#endif    
+    
+    memoryPoolCode.InitArena(&programState->setupArena, setupArenaAllocSize, &memory, e_arena_type::permanent);
+    memoryPoolCode.InitArena(&programState->perFrameArena, perFrameArenaAllocSize, &memory, e_arena_type::transient);
+
+    size_t debugVectorArenaSize = Megabytes(5);
+    memoryPoolCode.InitArena(&programState->debugVectorArena, debugVectorArenaSize, &memory, e_arena_type::permanent); 
+
+    i32* foo = (i32*)memoryPoolCode.PushStruct(&programState->debugVectorArena, sizeof(i32));
+    
+    
+#endif    
+    
+
 
     
 
@@ -1859,7 +1817,6 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 
 
     D3D_FEATURE_LEVEL featureLevel;
-
 
 
     IDXGIAdapter* adapter = NULL;
@@ -2006,12 +1963,14 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 	    i32 numOfGameObjects = 0;
 	    game_initialize_data initializedData;
 	    win32_voxel_chunk win32VoxelChunk = {};	    
-	    initializedData = game.GameInitialize(&memoryPoolCode, &programState->setupArena, &memory, &numOfGameObjects, &parseObjCode);
+	    initializedData = game.GameInitialize(&memoryPoolCode, &programState->setupArena, &memory, &numOfGameObjects, &parseObjCode, &programState->debugVectorArena);
 
 	    win32VoxelChunk.chunk = &initializedData.chunk;
 	    
 	    u32 loadCounter = 120;
 
+
+	    game_state* gameState = initializedData.gameState;
 	    /* MAIN GAME LOOP */
 	    /* MAIN GAME LOOP */
 	    /* MAIN GAME LOOP */
@@ -2023,8 +1982,10 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 
 
 	    
-	    Win32InitVoxelGrid(&win32VoxelChunk, &programState->setupArena);
-
+	    Win32InitVoxelGrid(&win32VoxelChunk, &programState->setupArena, &win32State);
+	    win32_debug_vectors debugVectors = {};
+	    Win32InitAllDebugVectors(&debugVectors, &programState->setupArena, &programState->debugVectorArena, &win32State);
+	    
 	    ShowCursor(false);
 
 	    RAWINPUTDEVICE rid[1];
@@ -2071,6 +2032,13 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 		newInput->mouseZBounded = 0;
 
 #if 0
+		char mouseBuffer[256];
+		sprintf_s(mouseBuffer, sizeof(mouseBuffer), "Mouse Values in Win32: X: %f, Y: %f\n",
+			  (r32)mouseP.x, (r32)mouseP.y);
+		OutputDebugString(mouseBuffer);
+#endif		
+		
+#if 0
 		LARGE_INTEGER wallClockTime = Win32GetWallClock();
 
 		r32 now = (r32)(wallClockTime.QuadPart);
@@ -2095,28 +2063,16 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 		};
 
 		
+
 		mouse_movements mouse = {};
 
 
 		//At some point please move this in the process pending messages, rn I don't wanna go back to
 		//debugging it so I'm leaving it for future me.... Thanks future me!
-		game_button_state* nMmb = &newInput->mouseButtons[0];
-		game_button_state* oMmb = &oldInput->mouseButtons[0];
 
-		if (oMmb->released || nMmb->released)
-		{
-		    nMmb->endedDown = false;
-		    oMmb->endedDown = false;
-		    oMmb->released = false;
-		    nMmb->released = false;
-		}
+		Win32SetMouseStates(newInput, oldInput);
 
-		if (oMmb->started || nMmb->started)
-		{
-		    oMmb->started = false;
-		    nMmb->started = false;
-		}		
-
+		
 		Win32ProcessPendingMessages(newKeyboardController, oldKeyboardController, &camera, &mouse, newInput, oldInput);
 
 		r32 xChange = deltaTime * (0.3f * mouse.x);
@@ -2127,7 +2083,7 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 		{
 		    ProcessMouseControlFP(&camera, -xChange, -yChange);
 		    ProcessPlayerMovement(newKeyboardController, &camera, deltaTime);		    
-		    UpdateCameraFP(&camera);
+		    UpdateCameraFP(&camera, gameState);
 		}
 		else
 		{
@@ -2136,11 +2092,27 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 			InitArcBall(&camera, &win32VoxelChunk);
 			arcCamInitialized = true;
 		    }
-		    UpdateCameraArc(&camera, &arcMouse, newInput, &win32VoxelChunk);
+		    UpdateCameraArc(&camera, &arcMouse, newInput);
+
+		    //Debug vectors start here
 		}
 
+#if 0
+		//GameUpdate
+		char mouseBuffer[256];
+		sprintf_s(mouseBuffer, sizeof(mouseBuffer), "Mouse Values in Win32: X: %f, Y: %f\n",
+			  gameState->mouse.x, gameState->mouse.y);
+		OutputDebugString(mouseBuffer);
+#endif
+		
+		game.GameUpdate(&memory, newInput, gameState, &memoryPoolCode, &programState->debugVectorArena);
 
-		RenderVoxelCubes(&shaders, &camera, &win32VoxelChunk);
+		//Convert necessary game related data to win32 specific data
+
+		//NOTE: for some reason, debugVectors are getting changed in this RenderVoxelCube function,
+		//I'm guessing something is touching the memory here that shouldn't be
+		RenderVoxelCubes(&shaders, &camera, &win32VoxelChunk, &win32State);
+		RenderDebug(&shaders, &debugVectors, gameState, &camera);
 		swapChain->Present(1, 0);
 
 

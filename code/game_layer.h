@@ -5,11 +5,24 @@
 #include "D:/ExternalCustomAPIs/OBJLoader/code/obj_parser_dll_include.h"
 #include "L:/code/game_layer_math.h"
 
+#define screenW 640
+#define screenH 480
 
 enum voxel_type
 {
     vt_empty = 0,
     vt_solid = 1,
+};
+
+struct mouse_movements
+{
+    v2 arcBallStart;
+    v2 arcBallCurrent;
+
+    v2 arcBallPrevNDC;
+
+    bool32 recMousePos;
+    r32 x, y;    
 };
 
 struct bounding_box
@@ -83,10 +96,31 @@ struct voxel_chunk
 //    
 };
 
+struct game_debug_vector
+{
+    v3 start, end, color;
+};
+
+struct game_camera
+{
+    v3 pos, forward;
+};
+
+struct game_state
+{
+    game_camera gameCamera;
+    r32 debugVectorLength;
+
+    listed_memory* debugVectorMemory;
+    listed_memory_node* debugVectorNodes;
+    i32 numOfDrawnVectors;
+};
+
 struct game_initialize_data
 {
     obj* allObjs;
     voxel_chunk chunk;
+    game_state* gameState;
 };
 
 struct instance_data
@@ -133,6 +167,13 @@ struct game_controller_input
     };
 };
 
+enum e_mouse_buttons
+{
+    middle_mouse,
+    left_mouse,
+    right_mouse,
+};
+
 struct game_input
 {
     game_button_state mouseButtons[5];
@@ -149,6 +190,7 @@ struct game_input
     r32 dTime;
     game_controller_input controllers[5];
 };
+ 
 
 inline game_controller_input* GetController(game_input* input, u32 controllerIndex)
 {
@@ -156,11 +198,29 @@ inline game_controller_input* GetController(game_input* input, u32 controllerInd
     return(result);
 }
 
+internal v2
+GetMouseScreenCoords(game_input* input)
+{
+    v2 result = {};
+    result.x = (r32)input->mouseXBounded;
+    result.y = (r32)input->mouseYBounded;
+    return(result);
+}
 
-#define GAME_UPDATE(name) void name(program_memory* memory, game_input* input)
+internal v2
+ScreenToCoordNDC(v2 loc)
+{
+    v2 windowSize = v2{screenW, screenH};
+    v2 one = v2{1.0f, 1.0f};
+    
+    v2 result = loc * 2.0f / windowSize - one;
+    return(result);
+}
+
+#define GAME_UPDATE(name) void name(program_memory* memory, game_input* input, game_state* gameState, memory_pool_dll_code* memoryPoolCode, memory_arena* debugVectorArena)
 typedef GAME_UPDATE(game_update);
 
-#define GAME_INITIALIZE(name) game_initialize_data name(memory_pool_dll_code* memoryPoolCode, memory_arena* objLocationArena, program_memory* mainProgramMemory, i32* numOfGameObjects, parse_obj_data_code* parseOBJCode)
+#define GAME_INITIALIZE(name) game_initialize_data name(memory_pool_dll_code* memoryPoolCode, memory_arena* objLocationArena, program_memory* mainProgramMemory, i32* numOfGameObjects, parse_obj_data_code* parseOBJCode, memory_arena* debugVectorArena)
 typedef GAME_INITIALIZE(game_initialize);
 
 #define GAME_LAYER_H

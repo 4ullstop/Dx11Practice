@@ -2,10 +2,15 @@
 
 recent_file: path: "win32_dx11.cpp"
 recent_file: path: "game_layer.cpp"
+recent_file: path: "game_layer.h"
+recent_file: path: "D:/externalcustomapis/memorypools/code/memory_pools.cpp"
+recent_file: path: "D:/Backups/Dx11Practice/Dx11Practice0212/code/game_layer.cpp"
+recent_file: path: "D:/Backups/ExternalCustomAPIs/0214/MemoryPools/code/memory_pools.cpp"
+recent_file: path: "D:/Backups/Dx11Practice/Dx11Practice0212/code/game_layer.h"
+recent_file: path: "D:/Backups/Dx11Practice/Dx11Practice0212/code/win32_dx11.cpp"
 recent_file: path: "game_layer_math.h"
 recent_file: path: "D:/Backups/Dx11Practice/Dx11Practice1128/code/win32_dx11.cpp"
 recent_file: path: "D:/Backups/Dx11Practice/Dx11Practice1128/code/game_layer.cpp"
-recent_file: path: "D:/externalcustomapis/memorypools/code/memory_pools.cpp"
 recent_file: path: "T:/code/win32_brayn.cpp"
 recent_file: path: "D:/Backups/Dx11Practice/Dx11Practice1111/code/win32_dx11.cpp"
 recent_file: path: "F:/code/win32_apart.cpp"
@@ -26,33 +31,32 @@ target:
 {
   executable: "../build/win32_dx11.exe"
   working_directory: "../data"
-  label: "Current project in progress"
+  label: Current
   enabled: 1
 }
 tab_width: 2
 target:
 {
-  executable: "D:/ExternalCustomAPIs/OBJLoader/dll/obj_loader.exe"
-  working_directory: "D:/ExternalCustomAPIs/OBJLoader/misc/"
-}
-target:
-{
-  executable: "P:/build/inst_decoder.exe"
-  working_directory: "P:/data/"
-}
-target:
-{
-  executable: "T:/build/win32_brayn.exe"
-  working_directory: "T:/data/"
-}
-target:
-{
   executable: "D:/Backups/Dx11Practice/Dx11Practice1111/build/win32_dx11.exe"
   working_directory: "D:/Backups/Dx11Practice/Dx11Practice1111/data/"
-  label: "Backup of dx11 practice, first person camera"
+  label: "1111 Backup"
 }
 target:
 {
   executable: "D:/Backups/Dx11Practice/Dx11Practice1128/build/win32_dx11.exe"
   working_directory: "D:/Backups/Dx11Practice/Dx11Practice1128/misc/"
+  label: "1128 Backup"
+}
+target:
+{
+  executable: "D:/Backups/Dx11Practice/Dx11Practice0212/build/win32_dx11.exe"
+  working_directory: "D:/Backups/Dx11Practice/Dx11Practice0212/data/"
+  label: "0212 Backup"
+  enabled: 0
+}
+breakpoint:
+{
+  source_location: "D:/Backups/Dx11Practice/Dx11Practice0212/code/game_layer.cpp:54:1"
+  hit_count: 0
+  enabled: 0
 }
