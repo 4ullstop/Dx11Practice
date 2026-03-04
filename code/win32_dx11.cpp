@@ -616,6 +616,7 @@ UpdateInternalTransformations(dx_camera* camera)
     DirectX::XMVECTOR det;
     DirectX::XMMATRIX view = DirectX::XMMatrixInverse(&det, cameraWorld);
 
+    
     DirectX::XMStoreFloat4x4(&camera->constantBufferData.view, DirectX::XMMatrixTranspose(view));
     camera->viewInverted = cameraWorld;    
 }
@@ -623,7 +624,7 @@ UpdateInternalTransformations(dx_camera* camera)
 internal DirectX::XMVECTOR
 NDCToArcBall(v2 loc)
 {
-    r32 dist = DotV2(loc, loc);
+    r32 dist = Dot(loc, loc);
 
     DirectX::XMVECTOR result = {};
     if (dist <= 1.0f)
@@ -770,7 +771,7 @@ InitArcBall(dx_camera* camera, win32_voxel_chunk* win32VoxelChunk)
 }
 
 internal void
-ProcessMouseArcBallInputs(mouse_movements* mouse, game_input* input, dx_camera* camera)
+ProcessMouseArcBallInputs(mouse_movements* mouse, game_input* input, dx_camera* camera, game_state* gameState)
 {
     if (input->mouseButtons[0].released)
     {
@@ -796,27 +797,29 @@ ProcessMouseArcBallInputs(mouse_movements* mouse, game_input* input, dx_camera* 
 
 	RotateArcBallCam(camera, mouse);
 	UpdateArcBallTransformation(camera);
-	
-#if 0	
-	char textBuffer[256];
-	sprintf_s(textBuffer, sizeof(textBuffer), "Start X: %f, Start Y: %f *** Curr X: %f, Curr Y: %f\n",
-		  mouse->arcBallStart.x, mouse->arcBallStart.y,
-		  mouse->arcBallCurrent.x, mouse->arcBallCurrent.y);
-	
-	OutputDebugString(textBuffer);
-#endif
 
+	DirectX::XMVECTOR pos = camera->viewInverted.r[3];
+	DirectX::XMVECTOR forward = DirectX::XMVector3Normalize(camera->viewInverted.r[2]);
 	
+	gameState->gameCamera.pos = FromXMVECTORToV3(pos);
+
+	gameState->gameCamera.forward = FromXMVECTORToV3(forward);
+	
+	char posBuffer[256];
+	sprintf_s(posBuffer, sizeof(posBuffer), "X: %f, Y: %f, Z: %f\n",
+		  DirectX::XMVectorGetX(camera->position), DirectX::XMVectorGetY(camera->position), DirectX::XMVectorGetZ(camera->position));
+	OutputDebugString(posBuffer);
     }
 
 
 }
 
 internal void
-UpdateCameraArc(dx_camera* camera, mouse_movements* mouse, game_input* input)
+UpdateCameraArc(dx_camera* camera, mouse_movements* mouse, game_input* input, game_state* gameState)
 {
     //Get curr and starting positions from the mouse 
-    ProcessMouseArcBallInputs(mouse, input, camera);
+    ProcessMouseArcBallInputs(mouse, input, camera, gameState);
+
 }
 
 internal void
@@ -847,6 +850,12 @@ UpdateCameraFP(dx_camera* camera, game_state* gameState)
 		camera->up)
 	    )
 	);
+
+	
+    char posBuffer[256];
+    sprintf_s(posBuffer, sizeof(posBuffer), "X: %f, Y: %f, Z: %f\n",
+	      DirectX::XMVectorGetX(camera->position), DirectX::XMVectorGetY(camera->position), DirectX::XMVectorGetZ(camera->position));
+    OutputDebugString(posBuffer);    
     gameState->gameCamera.pos = FromXMVECTORToV3(camera->position);
 
 }
@@ -1549,16 +1558,19 @@ RenderDebug(shaders* shader, win32_debug_vectors* debugVectors, game_state* game
 
 	DirectX::XMVECTOR start = FromV3ToXMVECTOR(currDebugVector->start);
 	DirectX::XMVECTOR end = FromV3ToXMVECTOR(currDebugVector->end);
-	DirectX::XMVECTOR color = FromV3ToXMVECTOR(currDebugVector->color);
+//	DirectX::XMVECTOR color = FromV3ToXMVECTOR(currDebugVector->color);
+	DirectX::XMVECTOR sColor = DirectX::XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f);
+	DirectX::XMVECTOR eColor = DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 
 	DirectX::XMStoreFloat3(&dest[0].pos, start);
-	DirectX::XMStoreFloat3(&dest[0].color, color);
+	DirectX::XMStoreFloat3(&dest[0].color, sColor);
 
 	DirectX::XMStoreFloat3(&dest[1].pos, end);
-	DirectX::XMStoreFloat3(&dest[1].color, color);
+	DirectX::XMStoreFloat3(&dest[1].color, eColor);
 
 	dest += 2;
-		
+
+	currNode = currNode->next;
 	count++;
     }
 
@@ -1575,8 +1587,6 @@ RenderDebug(shaders* shader, win32_debug_vectors* debugVectors, game_state* game
 	}
 	context->Draw(count * 2, 0);
     }
-
-    
 }
 
 internal void
@@ -1635,9 +1645,8 @@ RenderVoxelCubes(shaders* shader, dx_camera* camera, win32_voxel_chunk* win32Vox
     
     for (int i = 0; i < win32VoxelChunk->chunk->numOfRenderedVoxels; i++)
     {
-
 	context->VSSetConstantBuffers(1, 1, &win32State->worldObjectConstants);
-
+	
 	context->IASetIndexBuffer(win32VoxelChunk->indexBuffers[i], DXGI_FORMAT_R16_UINT, 0);
 
 	
@@ -2092,25 +2101,18 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 			InitArcBall(&camera, &win32VoxelChunk);
 			arcCamInitialized = true;
 		    }
-		    UpdateCameraArc(&camera, &arcMouse, newInput);
+		    UpdateCameraArc(&camera, &arcMouse, newInput, gameState);
 
 		    //Debug vectors start here
 		}
 
-#if 0
+
 		//GameUpdate
-		char mouseBuffer[256];
-		sprintf_s(mouseBuffer, sizeof(mouseBuffer), "Mouse Values in Win32: X: %f, Y: %f\n",
-			  gameState->mouse.x, gameState->mouse.y);
-		OutputDebugString(mouseBuffer);
-#endif
 		
 		game.GameUpdate(&memory, newInput, gameState, &memoryPoolCode, &programState->debugVectorArena);
 
 		//Convert necessary game related data to win32 specific data
 
-		//NOTE: for some reason, debugVectors are getting changed in this RenderVoxelCube function,
-		//I'm guessing something is touching the memory here that shouldn't be
 		RenderVoxelCubes(&shaders, &camera, &win32VoxelChunk, &win32State);
 		RenderDebug(&shaders, &debugVectors, gameState, &camera);
 		swapChain->Present(1, 0);

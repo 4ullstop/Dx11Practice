@@ -3,7 +3,9 @@
 #include "D:/ExternalCustomAPIs/Types/direct_x_typedefs.h"
 #include "D:/ExternalCustomAPIs/MemoryPools/code/memory_pool_dll_include.h"
 #include "D:/ExternalCustomAPIs/OBJLoader/code/obj_parser_dll_include.h"
-#include "L:/code/game_layer_math.h"
+
+//#include "L:/code/game_layer_math.h"
+#include "D:/ExternalCustomAPIs/Math/forty_math.h"
 
 #define screenW 640
 #define screenH 480
@@ -104,6 +106,8 @@ struct game_debug_vector
 struct game_camera
 {
     v3 pos, forward;
+
+    m4 proj, view;
 };
 
 struct game_state

@@ -342,7 +342,7 @@ extern "C" GAME_INITIALIZE(GameInitialize)
 	(listed_memory*)memoryPoolCode->PushStruct(debugVectorArena, sizeof(listed_memory));
     memoryPoolCode->InitListedMemory(result.gameState->debugVectorMemory,
 				     debugVectorArena, sizeof(game_debug_vector));
-    result.gameState->debugVectorLength = 10.0f;
+    result.gameState->debugVectorLength = -10.0f;
     return(result);
 }
 
@@ -350,20 +350,23 @@ extern "C" GAME_UPDATE(GameUpdate)
 {
     //Mouse update and create debug vectors on mouse click
 
+
+    
     if (input->mouseButtons[e_mouse_buttons::left_mouse].started)
     {
-	//I do believe this is not working right, your math isn't correct, ScreenToCoordNDC also only seems to be
+
+	//THIS:
+//I do believe this is not working right, your math isn't correct, ScreenToCoordNDC also only seems to be
 	//returning 1.0 to -1.0
 
+	//the matricies are currently not being filled out, do so please
 	v2 screenToNDC = ScreenToCoordNDC(GetMouseScreenCoords(input));
-	v3 start = v3{screenToNDC.x, screenToNDC.y, 0.0f};
-	v3 end = start + (gameState->gameCamera.pos * gameState->debugVectorLength);
+
+	v3 screenNDC = v3{screenToNDC.x, screenToNDC.y, 0.0f};
+	v3 start = screenNDC + gameState->gameCamera.pos;
+	v3 end = start + (gameState->gameCamera.forward * gameState->debugVectorLength);
 	v3 color = v3{1.0f, 0.0f, 0.0f};
 	
-	//I don't think I need to allocate here, I just need to input the data into our data struct
-	//in our list which was already allocated just as a void*
-
-
 	game_debug_vector newVec = {};
 	newVec.start = start;
 	newVec.end = end;

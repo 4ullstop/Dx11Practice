@@ -122,6 +122,18 @@ DotV3(v3 a, v3 b)
     return(result);
 }
 
+internal v3
+CrossV3(v3 a, v3 b)
+{
+    r32 x, y, z;
+    x = ((a.y) * (b.z)) - ((a.z) * (b.y));
+    y = ((a.z) * (b.x)\
+	) - ((a.y) * (b.z));
+    z = ((a.x)* (b.y)) - ((a.y) * (b.x));
+    v3 result = v3{x, y, z};
+    return(result);
+}
+
 /*
 ********v2********
  */
