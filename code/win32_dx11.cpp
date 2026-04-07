@@ -50,7 +50,7 @@ global_variable constant_buffer_struct constantBufferData;
 
 global_variable bool32 freeCam;
 
-
+#include "D:/ExternalCustomAPIs/Math/forty_directx_math.h"
 #include "game_layer.h"
 
 
@@ -64,6 +64,7 @@ global_variable ID3D11Texture2D* depthStencil;
 global_variable D3D11_TEXTURE2D_DESC bbDesc;
 
 
+#if 0
 internal DirectX::XMVECTOR
 FromV3ToXMVECTOR(v3 vec)
 {
@@ -81,7 +82,7 @@ FromXMVECTORToV3(DirectX::XMVECTOR vec)
 
     return(result);
 }
-
+#endif
 internal void
 ConfigureBackBuffer(void)
 {
@@ -811,7 +812,21 @@ ProcessMouseArcBallInputs(mouse_movements* mouse, game_input* input, dx_camera* 
 	OutputDebugString(posBuffer);
     }
 
+}
 
+internal void
+UpdateGameStateInfo(game_state* gameState, dx_camera* camera)
+{
+   DirectX::XMMATRIX projection = XMLoadFloat4x4(&camera->constantBufferData.projection);
+
+//    projection = DirectX::XMMatrixInverse(nullptr, projection);
+    
+    gameState->gameCamera.proj = FromXMMATRIXToM4(projection);
+    gameState->gameCamera.viewInverted = FromXMMATRIXToM4(camera->viewInverted);
+    DirectX::XMVECTOR pos = camera->viewInverted.r[3];
+    
+    gameState->gameCamera.pos = FromXMVECTORToV3(pos);
+	    
 }
 
 internal void
@@ -1077,6 +1092,7 @@ Win32ProcessPendingMessages(game_controller_input* keyboardController, game_cont
 	    }
 
 
+
 	    GetRawInputData((HRAWINPUT)msg.lParam, RID_INPUT, NULL, &dwSize, sizeof(RAWINPUTHEADER));
 	    LPBYTE lpb = (LPBYTE)memoryPoolCode.PushStruct(&programState->perFrameArena, (sizeof(BYTE)) * dwSize);
 	    GetRawInputData((HRAWINPUT)msg.lParam, RID_INPUT, lpb, &dwSize, sizeof(RAWINPUTHEADER));
@@ -1087,6 +1103,8 @@ Win32ProcessPendingMessages(game_controller_input* keyboardController, game_cont
 		mouse->x = (r32)raw->data.mouse.lLastX;
 		mouse->y = (r32)raw->data.mouse.lLastY;
 
+
+		
 		bool32 isMouseDown = false;
 
 		//I imagine this could be better butttttt...
@@ -1127,6 +1145,10 @@ Win32ProcessPendingMessages(game_controller_input* keyboardController, game_cont
 		    Win32ProcessMouseMessage(&newInput->mouseButtons[e_mouse_buttons::right_mouse],
 					     &oldInput->mouseButtons[e_mouse_buttons::right_mouse],
 					     false);
+		}
+		else if (raw->data.mouse.usButtonFlags == RI_MOUSE_WHEEL)
+		{
+		    
 		}
 
 	    }
@@ -1265,6 +1287,16 @@ CreateShaders(shaders* shaderResources)
 	&cbDesc,
 	nullptr,
 	&shaderResources->voxelConstantBuffer);
+
+    CD3D11_BUFFER_DESC cbdDesc(
+	sizeof(constant_buffer_struct),
+	D3D11_BIND_CONSTANT_BUFFER);
+
+    hr = d3dDevice->CreateBuffer(
+	&cbDesc,
+	nullptr,
+	&shaderResources->debugConstantBuffer);
+	
 }
 
 //NOTE: this function should be called asynchronously, Take the time to have it execute
@@ -1461,6 +1493,7 @@ Win32InitVoxelGrid(win32_voxel_chunk* win32VoxelChunk, memory_arena* arena, win3
     worldCbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
     worldCbDesc.CPUAccessFlags = 0;
 
+    //I think this is DEAD CODE 
     DirectX::XMMATRIX rotMat = DirectX::XMMatrixIdentity();
     DirectX::XMMATRIX scaleMat = DirectX::XMMatrixIdentity();
     DirectX::XMMATRIX transMat = DirectX::XMMatrixTranslation(win32VoxelChunk->chunk->chunkWorldLocation.x,
@@ -1528,11 +1561,11 @@ TRTAP(LARGE_INTEGER startTime)
 internal void
 RenderDebug(shaders* shader, win32_debug_vectors* debugVectors, game_state* gameState, dx_camera* camera)
 {
-    context->UpdateSubresource(shader->voxelConstantBuffer, 0, nullptr, &camera->constantBufferData, 0, 0);
+    context->UpdateSubresource(shader->debugConstantBuffer, 0, nullptr, &camera->constantBufferData, 0, 0);
     
     context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
     context->IASetInputLayout(shader->debugInputLayout);
-    context->VSSetConstantBuffers(0, 1, &shader->voxelConstantBuffer);
+    context->VSSetConstantBuffers(0, 1, &shader->debugConstantBuffer);
 
     
     UINT stride = sizeof(vertex_position_color);
@@ -1624,9 +1657,6 @@ RenderVoxelCubes(shaders* shader, dx_camera* camera, win32_voxel_chunk* win32Vox
     UINT offset = 0;
     context->IASetVertexBuffers(0, 1, &win32VoxelChunk->vertexBuffers, &stride, &offset);    
 
-
-
-
     context->VSSetShader(
 	shader->voxelVertexShader,
 	nullptr,
@@ -1636,7 +1666,6 @@ RenderVoxelCubes(shaders* shader, dx_camera* camera, win32_voxel_chunk* win32Vox
 	shader->pixelShader,
 	nullptr,
 	0);
-
 
    
     HRESULT hr = {};
@@ -1888,7 +1917,7 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 
 	i32 windowWidth = rect.right - rect.left;
 	i32 windowHeight = rect.bottom - rect.top;
-	
+
 	HWND windowHandle = CreateWindow(
 	    windowClass.lpszClassName,
 	    "DX11 Test",
@@ -1980,6 +2009,9 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 
 
 	    game_state* gameState = initializedData.gameState;
+
+	    gameState->windowW = windowWidth;
+	    gameState->windowH = windowHeight;
 	    /* MAIN GAME LOOP */
 	    /* MAIN GAME LOOP */
 	    /* MAIN GAME LOOP */
@@ -2040,7 +2072,7 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 		newInput->mouseYBounded = mouseP.y;
 		newInput->mouseZBounded = 0;
 
-#if 0
+#if 1
 		char mouseBuffer[256];
 		sprintf_s(mouseBuffer, sizeof(mouseBuffer), "Mouse Values in Win32: X: %f, Y: %f\n",
 			  (r32)mouseP.x, (r32)mouseP.y);
@@ -2108,8 +2140,8 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 
 
 		//GameUpdate
-		
-		game.GameUpdate(&memory, newInput, gameState, &memoryPoolCode, &programState->debugVectorArena);
+		UpdateGameStateInfo(gameState, &camera);
+		game.GameUpdate(&memory, newInput, gameState, &memoryPoolCode, &programState->debugVectorArena, &initializedData.chunk);
 
 		//Convert necessary game related data to win32 specific data
 

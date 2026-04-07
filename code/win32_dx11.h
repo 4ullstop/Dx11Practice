@@ -103,6 +103,8 @@ struct shaders
     ID3D11InputLayout* voxelInputLayout;
     ID3D11PixelShader* pixelShader;
     ID3D11Buffer* voxelConstantBuffer;
+    ID3D11Buffer* debugConstantBuffer;
+    
     ID3D11Buffer* instanceBuffer;
 };
 

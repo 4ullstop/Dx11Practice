@@ -7,8 +7,8 @@
 //#include "L:/code/game_layer_math.h"
 #include "D:/ExternalCustomAPIs/Math/forty_math.h"
 
-#define screenW 640
-#define screenH 480
+#define screenW 1280
+#define screenH 720
 
 enum voxel_type
 {
@@ -82,7 +82,24 @@ struct voxel_chunk
     i32 numOfRenderedVoxels;
 
 
-    r32 verts[24];
+    union
+    {
+	struct
+	{
+	    r32 e0, e1, e2,
+		e3, e4, e5,
+		e6, e7, e8,
+		e9, e10, e11,
+		e12, e13, e14,
+		e15, e16, e17, 
+		e18, e19, e20,
+		e21, e22, e23;
+		
+	};
+	r32 verts[24];
+	v3 vecVerts[8];
+    };
+
     i32 voxelVertCount;
 
     v3 vertexColors[8];
@@ -107,7 +124,7 @@ struct game_camera
 {
     v3 pos, forward;
 
-    m4 proj, view;
+    m4 proj, viewInverted;
 };
 
 struct game_state
@@ -118,6 +135,8 @@ struct game_state
     listed_memory* debugVectorMemory;
     listed_memory_node* debugVectorNodes;
     i32 numOfDrawnVectors;
+
+    i32 windowW, windowH;
 };
 
 struct game_initialize_data
@@ -176,6 +195,8 @@ enum e_mouse_buttons
     middle_mouse,
     left_mouse,
     right_mouse,
+    middle_mouse_up,
+    middle_mouse_down,
 };
 
 struct game_input
@@ -186,6 +207,8 @@ struct game_input
     i32 mouseXBounded, mouseYBounded, mouseZBounded;
 
     bool32 mouseButtonIsDown, mouseButtonReleased;
+
+    r32 mouseWheelDelta;
     
     v2 arcBallStart;
     v2 arcBallCurrent;
@@ -194,7 +217,13 @@ struct game_input
     r32 dTime;
     game_controller_input controllers[5];
 };
- 
+
+struct ray_cast
+{
+    bool32 hit;
+    v3 hitLocation;
+    r32 nearestCollision;
+};
 
 inline game_controller_input* GetController(game_input* input, u32 controllerIndex)
 {
@@ -221,7 +250,7 @@ ScreenToCoordNDC(v2 loc)
     return(result);
 }
 
-#define GAME_UPDATE(name) void name(program_memory* memory, game_input* input, game_state* gameState, memory_pool_dll_code* memoryPoolCode, memory_arena* debugVectorArena)
+#define GAME_UPDATE(name) void name(program_memory* memory, game_input* input, game_state* gameState, memory_pool_dll_code* memoryPoolCode, memory_arena* debugVectorArena, voxel_chunk* chunk)
 typedef GAME_UPDATE(game_update);
 
 #define GAME_INITIALIZE(name) game_initialize_data name(memory_pool_dll_code* memoryPoolCode, memory_arena* objLocationArena, program_memory* mainProgramMemory, i32* numOfGameObjects, parse_obj_data_code* parseOBJCode, memory_arena* debugVectorArena)
