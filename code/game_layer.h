@@ -221,8 +221,14 @@ struct game_input
 struct ray_cast
 {
     bool32 hit;
-    v3 hitLocation;
-    r32 nearestCollision;
+    v3 pClose, pFar;
+    r32 tMin;
+};
+
+struct voxel_cast
+{
+    ray_cast ray;
+    voxel* hitVoxel;
 };
 
 inline game_controller_input* GetController(game_input* input, u32 controllerIndex)

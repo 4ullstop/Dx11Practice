@@ -72,12 +72,6 @@ target:
 }
 breakpoint:
 {
-  source_location: "win32_dx11.cpp:820:1"
-  enabled: 0
-  hit_count: 0
-}
-breakpoint:
-{
-  source_location: "game_layer.cpp:68:1"
+  source_location: "game_layer.cpp:80:1"
   hit_count: 1
 }
