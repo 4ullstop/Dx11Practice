@@ -300,7 +300,7 @@ DetermineVoxelDrawFaces(voxel_chunk* chunk, voxel* currVoxel, i32 currIndex, mem
 }
 
 internal void
-InitVoxels(memory_pool_dll_code* memoryPoolCode, memory_arena* arena, voxel_chunk* chunk, obj* voxelObjInfo)
+InitVoxels(memory_pool_dll_code* memoryPoolCode, memory_arena* arena, memory_arena* renderedIndexArena, voxel_chunk* chunk, obj* voxelObjInfo)
 {
     chunk->voxels = (voxel*)memoryPoolCode->PushArraySized(arena, (size_t)(sizeof(voxel) * chunk->voxelResolution));
 
@@ -363,13 +363,29 @@ InitVoxels(memory_pool_dll_code* memoryPoolCode, memory_arena* arena, voxel_chun
     }
 
     chunk->centoid = totalPos / (r32)chunk->voxelResolution;
-    
+
+    //So I think these have to be stored in a linked list, not an array
+    //for dirty chunk manipulation
+
     chunk->renderedVoxelIndex = (i32*)memoryPoolCode->PushArraySized(arena, (size_t)(sizeof(i32) * chunk->numOfRenderedVoxels));
 
+    chunk->renderedVoxelMemory = (listed_memory*)memoryPoolCode->PushStruct(renderedIndexArena, sizeof(listed_memory));
+    memoryPoolCode->InitListedMemory(chunk->renderedVoxelMemory, renderedIndexArena, sizeof(rendered_voxel_info));
+    
+    
     for (int i = 0, j = 0; i < chunk->voxelResolution; i++)
     {
 	if (chunk->voxels[i].isSolid)
 	{
+	    rendered_voxel_info newInfo = {};
+	    newInfo.index = i;
+	    //Push here
+	    memoryPoolCode->AddListedItem(chunk->renderedVoxelMemory,
+					  (void*)&newInfo,
+					  sizeof(rendered_voxel_info),
+					  &chunk->renderedVoxelNodes);
+	    
+	    
 	    chunk->renderedVoxelIndex[j] = i;
 	    j++;
 	}
@@ -377,7 +393,7 @@ InitVoxels(memory_pool_dll_code* memoryPoolCode, memory_arena* arena, voxel_chun
     
 }
 
-voxel_chunk CreateVoxelChunk(v3 location, r32 voxelSize, memory_pool_dll_code* memoryPoolCode, memory_arena* objLocationArena, obj* voxelObjInfo, game_state* gameState)
+voxel_chunk CreateVoxelChunk(v3 location, r32 voxelSize, memory_pool_dll_code* memoryPoolCode, memory_arena* objLocationArena, memory_arena* renderedIndexArena, obj* voxelObjInfo, game_state* gameState)
 {
     //l * w * h = bounding box extents
 
@@ -419,7 +435,7 @@ voxel_chunk CreateVoxelChunk(v3 location, r32 voxelSize, memory_pool_dll_code* m
 
     
 
-    InitVoxels(memoryPoolCode, objLocationArena, &result, voxelObjInfo);
+    InitVoxels(memoryPoolCode, objLocationArena, renderedIndexArena, &result, voxelObjInfo);
 
     //Determine Centoid of the whole chunk here
     v3 first = result.voxels[0].pos;
@@ -442,7 +458,7 @@ extern "C" GAME_INITIALIZE(GameInitialize)
     v3 location = v3{0.0f, 0.0f, 0.0f};
 
     result.gameState = (game_state*)memoryPoolCode->PushStruct(objLocationArena, sizeof(game_state));
-    result.chunk = CreateVoxelChunk(location, voxelSize, memoryPoolCode, objLocationArena, result.allObjs, result.gameState);
+    result.chunk = CreateVoxelChunk(location, voxelSize, memoryPoolCode, objLocationArena, renderedIndexArena, result.allObjs, result.gameState);
 
 
     

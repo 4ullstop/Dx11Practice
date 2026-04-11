@@ -1399,6 +1399,8 @@ CreateNewDebugVector(win32_debug_vectors* debugVectors, memory_arena* arena, gam
 }
 #endif
 
+#if 0
+//DEAD CODE? ^^^^ vvvvv
 internal void
 CreateNewDebugVector(win32_debug_vectors* debugVectors, game_state* gameState, memory_arena* debugTempArena)
 {
@@ -1413,17 +1415,21 @@ CreateNewDebugVector(win32_debug_vectors* debugVectors, game_state* gameState, m
     }
 
 }
+#endif
 
 internal void
-Win32InitVoxelGrid(win32_voxel_chunk* win32VoxelChunk, memory_arena* arena, win32_state* win32State)
+Win32InitVoxelGrid(win32_voxel_chunk* win32VoxelChunk, memory_arena* arena, memory_arena* indexBufferArena, win32_state* win32State)
 {
     HRESULT hr = {};
     
     i32 numOfRenderedVoxels = win32VoxelChunk->chunk->numOfRenderedVoxels;
     win32VoxelChunk->indexBuffers = (ID3D11Buffer**)memoryPoolCode.PushArraySized(arena,
-										  (size_t)(sizeof(ID3D11Buffer*) * numOfRenderedVoxels));
+										  (size_t)(sizeof(ID3D11Buffer*) * numOfRenderedVoxels)); //this is also an array that might benefit from becoming a linked list
 
+    win32VoxelChunk->indexBufferMemory = (listed_memory*)memoryPoolCode.PushStruct(indexBufferArena, sizeof(listed_memory));
+    memoryPoolCode.InitListedMemory(win32VoxelChunk->indexBufferMemory, indexBufferArena, sizeof(index_buffer_info));
 
+    
     r32_3 testColors[] =
     {
 	{0, 0, 0}, //0 Black
@@ -1515,16 +1521,27 @@ Win32InitVoxelGrid(win32_voxel_chunk* win32VoxelChunk, memory_arena* arena, win3
     
     //You'll also want to probably store this on a specific arena that can be wiped whenever the chunk becomes dirty
 
+    listed_memory_node* renderedIndexNode = (listed_memory_node*)win32VoxelChunk->chunk->renderedVoxelNodes;
+
+
+    
     for (i32 i = 0; i < numOfRenderedVoxels; i++)
     {
-	voxel* currVoxel = &win32VoxelChunk->chunk->voxels[win32VoxelChunk->chunk->renderedVoxelIndex[i]];
+
+	Assert(renderedIndexNode);
+	
+	rendered_voxel_info* renderedVoxelData = (rendered_voxel_info*)renderedIndexNode->data;
+	Assert(renderedVoxelData);
+	
+	
+	i32 index = renderedVoxelData->index;
+	
+	voxel* currVoxel = &win32VoxelChunk->chunk->voxels[index];
 
 	v3 voxelPos = currVoxel->pos;
 
-	if (currVoxel->renderedIndiceCount > 36)
-	{
-	    i32 foo = 0;
-	}
+
+	index_buffer_info newIndexInfo = {};
 	
 	CD3D11_BUFFER_DESC indexDesc(
 	    sizeof(u16) * currVoxel->renderedIndiceCount,
@@ -1536,11 +1553,30 @@ Win32InitVoxelGrid(win32_voxel_chunk* win32VoxelChunk, memory_arena* arena, win3
 	indexData.SysMemPitch = 0;
 	indexData.SysMemSlicePitch = 0;
 
+#if 0	
 	hr = d3dDevice->CreateBuffer(
 	    &indexDesc,
 	    &indexData,
 	    &win32VoxelChunk->indexBuffers[i]);
-	
+#else
+	hr = d3dDevice->CreateBuffer(
+	    &indexDesc,
+	    &indexData,
+	    &newIndexInfo.indexBuffer);
+#endif
+	renderedIndexNode = renderedIndexNode->next;
+
+#if 0
+	memoryPoolCode.AddListedItem(win32VoxelChunk->indexBufferMemory,
+				     (void*)&newIndexInfo,
+				     sizeof(index_buffer_info),
+				     &win32VoxelChunk->indexBufferNodes);
+#else
+	memoryPoolCode.AddToEndOfList(win32VoxelChunk->indexBufferMemory,
+				      (void*)&newIndexInfo,
+				      sizeof(index_buffer_info),
+				      &win32VoxelChunk->indexBufferNodes);
+#endif	
     }
 }
 
@@ -1671,12 +1707,30 @@ RenderVoxelCubes(shaders* shader, dx_camera* camera, win32_voxel_chunk* win32Vox
     HRESULT hr = {};
 
     DirectX::XMVECTOR voxelOffset = DirectX::XMVectorSet(-10.0f, -10.0f, -10.0f, 0.0f);
+
+    listed_memory_node* renderedVoxelNode = (listed_memory_node*)win32VoxelChunk->chunk->renderedVoxelNodes;
+
+    listed_memory_node* indexBufferNode = (listed_memory_node*)win32VoxelChunk->indexBufferNodes;
     
     for (int i = 0; i < win32VoxelChunk->chunk->numOfRenderedVoxels; i++)
     {
-	context->VSSetConstantBuffers(1, 1, &win32State->worldObjectConstants);
+	Assert(renderedVoxelNode);
+	Assert(indexBufferNode);
+
+	rendered_voxel_info* indexData = (rendered_voxel_info*)renderedVoxelNode->data;
+	index_buffer_info* indexBufferData = (index_buffer_info*)indexBufferNode->data;
+
+	Assert(indexData);
+	Assert(indexBufferData);
+	i32 index = indexData->index;
 	
-	context->IASetIndexBuffer(win32VoxelChunk->indexBuffers[i], DXGI_FORMAT_R16_UINT, 0);
+	context->VSSetConstantBuffers(1, 1, &win32State->worldObjectConstants);
+
+//NOTE: Things are backwards, you probably need top add some sort of AddToFrontOfList for linked lists bc the
+	//indices and the voxels aren't lining up which is causing them to render inside out
+	
+//	context->IASetIndexBuffer(win32VoxelChunk->indexBuffers[i], DXGI_FORMAT_R16_UINT, 0);
+	context->IASetIndexBuffer(indexBufferData->indexBuffer, DXGI_FORMAT_R16_UINT, 0);
 
 	
 	//We are getting the constant buffer on the GPU and using for the CPU
@@ -1684,7 +1738,8 @@ RenderVoxelCubes(shaders* shader, dx_camera* camera, win32_voxel_chunk* win32Vox
 	hr = context->Map(win32State->worldObjectConstants, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
 	object_constants* data = (object_constants*)mapped.pData;
 
-	voxel* currVoxel = &win32VoxelChunk->chunk->voxels[win32VoxelChunk->chunk->renderedVoxelIndex[i]];
+//	voxel* currVoxel = &win32VoxelChunk->chunk->voxels[win32VoxelChunk->chunk->renderedVoxelIndex[i]];
+	voxel* currVoxel = &win32VoxelChunk->chunk->voxels[index];
 
 
 	DirectX::XMVECTOR vecWorld = DirectX::XMVectorSet(currVoxel->pos.x, currVoxel->pos.y, currVoxel->pos.z, 1.0f);
@@ -1697,6 +1752,9 @@ RenderVoxelCubes(shaders* shader, dx_camera* camera, win32_voxel_chunk* win32Vox
 	    currVoxel->renderedIndiceCount,
 	    0,
 	    0);
+
+	renderedVoxelNode = renderedVoxelNode->next;
+	indexBufferNode = indexBufferNode->next;
 
     }
 
@@ -1760,6 +1818,7 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 	memoryPoolCode.InitListedMemory = (memory_pool_init_listed_memory*)GetProcAddress(memoryPoolLibrary, "InitializeListedMemory");
 	memoryPoolCode.AddListedItem = (memory_pool_add_listed_item*)GetProcAddress(memoryPoolLibrary, "AddListedItem");
 	memoryPoolCode.RemoveListedItem = (memory_pool_remove_listed_item*)GetProcAddress(memoryPoolLibrary, "RemoveListedItem");
+	memoryPoolCode.AddToEndOfList = (memory_pool_add_to_end*)GetProcAddress(memoryPoolLibrary, "AddToEndOfList");
 	
     }
     if (memoryPoolCode.PushStruct && memoryPoolCode.PushArray && memoryPoolCode.PoolAlloc)
@@ -1820,8 +1879,16 @@ int CALLBACK WinMain(HINSTANCE hInstance,
     memoryPoolCode.InitArena(&programState->perFrameArena, perFrameArenaAllocSize, &memory, e_arena_type::transient);
 
     size_t debugVectorArenaSize = Megabytes(5);
-    memoryPoolCode.InitArena(&programState->debugVectorArena, debugVectorArenaSize, &memory, e_arena_type::permanent); 
+    memoryPoolCode.InitArena(&programState->debugVectorArena, debugVectorArenaSize, &memory, e_arena_type::permanent);
+    //This is probably overkill
+    size_t chunkRenderedIndexSize = Megabytes(10);
+    memoryPoolCode.InitArena(&programState->renderedVoxelIndexArena, chunkRenderedIndexSize, &memory, e_arena_type::permanent);
 
+
+    size_t indexBufferArenaSize = Megabytes(5);
+    memoryPoolCode.InitArena(&programState->indexBufferArena, indexBufferArenaSize, &memory, e_arena_type::permanent);
+    
+    
     i32* foo = (i32*)memoryPoolCode.PushStruct(&programState->debugVectorArena, sizeof(i32));
     
     
@@ -2001,7 +2068,7 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 	    i32 numOfGameObjects = 0;
 	    game_initialize_data initializedData;
 	    win32_voxel_chunk win32VoxelChunk = {};	    
-	    initializedData = game.GameInitialize(&memoryPoolCode, &programState->setupArena, &memory, &numOfGameObjects, &parseObjCode, &programState->debugVectorArena);
+	    initializedData = game.GameInitialize(&memoryPoolCode, &programState->setupArena, &programState->renderedVoxelIndexArena, &memory, &numOfGameObjects, &parseObjCode, &programState->debugVectorArena);
 
 	    win32VoxelChunk.chunk = &initializedData.chunk;
 	    
@@ -2023,7 +2090,7 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 
 
 	    
-	    Win32InitVoxelGrid(&win32VoxelChunk, &programState->setupArena, &win32State);
+	    Win32InitVoxelGrid(&win32VoxelChunk, &programState->setupArena, &programState->indexBufferArena,  &win32State);
 	    win32_debug_vectors debugVectors = {};
 	    Win32InitAllDebugVectors(&debugVectors, &programState->setupArena, &programState->debugVectorArena, &win32State);
 	    
@@ -2103,7 +2170,6 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 			oldKeyboardController->buttons[buttonIndex].endedDown;
 		};
 
-		
 
 		mouse_movements mouse = {};
 

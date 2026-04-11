@@ -43,6 +43,16 @@ Problems that I decided to leave until later:
 
 Inspirations besides stardew - any non game related?
 
+Note on memory lists:
+ - I think what you have, at least for removing items from the list is incorrect
+  - Right now, if you use the RemoveFromList it just removes the first thing in the list from the list
+   - This is problematic when you have a specific item you want to remove from the list
+    - What you will probably have to implement is some sort of system to identify the item being removed
+    and probably implement a double linked list
+
+But for now just finish the implementation of the index buffer lists and stuff so it at least renders properly
+    
+
 
 
 

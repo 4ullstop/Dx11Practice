@@ -63,6 +63,9 @@ struct program_state
 
     memory_arena debugVectorArena;
 
+    memory_arena renderedVoxelIndexArena;
+
+    memory_arena indexBufferArena;
     
     u8* arenaBase;
 };
@@ -126,6 +129,10 @@ struct aspect_ratio
     r32 aspectX, aspectY;
 };
 
+struct index_buffer_info
+{
+    ID3D11Buffer* indexBuffer;
+};
 
 struct win32_voxel_chunk
 {
@@ -133,6 +140,9 @@ struct win32_voxel_chunk
     ID3D11Buffer** indexBuffers;
     ID3D11Buffer* vertexBuffers;
 
+    listed_memory* indexBufferMemory;
+    listed_memory_node* indexBufferNodes;
+    
     //I imagine this isn't the best way to store this so you'll prob be back here later
     r32** drawnVoxelIndices;
 

@@ -65,6 +65,11 @@ struct voxel
     u16 renderedIndices[36];    
 };
 
+struct rendered_voxel_info
+{
+    i32 index;
+};
+
 struct voxel_chunk
 {
     v3 chunkWorldLocation, chunkWorldRotation, chunkWorldScale;
@@ -76,6 +81,9 @@ struct voxel_chunk
 
     v3 maxCorner, minCorner;
 
+    listed_memory* renderedVoxelMemory;
+    listed_memory_node* renderedVoxelNodes; 
+    
     i32* renderedVoxelIndex;        
     voxel* voxels;
 
@@ -259,7 +267,7 @@ ScreenToCoordNDC(v2 loc)
 #define GAME_UPDATE(name) void name(program_memory* memory, game_input* input, game_state* gameState, memory_pool_dll_code* memoryPoolCode, memory_arena* debugVectorArena, voxel_chunk* chunk)
 typedef GAME_UPDATE(game_update);
 
-#define GAME_INITIALIZE(name) game_initialize_data name(memory_pool_dll_code* memoryPoolCode, memory_arena* objLocationArena, program_memory* mainProgramMemory, i32* numOfGameObjects, parse_obj_data_code* parseOBJCode, memory_arena* debugVectorArena)
+#define GAME_INITIALIZE(name) game_initialize_data name(memory_pool_dll_code* memoryPoolCode, memory_arena* objLocationArena, memory_arena* renderedIndexArena, program_memory* mainProgramMemory, i32* numOfGameObjects, parse_obj_data_code* parseOBJCode, memory_arena* debugVectorArena)
 typedef GAME_INITIALIZE(game_initialize);
 
 #define GAME_LAYER_H
