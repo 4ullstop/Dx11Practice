@@ -60,10 +60,18 @@ VoxelCastHitDetect(v3 start, v3 end, v3 direction, voxel_chunk* chunk)
 
     r32 shortestT = 10000.0f;
 
+    listed_memory_node* renderedVoxelNode = (listed_memory_node*)chunk->renderedVoxelNodes;
+    
     for (i32 i = 0; i < chunk->numOfRenderedVoxels; i++)
     {
-	voxel* currVoxel = &chunk->voxels[chunk->renderedVoxelIndex[i]];
+	Assert(renderedVoxelNode);
 
+	rendered_voxel_info* voxelData = (rendered_voxel_info*)renderedVoxelNode->data;
+	Assert(voxelData);
+	i32 index = voxelData->index;
+
+	voxel* currVoxel = &chunk->voxels[index];
+	
 	ray_cast intersect = SlabIntersect(start, direction, chunk, currVoxel);
 	if (intersect.hit && intersect.tMin < shortestT)
 	{
@@ -73,6 +81,7 @@ VoxelCastHitDetect(v3 start, v3 end, v3 direction, voxel_chunk* chunk)
 	    return(result);
 	}
 
+	renderedVoxelNode = renderedVoxelNode->next;
     }
     return(result);
 }
@@ -367,13 +376,12 @@ InitVoxels(memory_pool_dll_code* memoryPoolCode, memory_arena* arena, memory_are
     //So I think these have to be stored in a linked list, not an array
     //for dirty chunk manipulation
 
-    chunk->renderedVoxelIndex = (i32*)memoryPoolCode->PushArraySized(arena, (size_t)(sizeof(i32) * chunk->numOfRenderedVoxels));
 
     chunk->renderedVoxelMemory = (listed_memory*)memoryPoolCode->PushStruct(renderedIndexArena, sizeof(listed_memory));
     memoryPoolCode->InitListedMemory(chunk->renderedVoxelMemory, renderedIndexArena, sizeof(rendered_voxel_info));
     
     
-    for (int i = 0, j = 0; i < chunk->voxelResolution; i++)
+    for (int i = 0; i < chunk->voxelResolution; i++)
     {
 	if (chunk->voxels[i].isSolid)
 	{
@@ -385,9 +393,6 @@ InitVoxels(memory_pool_dll_code* memoryPoolCode, memory_arena* arena, memory_are
 					  sizeof(rendered_voxel_info),
 					  &chunk->renderedVoxelNodes);
 	    
-	    
-	    chunk->renderedVoxelIndex[j] = i;
-	    j++;
 	}
     }
     

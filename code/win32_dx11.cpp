@@ -1726,10 +1726,7 @@ RenderVoxelCubes(shaders* shader, dx_camera* camera, win32_voxel_chunk* win32Vox
 	
 	context->VSSetConstantBuffers(1, 1, &win32State->worldObjectConstants);
 
-//NOTE: Things are backwards, you probably need top add some sort of AddToFrontOfList for linked lists bc the
-	//indices and the voxels aren't lining up which is causing them to render inside out
-	
-//	context->IASetIndexBuffer(win32VoxelChunk->indexBuffers[i], DXGI_FORMAT_R16_UINT, 0);
+
 	context->IASetIndexBuffer(indexBufferData->indexBuffer, DXGI_FORMAT_R16_UINT, 0);
 
 	
@@ -1738,7 +1735,6 @@ RenderVoxelCubes(shaders* shader, dx_camera* camera, win32_voxel_chunk* win32Vox
 	hr = context->Map(win32State->worldObjectConstants, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
 	object_constants* data = (object_constants*)mapped.pData;
 
-//	voxel* currVoxel = &win32VoxelChunk->chunk->voxels[win32VoxelChunk->chunk->renderedVoxelIndex[i]];
 	voxel* currVoxel = &win32VoxelChunk->chunk->voxels[index];
 
 

@@ -84,7 +84,7 @@ struct voxel_chunk
     listed_memory* renderedVoxelMemory;
     listed_memory_node* renderedVoxelNodes; 
     
-    i32* renderedVoxelIndex;        
+
     voxel* voxels;
 
     i32 numOfRenderedVoxels;
