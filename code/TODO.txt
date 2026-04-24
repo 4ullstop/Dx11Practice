@@ -49,6 +49,8 @@ Note on memory lists:
    - This is problematic when you have a specific item you want to remove from the list
     - What you will probably have to implement is some sort of system to identify the item being removed
     and probably implement a double linked list
+ - Also, your AddToEndOfList function removes the list->next item, which could be problematic if that is important
+ in freeing things
 
 But for now just finish the implementation of the index buffer lists and stuff so it at least renders properly
     
@@ -57,3 +59,7 @@ But for now just finish the implementation of the index buffer lists and stuff s
 
 
 
+0x224acb000a0
+
+
+base + (1255 * singleNodeSize)

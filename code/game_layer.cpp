@@ -54,7 +54,7 @@ SlabIntersect(v3 o, v3 d, voxel_chunk* chunk, voxel* vox)
 }
 
 internal voxel_cast
-VoxelCastHitDetect(v3 start, v3 end, v3 direction, voxel_chunk* chunk)
+VoxelCastHitDetect(v3 start, v3 end, v3 direction, voxel_chunk* chunk, memory_pool_dll_code* memoryPoolCode)
 {
     voxel_cast result = {};
 
@@ -69,6 +69,7 @@ VoxelCastHitDetect(v3 start, v3 end, v3 direction, voxel_chunk* chunk)
 	rendered_voxel_info* voxelData = (rendered_voxel_info*)renderedVoxelNode->data;
 	Assert(voxelData);
 	i32 index = voxelData->index;
+	i32 renderedIndex = voxelData->renderedIndex;
 
 	voxel* currVoxel = &chunk->voxels[index];
 	
@@ -78,6 +79,16 @@ VoxelCastHitDetect(v3 start, v3 end, v3 direction, voxel_chunk* chunk)
 	    shortestT = intersect.tMin;
 	    result.ray = intersect;
 	    result.hitVoxel = currVoxel;
+
+	    //Run routine for removing node
+//void RemoveSpecificNode(listed_memory* rec, listed_memory_node** recList, listed_memory_node* nodeToRemove)
+	    
+#if 1	    
+	    memoryPoolCode->RemoveSpecificNode(chunk->renderedVoxelMemory, &chunk->renderedVoxelNodes, renderedVoxelNode);
+	    chunk->numOfRenderedVoxels = chunk->numOfRenderedVoxels - 1;
+	    chunk->removedVoxelInfo.voxRemoved = true;
+	    chunk->removedVoxelInfo.removedVoxIndex = renderedIndex;
+#endif	    
 	    return(result);
 	}
 
@@ -379,20 +390,24 @@ InitVoxels(memory_pool_dll_code* memoryPoolCode, memory_arena* arena, memory_are
 
     chunk->renderedVoxelMemory = (listed_memory*)memoryPoolCode->PushStruct(renderedIndexArena, sizeof(listed_memory));
     memoryPoolCode->InitListedMemory(chunk->renderedVoxelMemory, renderedIndexArena, sizeof(rendered_voxel_info));
-    
+    chunk->renderedVoxelNodes = 0;
+
+    i32 renderedIndex = 0;
     
     for (int i = 0; i < chunk->voxelResolution; i++)
     {
 	if (chunk->voxels[i].isSolid)
 	{
+
 	    rendered_voxel_info newInfo = {};
 	    newInfo.index = i;
+	    newInfo.renderedIndex = renderedIndex;
 	    //Push here
 	    memoryPoolCode->AddListedItem(chunk->renderedVoxelMemory,
 					  (void*)&newInfo,
 					  sizeof(rendered_voxel_info),
 					  &chunk->renderedVoxelNodes);
-	    
+	    renderedIndex++;	    
 	}
     }
     
@@ -597,7 +612,7 @@ extern "C" GAME_UPDATE(GameUpdate)
 		);
 	    gameState->numOfDrawnVectors = gameState->numOfDrawnVectors + 1;	    
 
-	    voxel_cast cast = VoxelCastHitDetect(start, end, dir, chunk);
+	    voxel_cast cast = VoxelCastHitDetect(start, end, dir, chunk, memoryPoolCode);
 	    if (cast.ray.hit)
 	    {
 		//Here is where we dirty the voxel chunk and rebuild at the location of the hit

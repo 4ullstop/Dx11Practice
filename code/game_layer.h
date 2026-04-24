@@ -68,6 +68,13 @@ struct voxel
 struct rendered_voxel_info
 {
     i32 index;
+    i32 renderedIndex;
+};
+
+struct removed_voxel_info
+{
+    bool32 voxRemoved;
+    i32 removedVoxIndex;
 };
 
 struct voxel_chunk
@@ -84,12 +91,12 @@ struct voxel_chunk
     listed_memory* renderedVoxelMemory;
     listed_memory_node* renderedVoxelNodes; 
     
-
     voxel* voxels;
 
     i32 numOfRenderedVoxels;
 
 
+    
     union
     {
 	struct
@@ -120,7 +127,9 @@ struct voxel_chunk
     v3* renderedVoxelPositions;
 
     v3 centoid;
-//    
+//
+
+    removed_voxel_info removedVoxelInfo;    
 };
 
 struct game_debug_vector

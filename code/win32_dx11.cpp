@@ -64,6 +64,26 @@ global_variable ID3D11Texture2D* depthStencil;
 global_variable D3D11_TEXTURE2D_DESC bbDesc;
 
 
+
+void CheckIndexBufferList(win32_voxel_chunk* win32VoxelChunk)
+{
+    listed_memory_node* indexBufferNode = (listed_memory_node*)win32VoxelChunk->indexBufferNodes;
+    for (i32 i = 0; i < win32VoxelChunk->chunk->numOfRenderedVoxels; i++)
+    {
+	if (i == 1165)
+	{
+	    i32 bar = 0;
+	}
+	
+	Assert(indexBufferNode);
+	index_buffer_info* indexBufferData = (index_buffer_info*)indexBufferNode->data;
+	Assert(indexBufferData);
+	indexBufferNode = indexBufferNode->next;
+    }
+
+    i32 foo = 0;
+}
+
 #if 0
 internal DirectX::XMVECTOR
 FromV3ToXMVECTOR(v3 vec)
@@ -1372,50 +1392,36 @@ Win32InitAllDebugVectors(win32_debug_vectors* debugVectors, memory_arena* arena,
 	&debugVectors->vertexBuffer);
 }
 
-
-#if 0
 internal void
-CreateNewDebugVector(win32_debug_vectors* debugVectors, memory_arena* arena, game_input* input, dx_camera* camera)
+Win32UpdateVoxelInfo(win32_voxel_chunk* win32VoxelChunk)
 {
-    //You still have to create the init for vectors in the platform code, currently its in your game code which
-    //we were deciding might be a little problematic
-    
-    v2 screenToNDC = ScreenToCoordNDC(GetMouseScreenCoords(input));
-    v3 start = v3{screenToNDC.x, screenToNDC.y, 0.0f};
-    v3 end = start + (FromXMVECTORToV3(camera->eye) * debugVectors->debugVectorLength);
-    v3 color = v3{0.0f, 1.0f, 0.0f};
-
-    win32_debug_vector newVec = {};
-    newVec.start = FromV3ToXMVECTOR(start);
-    newVec.end = FromV3ToXMVECTOR(end);
-    newVec.color = FromV3ToXMVECTOR(color);
-
-    memoryPoolCode.AddListedItem(debugVectors->debugVectorsMemory,
-				 (void*)&newVec,
-				 sizeof(newVec),
-				 &debugVectors->debugVectorNodes);
-
-    debugVectors->numOfDrawnVectors = debugVectors->numOfDrawnVectors + 1;
-}
-#endif
-
-#if 0
-//DEAD CODE? ^^^^ vvvvv
-internal void
-CreateNewDebugVector(win32_debug_vectors* debugVectors, game_state* gameState, memory_arena* debugTempArena)
-{
-    //Make an array of the lines in the scene, clear it whenever it's larger, continue to draw
-    //no matter what
-    if (debugVectors->currDrawnVectors < gameState->numOfDrawnVectors)
+    voxel_chunk* chunk = win32VoxelChunk->chunk;
+    if (chunk->removedVoxelInfo.voxRemoved)
     {
+	listed_memory_node* indexBufferNode = (listed_memory_node*)win32VoxelChunk->indexBufferNodes;
 
+	i32 removedIndex = chunk->numOfRenderedVoxels - chunk->removedVoxelInfo.removedVoxIndex;
+	
+	for (i32 i = 0; i < removedIndex; i++)
+	{
+	    if (i == 1255)
+	    {
+		i32 foo = 0;
+	    }
+	    
+	    Assert(indexBufferNode);
+	    index_buffer_info* indexBufferData = (index_buffer_info*)indexBufferNode->data;
+	    indexBufferNode = indexBufferNode->next;
+	}
 
-	//Or we could edit a constant buffer
+	
+	memoryPoolCode.RemoveSpecificNode(win32VoxelChunk->indexBufferMemory,
+					  &win32VoxelChunk->indexBufferNodes,
+					  indexBufferNode);
 
+	chunk->removedVoxelInfo.voxRemoved = false;
     }
-
 }
-#endif
 
 internal void
 Win32InitVoxelGrid(win32_voxel_chunk* win32VoxelChunk, memory_arena* arena, memory_arena* indexBufferArena, win32_state* win32State)
@@ -1565,7 +1571,11 @@ Win32InitVoxelGrid(win32_voxel_chunk* win32VoxelChunk, memory_arena* arena, memo
 	    &newIndexInfo.indexBuffer);
 #endif
 	renderedIndexNode = renderedIndexNode->next;
-
+	if (i == 1251)
+	{
+	    i32 foo = 0;
+	}
+	
 #if 0
 	memoryPoolCode.AddListedItem(win32VoxelChunk->indexBufferMemory,
 				     (void*)&newIndexInfo,
@@ -1578,6 +1588,9 @@ Win32InitVoxelGrid(win32_voxel_chunk* win32VoxelChunk, memory_arena* arena, memo
 				      &win32VoxelChunk->indexBufferNodes);
 #endif	
     }
+
+
+
 }
 
 internal void
@@ -1750,7 +1763,11 @@ RenderVoxelCubes(shaders* shader, dx_camera* camera, win32_voxel_chunk* win32Vox
 	    0);
 
 	renderedVoxelNode = renderedVoxelNode->next;
+#if 1
 	indexBufferNode = indexBufferNode->next;
+#else
+	indexBufferNode = win32VoxelChunk->indexBufferNodes + (i  * win32VoxelChunk->indexBufferMemory->nodeSize);
+#endif	
 
     }
 
@@ -1815,6 +1832,7 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 	memoryPoolCode.AddListedItem = (memory_pool_add_listed_item*)GetProcAddress(memoryPoolLibrary, "AddListedItem");
 	memoryPoolCode.RemoveListedItem = (memory_pool_remove_listed_item*)GetProcAddress(memoryPoolLibrary, "RemoveListedItem");
 	memoryPoolCode.AddToEndOfList = (memory_pool_add_to_end*)GetProcAddress(memoryPoolLibrary, "AddToEndOfList");
+	memoryPoolCode.RemoveSpecificNode = (memory_pool_remove_specific_node*)GetProcAddress(memoryPoolLibrary, "RemoveSpecificNode");
 	
     }
     if (memoryPoolCode.PushStruct && memoryPoolCode.PushArray && memoryPoolCode.PoolAlloc)
@@ -1885,7 +1903,7 @@ int CALLBACK WinMain(HINSTANCE hInstance,
     memoryPoolCode.InitArena(&programState->indexBufferArena, indexBufferArenaSize, &memory, e_arena_type::permanent);
     
     
-    i32* foo = (i32*)memoryPoolCode.PushStruct(&programState->debugVectorArena, sizeof(i32));
+//    i32* foo = (i32*)memoryPoolCode.PushStruct(&programState->debugVectorArena, sizeof(i32));
     
     
 #endif    
@@ -2067,6 +2085,7 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 	    initializedData = game.GameInitialize(&memoryPoolCode, &programState->setupArena, &programState->renderedVoxelIndexArena, &memory, &numOfGameObjects, &parseObjCode, &programState->debugVectorArena);
 
 	    win32VoxelChunk.chunk = &initializedData.chunk;
+	    win32VoxelChunk.chunk->removedVoxelInfo = {};
 	    
 	    u32 loadCounter = 120;
 
@@ -2204,6 +2223,9 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 		//GameUpdate
 		UpdateGameStateInfo(gameState, &camera);
 		game.GameUpdate(&memory, newInput, gameState, &memoryPoolCode, &programState->debugVectorArena, &initializedData.chunk);
+
+		
+		Win32UpdateVoxelInfo(&win32VoxelChunk);
 
 		//Convert necessary game related data to win32 specific data
 
