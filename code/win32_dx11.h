@@ -35,6 +35,12 @@ struct dx_camera
     DirectX::XMVECTOR upDir;
 };
 
+struct vertex_2d
+{
+    v3 pos;
+    v2 uv;
+};
+
 #define WIN32_STATE_FILE_NAME_COUNT MAX_PATH
 struct win32_state
 {
@@ -66,6 +72,8 @@ struct program_state
     memory_arena renderedVoxelIndexArena;
 
     memory_arena indexBufferArena;
+
+    memory_arena spawnedObjArena;
     
     u8* arenaBase;
 };
@@ -109,6 +117,16 @@ struct shaders
     ID3D11Buffer* debugConstantBuffer;
     
     ID3D11Buffer* instanceBuffer;
+
+    //2D
+    ID3D11VertexShader* vertex2DShader;
+    ID3D11PixelShader* pixel2DShader;
+    ID3D11InputLayout* inputLayout2D;
+};
+
+struct direct_x_textures
+{
+    ID3D11Texture2D* mouseTex;
 };
 
 struct dx_instance_data
@@ -160,6 +178,19 @@ struct win32_debug_vector
     DirectX::XMVECTOR start;
     DirectX::XMVECTOR end;
     DirectX::XMVECTOR color;
+};
+
+struct draw_buffers
+{
+    ID3D11Buffer* indexBuffer;
+    ID3D11Buffer* vertexBuffer;
+
+    i32 indexCount;
+};
+
+struct win32_spawnable_objs
+{
+    draw_buffers* objDrawnBuffers;
 };
 
 struct win32_debug_vectors

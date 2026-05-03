@@ -63,3 +63,17 @@ But for now just finish the implementation of the index buffer lists and stuff s
 
 
 base + (1255 * singleNodeSize)
+
+Create a system for spawning things so you can spawn a cube or something debug at the hit location of the ray
+ - Create a list of spawnables
+ - Create a new draw function
+ - Import debug ico from obj file
+
+
+
+
+Where were you:
+ - I still need to actually render the objects which requires using the linked nodes created
+ and going over them, you need to look at the previous way in which you were rendering to get
+ an idea of how to render the individual objects which is different from the way you do voxels
+ bc there is no need to use a mapped resource 

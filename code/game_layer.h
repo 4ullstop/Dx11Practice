@@ -144,6 +144,32 @@ struct game_camera
     m4 proj, viewInverted;
 };
 
+enum spawnable_obj_type
+{
+    sot_icoDebug = 0,
+};
+
+struct spawned_obj_info
+{
+    spawnable_obj_type type;
+    v3 location;
+};
+
+struct game_loaded_objs
+{
+    //CreateBuffersFromOBJ
+    
+    obj* spawnedObjs; //this is static, we won't dynamically grab objs, yet at least
+    listed_memory* loadedObjMemory; //this holds all of our info on the objs
+    listed_memory_node* loadedObjNodes;
+
+
+    i32 totalNumOfObjs;  // describes the physical obj files
+    i32 queuedSpawningItems; //check agains totalNumOfOBjs to see if you added more
+};
+
+
+
 struct game_state
 {
     game_camera gameCamera;
@@ -154,13 +180,18 @@ struct game_state
     i32 numOfDrawnVectors;
 
     i32 windowW, windowH;
+
+    game_loaded_objs gameObjs;
 };
+
+
 
 struct game_initialize_data
 {
     obj* allObjs;
     voxel_chunk chunk;
     game_state* gameState;
+
 };
 
 struct instance_data
@@ -248,6 +279,16 @@ struct voxel_cast
     voxel* hitVoxel;
 };
 
+struct game_memory_arenas
+{
+    memory_arena* setupArena;
+    memory_arena* perFrameArena;
+    memory_arena* renderedIndexArena;
+
+    //Set this one up still
+    memory_arena* spawnedObjArena;
+};
+
 inline game_controller_input* GetController(game_input* input, u32 controllerIndex)
 {
     game_controller_input* result = &input->controllers[controllerIndex];
@@ -276,7 +317,7 @@ ScreenToCoordNDC(v2 loc)
 #define GAME_UPDATE(name) void name(program_memory* memory, game_input* input, game_state* gameState, memory_pool_dll_code* memoryPoolCode, memory_arena* debugVectorArena, voxel_chunk* chunk)
 typedef GAME_UPDATE(game_update);
 
-#define GAME_INITIALIZE(name) game_initialize_data name(memory_pool_dll_code* memoryPoolCode, memory_arena* objLocationArena, memory_arena* renderedIndexArena, program_memory* mainProgramMemory, i32* numOfGameObjects, parse_obj_data_code* parseOBJCode, memory_arena* debugVectorArena)
+#define GAME_INITIALIZE(name) game_initialize_data name(memory_pool_dll_code* memoryPoolCode, game_memory_arenas* memoryArenas, program_memory* mainProgramMemory, i32* numOfGameObjects, parse_obj_data_code* parseOBJCode, memory_arena* debugVectorArena)
 typedef GAME_INITIALIZE(game_initialize);
 
 #define GAME_LAYER_H

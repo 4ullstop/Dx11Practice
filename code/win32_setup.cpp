@@ -1,14 +1,14 @@
 // raddbg 0.9.20 project file
 
 recent_file: path: "win32_dx11.cpp"
-recent_file: path: "D:/externalcustomapis/memorypools/code/memory_pools.cpp"
 recent_file: path: "game_layer.cpp"
+recent_file: path: "D:/externalcustomapis/memorypools/code/memory_pools.cpp"
+recent_file: path: "D:/ExternalCustomAPIs/OBJLoader/code/obj_loader.cpp"
 recent_file: path: "D:/externalcustomapis/math/forty_math.h"
 recent_file: path: "C:/Program Files (x86)/Windows Kits/10/include/10.0.26100.0/um/directxmathconvert.inl"
 recent_file: path: "D:/Backups/Dx11Practice/Dx11Practice0825/code/win32_dx11.cpp"
 recent_file: path: "D:/Backups/Dx11Practice/Dx11Practice0825/code/game_layer.cpp"
 recent_file: path: "D:/Backups/Dx11Practice/Dx11Practice1128/code/game_layer.cpp"
-recent_file: path: "D:/ExternalCustomAPIs/OBJLoader/code/obj_loader.cpp"
 recent_file: path: "game_layer.h"
 recent_file: path: "D:/Backups/Dx11Practice/Dx11Practice0212/code/game_layer.cpp"
 recent_file: path: "D:/Backups/ExternalCustomAPIs/0214/MemoryPools/code/memory_pools.cpp"
@@ -72,43 +72,19 @@ target:
 }
 breakpoint:
 {
-  source_location: "win32_dx11.cpp:84:1"
+  source_location: "win32_dx11.cpp:2432:1"
   hit_count: 0
   enabled: 0
 }
 breakpoint:
 {
-  source_location: "win32_dx11.cpp:75:1"
+  source_location: "game_layer.cpp:556:1"
   hit_count: 0
   enabled: 0
 }
 breakpoint:
 {
-  source_location: "win32_dx11.cpp:70:1"
+  source_location: "win32_dx11.cpp:1628:1"
   hit_count: 0
   enabled: 0
-}
-breakpoint:
-{
-  source_location: "win32_dx11.cpp:1408:1"
-  hit_count: 0
-  enabled: 0
-}
-breakpoint:
-{
-  source_location: "win32_dx11.cpp:1435:1"
-  hit_count: 0
-  enabled: 0
-}
-breakpoint:
-{
-  source_location: "D:/ExternalCustomAPIs/MemoryPools/code/memory_pools.cpp:299:1"
-  hit_count: 0
-  enabled: 0
-}
-breakpoint:
-{
-  source_location: "D:/ExternalCustomAPIs/MemoryPools/code/memory_pools.cpp:237:1"
-  enabled: 0
-  hit_count: 0
 }

@@ -50,6 +50,8 @@ global_variable constant_buffer_struct constantBufferData;
 
 global_variable bool32 freeCam;
 
+global_variable thread_context blankThread = {};
+
 #include "D:/ExternalCustomAPIs/Math/forty_directx_math.h"
 #include "game_layer.h"
 
@@ -382,8 +384,8 @@ ConvertGameOBJToDXOBJ(obj* currObj, memory_arena* arena)
     for (i32 i = 0, j = 0; j < currObj->vertexCount; i += 3, j++)
     {
 	result.objVerts[j].pos.x = currObj->vertices[i];
-	result.objVerts[j].pos.y = currObj->vertices[i + 1];
-	result.objVerts[j].pos.z = currObj->vertices[i + 2];
+	result.objVerts[j].pos.y = currObj->vertices[i + 2];
+	result.objVerts[j].pos.z = currObj->vertices[i + 1];
 
 #if 0
 	DirectX::XMFLOAT3 vertColor = {1.0f, 1.0f, 1.0f};
@@ -838,6 +840,7 @@ internal void
 UpdateGameStateInfo(game_state* gameState, dx_camera* camera)
 {
    DirectX::XMMATRIX projection = XMLoadFloat4x4(&camera->constantBufferData.projection);
+   projection = DirectX::XMMatrixTranspose(projection);
 
 //    projection = DirectX::XMMatrixInverse(nullptr, projection);
     
@@ -1233,7 +1236,7 @@ CreateShaders(shaders* shaderResources)
 
     size_t destSize = 4096;
     size_t bytesRead = 0;
-    thread_context blankThread = {};
+
 
     bytes = (BYTE*)memoryPoolCode.PushStruct(&programState->setupArena, sizeof(bytes));
 
@@ -1400,15 +1403,13 @@ Win32UpdateVoxelInfo(win32_voxel_chunk* win32VoxelChunk)
     {
 	listed_memory_node* indexBufferNode = (listed_memory_node*)win32VoxelChunk->indexBufferNodes;
 
+#if 1
 	i32 removedIndex = chunk->numOfRenderedVoxels - chunk->removedVoxelInfo.removedVoxIndex;
-	
+#else
+	i32 removedIndex = chunk->removedVoxelInfo.removedVoxIndex;
+#endif	
 	for (i32 i = 0; i < removedIndex; i++)
 	{
-	    if (i == 1255)
-	    {
-		i32 foo = 0;
-	    }
-	    
 	    Assert(indexBufferNode);
 	    index_buffer_info* indexBufferData = (index_buffer_info*)indexBufferNode->data;
 	    indexBufferNode = indexBufferNode->next;
@@ -1607,6 +1608,56 @@ TRTAP(LARGE_INTEGER startTime)
     
 }
 
+internal draw_buffers*
+GetDrawBuffersFromSpawnable(win32_spawnable_objs* win32Objs, spawned_obj_info* info)
+{
+    draw_buffers* result = 0;
+    result = &win32Objs->objDrawnBuffers[info->type];
+    return(result);
+}
+
+internal void
+RenderSpawnedMeshes(game_loaded_objs* gameObjs, win32_spawnable_objs* win32Objs, win32_state* win32State)
+{
+    listed_memory_node* objNode = (listed_memory_node*)gameObjs->loadedObjNodes;
+    
+    HRESULT hr = {};
+    
+    for (i32 i = 0; i < gameObjs->loadedObjMemory->numOfItems; i++)
+    {
+	Assert(objNode);
+
+	spawned_obj_info* objInfo = (spawned_obj_info*)objNode->data;
+	Assert(objInfo);
+
+	draw_buffers* drawBuffers = GetDrawBuffersFromSpawnable(win32Objs, objInfo);
+	Assert(drawBuffers);
+
+	context->VSSetConstantBuffers(1, 1, &win32State->worldObjectConstants);
+
+	UINT stride = sizeof(vertex_position_color);
+	UINT offset = 0;
+	
+	context->IASetVertexBuffers(0, 1, &drawBuffers->vertexBuffer, &stride, &offset);
+	context->IASetIndexBuffer(drawBuffers->indexBuffer, DXGI_FORMAT_R16_UINT, 0);
+	
+	D3D11_MAPPED_SUBRESOURCE mapped;
+	hr = context->Map(win32State->worldObjectConstants, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
+	object_constants* data = (object_constants*)mapped.pData;
+
+	DirectX::XMVECTOR vecWorld = FromV3ToXMVECTOR(objInfo->location);
+	DirectX::XMStoreFloat4(&data->worldPos, vecWorld);
+	context->Unmap(win32State->worldObjectConstants, 0);
+
+	context->DrawIndexed(
+	    drawBuffers->indexCount,
+	    0,
+	    0);
+
+	objNode = objNode->next;
+    }
+}
+
 internal void
 RenderDebug(shaders* shader, win32_debug_vectors* debugVectors, game_state* gameState, dx_camera* camera)
 {
@@ -1770,23 +1821,159 @@ RenderVoxelCubes(shaders* shader, dx_camera* camera, win32_voxel_chunk* win32Vox
 #endif	
 
     }
+}
 
-    //Draw lined objects (line_strip_topology)
+internal void
+Init2D(shaders* allShaders)
+{
+    HRESULT hr = {};
+    FILE* v2dShader, *p2dShader;
+    BYTE* bytes = (BYTE*)memoryPoolCode.PushStruct(&programState->setupArena, sizeof(bytes));
 
-    //Complete our conversions from game to platform code
-    //Draw out the number of lines required 
-    context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    debug_read_file_result vshaderResult = DEBUGPlatformReadEntireFile(&blankThread, "../build/Vertex2DShader.cso");
+    bytes = (BYTE*)vshaderResult.contents;
 
-#if 0     
-    //I'm thinking about the fact that I might need another constant buffer for these
-    //Should I write an entirely new shader?k
-    for (i32 i = 0; i < gameState->numOfDrawnVectors; i++)
+    hr = d3dDevice->CreateVertexShader(vshaderResult.contents,
+				       vshaderResult.contentsSize,
+				       nullptr,
+				       &allShaders->vertex2DShader);
+
+    D3D11_INPUT_ELEMENT_DESC iaDesc[] =
     {
+	{
+	    "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,
+	    0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0
+	},
+
+	{
+	    "TEXCOORD", 0, DXGI_FORMAT_R32G32B32_FLOAT,
+	    0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0
+	}
+    };
+
+    hr = d3dDevice->CreateInputLayout(
+	iaDesc,
+	ArrayCount(iaDesc),
+	bytes,
+	vshaderResult.contentsSize,
+	&allShaders->inputLayout2D);
+
+    debug_read_file_result pshaderResult = DEBUGPlatformReadEntireFile(&blankThread, "../build/Pixel2DShader.cso");
+    bytes = (BYTE*)pshaderResult.contents;
+
+    hr = d3dDevice->CreatePixelShader(
+	pshaderResult.contents,
+	pshaderResult.contentsSize,
+	nullptr,
+	&allShaders->pixel2DShader);
+
+
+}
+
+internal draw_buffers
+CreateBuffersFromOBJ(obj* objToInit, memory_arena* tempArena)
+{
+    HRESULT hr = {};
+    
+    draw_buffers result;
+
+    //yes, i am using this conversion unaware of whether it's acutally useful to do this anymore,
+    //in the future look to see if this information can be condensed in to less code
+    //for now its what ik is going to work so fuck it
+    obj_conversion convertedObj = ConvertGameOBJToDXOBJ(objToInit, tempArena);
+    
+    D3D11_BUFFER_DESC vertexDesc;
+    vertexDesc.Usage = D3D11_USAGE_DEFAULT;
+    vertexDesc.ByteWidth = convertedObj.objVertsSize;
+    vertexDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+    vertexDesc.CPUAccessFlags = 0;
+    vertexDesc.MiscFlags = 0;
+
+    D3D11_SUBRESOURCE_DATA vertexData;
+    ZeroMemory(&vertexData, sizeof(D3D11_SUBRESOURCE_DATA));
+    vertexData.pSysMem = convertedObj.objVerts;
+    vertexData.SysMemPitch = 0;
+    vertexData.SysMemSlicePitch = 0;
+
+    hr = d3dDevice->CreateBuffer(
+	&vertexDesc,
+	&vertexData,
+	&result.vertexBuffer);
+
+    CD3D11_BUFFER_DESC indexDesc(
+	sizeof(u16) * convertedObj.indexCount,
+	D3D11_BIND_INDEX_BUFFER);
+
+    D3D11_SUBRESOURCE_DATA indexData;
+    ZeroMemory(&indexData, sizeof(D3D11_SUBRESOURCE_DATA));
+    indexData.pSysMem = convertedObj.indices;
+    indexData.SysMemPitch = 0;
+    indexData.SysMemSlicePitch = 0;
+
+    hr = d3dDevice->CreateBuffer(
+	&indexDesc,
+	&indexData,
+	&result.indexBuffer);
+
+    result.indexCount = convertedObj.indexCount;
+    return(result);
+    
+}
+
+internal void
+CreateSpawnableBuffers(game_loaded_objs* loadedObjs, win32_spawnable_objs* win32Objs, memory_arena* objArena, memory_arena* tempArena)
+{
+    win32Objs->objDrawnBuffers = (draw_buffers*)memoryPoolCode.PushArraySized(objArena, (sizeof(draw_buffers) * loadedObjs->loadedObjMemory->numOfItems));
+
+    obj* objsToSpawn = loadedObjs->spawnedObjs;
+
+    draw_buffers* win32DrawnBuffers = win32Objs->objDrawnBuffers;
+    
+    for (i32 i = 0; i < loadedObjs->totalNumOfObjs; i++)
+    {
+	Assert(win32DrawnBuffers);
+	Assert(objsToSpawn);
 	
+	*(win32DrawnBuffers) = CreateBuffersFromOBJ(loadedObjs->spawnedObjs, tempArena);
+	win32DrawnBuffers++;
+	objsToSpawn++;
     }
-#endif
+}
+
+internal direct_x_textures
+InitWin32DebugTextures(void)
+{
+    direct_x_textures result;
     
+    D3D11_TEXTURE2D_DESC desc;
+    desc.Width = 256;
+    desc.Height = 256;
+    desc.MipLevels = desc.ArraySize = 1;
+    desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    desc.SampleDesc.Count = 1;
+    desc.Usage = D3D11_USAGE_DYNAMIC;
+    desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+    desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    desc.MiscFlags = 0;
+
+
+    debug_read_file_result texResult = DEBUGPlatformReadEntireFile(&blankThread, "img/mouse_cursor.bmp");
     
+    D3D11_SUBRESOURCE_DATA debugTex;
+    ZeroMemory(&debugTex, sizeof(D3D11_SUBRESOURCE_DATA));
+    debugTex.pSysMem = texResult.contents;
+    debugTex.SysMemPitch = 0;
+    debugTex.SysMemSlicePitch = 0;
+
+    d3dDevice->CreateTexture2D(&desc, &debugTex, &result.mouseTex);
+
+    vertex_2d quad[] =
+    {
+	{{-0.5f, 0.5f, 0.0f}, {0.0f, 0.0f}},
+	{{0.5f, 0.5f, 0.0f}, {1.0f, 0.0f}},
+	{{-0.5f, -0.5f, 0.0f}, {0.0f, 1.0f}},
+	{{0.5f, -0.5f, 0.0f}, {1.0f, 1.0f}},
+    };
 }
 
 int CALLBACK WinMain(HINSTANCE hInstance,
@@ -1888,6 +2075,10 @@ int CALLBACK WinMain(HINSTANCE hInstance,
     memory.transientArenaBase = (u8*)memory.transientStorage + sizeof(program_state);
     
 #endif    
+
+    game_memory_arenas gameArenas = {};
+
+    
     
     memoryPoolCode.InitArena(&programState->setupArena, setupArenaAllocSize, &memory, e_arena_type::permanent);
     memoryPoolCode.InitArena(&programState->perFrameArena, perFrameArenaAllocSize, &memory, e_arena_type::transient);
@@ -1901,9 +2092,15 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 
     size_t indexBufferArenaSize = Megabytes(5);
     memoryPoolCode.InitArena(&programState->indexBufferArena, indexBufferArenaSize, &memory, e_arena_type::permanent);
+
+    size_t spawnedObjArenaSize = Megabytes(1);
+    memoryPoolCode.InitArena(&programState->spawnedObjArena, spawnedObjArenaSize, &memory, e_arena_type::permanent);
     
-    
-//    i32* foo = (i32*)memoryPoolCode.PushStruct(&programState->debugVectorArena, sizeof(i32));
+    gameArenas.setupArena = &programState->setupArena;
+    gameArenas.perFrameArena = &programState->perFrameArena;
+    gameArenas.renderedIndexArena = &programState->renderedVoxelIndexArena;
+    gameArenas.spawnedObjArena = &programState->spawnedObjArena;
+
     
     
 #endif    
@@ -1975,7 +2172,7 @@ int CALLBACK WinMain(HINSTANCE hInstance,
     windowClass.lpfnWndProc = Win32MainWindowProc;
     windowClass.hInstance = hInstance;
     windowClass.hCursor = LoadCursor(NULL, IDC_ARROW);
-    windowClass.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
+    windowClass.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH); // 
     windowClass.lpszClassName = "Dx11Test";
 
 
@@ -2081,9 +2278,18 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 	    obj* allGameObjects = 0;
 	    i32 numOfGameObjects = 0;
 	    game_initialize_data initializedData;
-	    win32_voxel_chunk win32VoxelChunk = {};	    
-	    initializedData = game.GameInitialize(&memoryPoolCode, &programState->setupArena, &programState->renderedVoxelIndexArena, &memory, &numOfGameObjects, &parseObjCode, &programState->debugVectorArena);
+	    win32_voxel_chunk win32VoxelChunk = {};
 
+	    
+	    initializedData = game.GameInitialize(&memoryPoolCode, &gameArenas, &memory, &numOfGameObjects, &parseObjCode, &programState->debugVectorArena);
+
+	    game_loaded_objs* spawnableObjs = &initializedData.gameState->gameObjs;
+
+	    win32_spawnable_objs win32Objs = {};
+	    
+	    CreateSpawnableBuffers(&initializedData.gameState->gameObjs, &win32Objs, &programState->perFrameArena, &programState->setupArena);
+	    
+	    
 	    win32VoxelChunk.chunk = &initializedData.chunk;
 	    win32VoxelChunk.chunk->removedVoxelInfo = {};
 	    
@@ -2230,6 +2436,7 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 		//Convert necessary game related data to win32 specific data
 
 		RenderVoxelCubes(&shaders, &camera, &win32VoxelChunk, &win32State);
+		RenderSpawnedMeshes(spawnableObjs, &win32Objs, &win32State);
 		RenderDebug(&shaders, &debugVectors, gameState, &camera);
 		swapChain->Present(1, 0);
 

@@ -1,5 +1,42 @@
 #include "game_layer.h"
 
+global_variable game_loaded_objs* gameObjs;
+
+internal game_loaded_objs
+LoadGameOBJFiles(parse_obj_data_code* parseObjCode, game_memory_arenas* arenas, program_memory* pgMem, memory_pool_dll_code* memoryPoolCode)
+{
+    game_loaded_objs result = {};
+
+    result.totalNumOfObjs = 1;
+
+    
+    result.spawnedObjs = (obj*)memoryPoolCode->PushArraySized(arenas->setupArena, (sizeof(obj) * result.totalNumOfObjs));
+    
+    result.spawnedObjs = parseObjCode->ParseOBJData("../build/debug_ico.obj", arenas->perFrameArena, arenas->setupArena, pgMem, memoryPoolCode);
+
+    result.loadedObjMemory = (listed_memory*)memoryPoolCode->PushStruct(arenas->spawnedObjArena, sizeof(listed_memory));
+
+    //this determines how many are actually gonna be rendered
+    result.loadedObjMemory->numOfItems = 0;
+    memoryPoolCode->InitListedMemory(result.loadedObjMemory, arenas->spawnedObjArena, sizeof(spawned_obj_info));
+    
+    
+    return(result);
+}
+
+internal void
+SpawnNewOBJ(spawnable_obj_type type, v3 location, game_loaded_objs* loadedObjs, memory_pool_dll_code* memoryPoolCode)
+{
+    spawned_obj_info newInfo;
+    newInfo.location = location;
+    newInfo.type = type;
+
+    memoryPoolCode->AddListedItem(loadedObjs->loadedObjMemory,
+				  (void*)&newInfo,
+				  sizeof(spawned_obj_info),
+				  &loadedObjs->loadedObjNodes);
+}
+
 internal v3
 GetVoxelFace(i32 face, voxel_chunk* chunk)
 {
@@ -54,13 +91,15 @@ SlabIntersect(v3 o, v3 d, voxel_chunk* chunk, voxel* vox)
 }
 
 internal voxel_cast
-VoxelCastHitDetect(v3 start, v3 end, v3 direction, voxel_chunk* chunk, memory_pool_dll_code* memoryPoolCode)
+VoxelCastHitDetect(v3 start, v3 end, v3 direction, voxel_chunk* chunk, memory_pool_dll_code* memoryPoolCode, game_state* gameState)
 {
     voxel_cast result = {};
 
     r32 shortestT = 10000.0f;
 
     listed_memory_node* renderedVoxelNode = (listed_memory_node*)chunk->renderedVoxelNodes;
+
+    listed_memory_node* voxelToRemove = 0;
     
     for (i32 i = 0; i < chunk->numOfRenderedVoxels; i++)
     {
@@ -80,26 +119,38 @@ VoxelCastHitDetect(v3 start, v3 end, v3 direction, voxel_chunk* chunk, memory_po
 	    result.ray = intersect;
 	    result.hitVoxel = currVoxel;
 
-	    //Run routine for removing node
-//void RemoveSpecificNode(listed_memory* rec, listed_memory_node** recList, listed_memory_node* nodeToRemove)
-	    
-#if 1	    
-	    memoryPoolCode->RemoveSpecificNode(chunk->renderedVoxelMemory, &chunk->renderedVoxelNodes, renderedVoxelNode);
-	    chunk->numOfRenderedVoxels = chunk->numOfRenderedVoxels - 1;
+	    voxelToRemove = renderedVoxelNode;
 	    chunk->removedVoxelInfo.voxRemoved = true;
 	    chunk->removedVoxelInfo.removedVoxIndex = renderedIndex;
-#endif	    
-	    return(result);
+
+
+#if 0	    
+	    memoryPoolCode->RemoveSpecificNode(chunk->renderedVoxelMemory, &chunk->renderedVoxelNodes, renderedVoxelNode);
+	    chunk->numOfRenderedVoxels = chunk->numOfRenderedVoxels - 1;
+
+
+#endif
+
 	}
 
 	renderedVoxelNode = renderedVoxelNode->next;
     }
+
+
+    if (chunk->removedVoxelInfo.voxRemoved && voxelToRemove)
+    {
+	memoryPoolCode->RemoveSpecificNode(chunk->renderedVoxelMemory, &chunk->renderedVoxelNodes, voxelToRemove);
+
+	SpawnNewOBJ(spawnable_obj_type::sot_icoDebug, result.hitVoxel->pos, &gameState->gameObjs, memoryPoolCode);	
+	chunk->numOfRenderedVoxels = chunk->numOfRenderedVoxels - 1;	
+    }
+    
     return(result);
 }
 
 
-
-bounding_box CreateBoundingBox(v3 location, r32 length, r32 width, r32 height, memory_pool_dll_code* memoryPoolCode, memory_arena* objLocationArena)
+internal bounding_box
+CreateBoundingBox(v3 location, r32 length, r32 width, r32 height, memory_pool_dll_code* memoryPoolCode, memory_arena* objLocationArena)
 {
     bounding_box result = {};
 
@@ -413,7 +464,8 @@ InitVoxels(memory_pool_dll_code* memoryPoolCode, memory_arena* arena, memory_are
     
 }
 
-voxel_chunk CreateVoxelChunk(v3 location, r32 voxelSize, memory_pool_dll_code* memoryPoolCode, memory_arena* objLocationArena, memory_arena* renderedIndexArena, obj* voxelObjInfo, game_state* gameState)
+internal voxel_chunk
+CreateVoxelChunk(v3 location, r32 voxelSize, memory_pool_dll_code* memoryPoolCode, memory_arena* objLocationArena, memory_arena* renderedIndexArena, obj* voxelObjInfo, game_state* gameState)
 {
     //l * w * h = bounding box extents
 
@@ -474,11 +526,11 @@ extern "C" GAME_INITIALIZE(GameInitialize)
     game_initialize_data result = {};
 
     r32 voxelSize = 0.5f;
-    result.allObjs = CreateSingleVoxel(memoryPoolCode, objLocationArena, voxelSize);
+    result.allObjs = CreateSingleVoxel(memoryPoolCode, memoryArenas->setupArena, voxelSize);
     v3 location = v3{0.0f, 0.0f, 0.0f};
 
-    result.gameState = (game_state*)memoryPoolCode->PushStruct(objLocationArena, sizeof(game_state));
-    result.chunk = CreateVoxelChunk(location, voxelSize, memoryPoolCode, objLocationArena, renderedIndexArena, result.allObjs, result.gameState);
+    result.gameState = (game_state*)memoryPoolCode->PushStruct(memoryArenas->setupArena, sizeof(game_state));
+    result.chunk = CreateVoxelChunk(location, voxelSize, memoryPoolCode, memoryArenas->setupArena, memoryArenas->renderedIndexArena, result.allObjs, result.gameState);
 
 
     
@@ -501,7 +553,16 @@ extern "C" GAME_INITIALIZE(GameInitialize)
 	);
     result.gameState->numOfDrawnVectors = result.gameState->numOfDrawnVectors + 1;
 #endif
-    
+
+    result.gameState->gameObjs = LoadGameOBJFiles(parseOBJCode, memoryArenas, mainProgramMemory, memoryPoolCode);
+
+
+
+#if 0
+    //this probably won't need to stay here for long (assuming your code works with spawning and such)
+    v3 spawnLoc = v3{5.0f, 5.0f, 5.0f};
+    SpawnNewOBJ(spawnable_obj_type::sot_icoDebug, spawnLoc, &result.loadedObjs, memoryPoolCode);
+#endif    
     return(result);
 }
 
@@ -565,6 +626,8 @@ extern "C" GAME_UPDATE(GameUpdate)
     }
 
 #else
+#define gemCode 0
+    
     if (input->mouseButtons[e_mouse_buttons::left_mouse].started)
     {
 	// Use the actual backbuffer dimensions from your programState
@@ -572,13 +635,22 @@ extern "C" GAME_UPDATE(GameUpdate)
 	// 1. NDC Calculation
 	// We use the actual backbuffer width/height to ensure the ratio is perfect
 	v3 ndc = {};
-	ndc.x = (2.0f * (r32)input->mouseXBounded) / gameState->windowW - 1.0f;
-	ndc.y = 1.0f - (2.0f * (r32)input->mouseYBounded) / gameState->windowH; 
 
+	ndc.x = (2.0f * (r32)input->mouseXBounded) / gameState->windowW - 1.0f;
+
+#if gemCode
+	ndc.y = (2.0f * (r32)input->mouseYBounded) / gameState->windowH; 
+#else	
+	ndc.y = 1.0f - (2.0f * (r32)input->mouseYBounded) / gameState->windowH; 
+#endif
 	// 2. Inverse Matrices
 	// Using your operator* (Row-Major/Row-Vector style)
 	m4 invProj = Inverse(gameState->gameCamera.proj);
+#if gemCode	
+	m4 invVP = gameState->gameCamera.viewInverted * invProj;
+#else	
 	m4 invVP = invProj * gameState->gameCamera.viewInverted;
+#endif	
 
 	// 3. Unproject 
 	// In DX11, the near plane is 0.0f. Using 1.0f for the far plane.
@@ -595,9 +667,15 @@ extern "C" GAME_UPDATE(GameUpdate)
 	    v3 pFar  = v3{farW.x / farW.w, farW.y / farW.w, farW.z / farW.w};
 
 	    // 5. Final Ray
-	    v3 start = pNear; 
+	    v3 start = pNear;
+#if gemCode	    
+	    v3 dir = Normalize(pNear - pFar);
+#else
 	    v3 dir = Normalize(pFar - pNear);
+#endif	    
 	    v3 end = start + (dir * gameState->debugVectorLength);
+
+
 
 	    v3 color = {};
 	    
@@ -612,7 +690,7 @@ extern "C" GAME_UPDATE(GameUpdate)
 		);
 	    gameState->numOfDrawnVectors = gameState->numOfDrawnVectors + 1;	    
 
-	    voxel_cast cast = VoxelCastHitDetect(start, end, dir, chunk, memoryPoolCode);
+	    voxel_cast cast = VoxelCastHitDetect(start, end, dir, chunk, memoryPoolCode, gameState);
 	    if (cast.ray.hit)
 	    {
 		//Here is where we dirty the voxel chunk and rebuild at the location of the hit
